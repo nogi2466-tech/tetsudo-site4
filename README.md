@@ -100,7 +100,7 @@ th {
 .type-exp { color: #22c55e; }
 .type-ltd-exp { color: #ef4444; }
 
-/* 各駅時刻表（駅ごとに横に広い枠） */
+/* 現在位置の駅表示 */
 .station-row {
   display: flex;
   margin-bottom: 6px;
@@ -124,6 +124,22 @@ th {
   border-radius: 4px;
   font-size: 12px;
 }
+
+/* ★ クラウド保存・受信ボタン（大きくて押しやすい） */
+.cloud-btn {
+  display: inline-block;
+  padding: 14px 22px;
+  margin: 8px 6px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  color: white;
+}
+.cloud-save { background: #16a34a; }
+.cloud-load { background: #2563eb; }
+.cloud-btn:active { transform: scale(0.97); }
 
 /* スマホ対応 */
 @media (max-width: 600px) {
@@ -208,8 +224,11 @@ th {
 <section id="settings">
   <h2>設定</h2>
 
-  <button id="btn-save-cloud">クラウドに保存</button>
-  <button id="btn-load-cloud">クラウドから受信</button>
+  <!-- ★ 大きくて押しやすいクラウドボタン -->
+  <div style="margin-bottom:16px;">
+    <button id="btn-save-cloud" class="cloud-btn cloud-save">☁ クラウドに保存</button>
+    <button id="btn-load-cloud" class="cloud-btn cloud-load">⬇ クラウドから受信</button>
+  </div>
 
   <h3>管理者ログイン</h3>
 
@@ -280,9 +299,17 @@ let trains = [];
 let currentDirection = "up";
 let isAdmin = false;
 
-const stations = [
-  "新宿","初台","幡ヶ谷","笹塚","代田橋",
-  "明大前","下高井戸","桜上水","京王八王子"
+/* ★ 駅データ（番線数つき） */
+let stations = [
+  { name: "新宿", tracks: 4 },
+  { name: "初台", tracks: 2 },
+  { name: "幡ヶ谷", tracks: 2 },
+  { name: "笹塚", tracks: 3 },
+  { name: "代田橋", tracks: 2 },
+  { name: "明大前", tracks: 4 },
+  { name: "下高井戸", tracks: 2 },
+  { name: "桜上水", tracks: 3 },
+  { name: "京王八王子", tracks: 4 }
 ];
 
 /* ==========================
@@ -410,24 +437,43 @@ function showTrainDetail(train) {
 }
 
 /* ==========================
-   停車駅追加
+   停車駅追加（番線数対応）
 ========================== */
-document.getElementById("btn-add-stop").addEventListener("click", () => {
-  if (!isAdmin) return;
-
+function createStopInput() {
   const div = document.createElement("div");
   div.style.marginBottom = "8px";
 
   div.innerHTML = `
     <select class="stop-station">
-      ${stations.map(s => `<option value="${s}">${s}</option>`).join("")}
+      ${stations.map(s => `<option value="${s.name}">${s.name}</option>`).join("")}
     </select>
+
     <input class="stop-arrive" placeholder="到着 (例: 09:15)">
     <input class="stop-depart" placeholder="発車 (例: 09:17)">
-    <input class="stop-track" placeholder="番線 (例: 3)">
+
+    <select class="stop-track"></select>
   `;
 
-  document.getElementById("stop-list").appendChild(div);
+  const stationSelect = div.querySelector(".stop-station");
+  const trackSelect = div.querySelector(".stop-track");
+
+  function updateTracks() {
+    const st = stations.find(s => s.name === stationSelect.value);
+    trackSelect.innerHTML = "";
+    for (let i = 1; i <= st.tracks; i++) {
+      trackSelect.innerHTML += `<option value="${i}">${i}番線</option>`;
+    }
+  }
+
+  stationSelect.addEventListener("change", updateTracks);
+  updateTracks();
+
+  return div;
+}
+
+document.getElementById("btn-add-stop").addEventListener("click", () => {
+  if (!isAdmin) return;
+  document.getElementById("stop-list").appendChild(createStopInput());
 });
 
 /* ==========================
@@ -475,25 +521,19 @@ document.getElementById("btn-save-train").addEventListener("click", () => {
 });
 
 /* ==========================
-   現在位置（駅ごとに表示）
+   現在位置（上り／下りで駅順切替）
 ========================== */
-document.getElementById("btn-up").addEventListener("click", () => {
-  currentDirection = "up";
-  updateLocation();
-});
-
-document.getElementById("btn-down").addEventListener("click", () => {
-  currentDirection = "down";
-  updateLocation();
-});
-
 function updateLocation() {
   const now = new Date();
   const nowStr = now.toTimeString().slice(0,5);
   document.getElementById("now-time").textContent = "現在時刻: " + nowStr;
 
+  /* ★ 上り／下りで駅順を切り替え */
+  let stationOrder = stations.map(s => s.name);
+  if (currentDirection === "down") stationOrder.reverse();
+
   const stationMap = {};
-  stations.forEach(st => stationMap[st] = []);
+  stationOrder.forEach(st => stationMap[st] = []);
 
   trains
     .filter(t => t.direction === currentDirection)
@@ -529,7 +569,7 @@ function updateLocation() {
   const container = document.getElementById("station-rows");
   container.innerHTML = "";
 
-  stations.forEach(st => {
+  stationOrder.forEach(st => {
     const row = document.createElement("div");
     row.className = "station-row";
 
@@ -553,6 +593,16 @@ function updateLocation() {
   });
 }
 
+document.getElementById("btn-up").addEventListener("click", () => {
+  currentDirection = "up";
+  updateLocation();
+});
+
+document.getElementById("btn-down").addEventListener("click", () => {
+  currentDirection = "down";
+  updateLocation();
+});
+
 setInterval(updateLocation, 30000);
 updateLocation();
 
@@ -560,9 +610,12 @@ updateLocation();
    クラウド保存
 ========================== */
 document.getElementById("btn-save-cloud").addEventListener("click", () => {
-  db.collection("trainData").doc("main").set({ trains })
-    .then(() => alert("クラウドに保存しました"))
-    .catch(() => alert("保存に失敗しました"));
+  db.collection("trainData").doc("main").set({
+    trains,
+    stations
+  })
+  .then(() => alert("クラウドに保存しました"))
+  .catch(() => alert("保存に失敗しました"));
 });
 
 /* ==========================
@@ -573,8 +626,10 @@ document.getElementById("btn-load-cloud").addEventListener("click", () => {
     .then(doc => {
       if (doc.exists) {
         trains = doc.data().trains || [];
+        stations = doc.data().stations || stations;
         renderTrainTable();
         updateLocation();
+        renderStationEditList();
         alert("クラウドから受信しました");
       } else {
         alert("クラウドにデータがありません");
