@@ -3,56 +3,241 @@
 <head>
 <meta charset="UTF-8">
 <title>クラウド版ダイヤ管理システム</title>
+
 <style>
-body{margin:0;font-family:system-ui,sans-serif;background:#fff;color:#000;}
-.topbar{display:flex;align-items:center;justify-content:space-between;background:#111;color:#fff;padding:18px 24px;border-bottom:3px solid #0f0;}
-.menu{display:flex;gap:40px;font-size:20px;font-weight:bold;justify-content:center;flex:1;flex-wrap:wrap;}
-.menu-item{cursor:pointer;padding:6px 12px;border-radius:6px;transition:.2s;}
-.menu-item:hover{background:#0f0;color:#000;}
-.clock{font-family:monospace;font-size:22px;font-weight:bold;color:#0f0;}
-.page{display:none;padding:20px;background:#fff;}
-.page.active{display:block;}
-table{width:100%;border-collapse:collapse;margin-top:10px;background:#fff;}
-th,td{border:1px solid #ccc;padding:6px;}
-th{background:#f0f0f0;}
-.type-kakutei{color:#888;}
-.type-kaisoku{color:#007bff;}
-.type-kukan{color:#d4b000;}
-.type-kyuko{color:#0a0;}
-.type-tokkyu{color:#e60000;}
-.type-etc{color:#0aa;}
-#monitorWrapper{display:flex;gap:20px;}
-#monitorRoute{width:220px;border-right:3px solid #0f0;padding-right:10px;}
-.route-station{position:relative;padding:10px 0 10px 20px;font-size:16px;font-weight:bold;}
-.route-dot{position:absolute;left:-2px;top:50%;transform:translateY(-50%);width:14px;height:14px;background:#0f0;border-radius:4px;}
-#monitorTrains{flex:1;max-height:80vh;overflow-y:auto;padding-left:10px;}
-.monitor-station-row{margin-bottom:20px;padding:10px;border-radius:10px;background:#f8f8f8;border:1px solid #ddd;}
-.monitor-station-name{font-size:18px;font-weight:bold;margin-bottom:6px;}
-.monitor-train-icons{display:flex;flex-wrap:wrap;gap:6px;}
-.monitor-train-icon{padding:4px 8px;border-radius:6px;border:1px solid #ccc;background:#fff;font-size:13px;}
-.detail-timetable{position:relative;margin-left:40px;padding-left:20px;border-left:4px solid #0f0;}
-.detail-stop-row{position:relative;display:flex;align-items:center;padding:10px 0;font-size:16px;}
-.detail-stop-dot{position:absolute;left:-14px;width:14px;height:14px;background:#0f0;border-radius:2px;}
-.detail-stop-times{min-width:120px;color:#222;font-weight:bold;}
-.detail-stop-station{flex:1;padding-left:10px;}
-.detail-stop-track{min-width:70px;text-align:right;color:#444;}
-.hour-block{margin-top:16px;padding:10px;background:#fff;border:1px solid #ddd;}
-.hour-title{font-size:18px;margin-bottom:6px;border-bottom:1px solid #ccc;}
-.minute-row{display:flex;justify-content:space-between;font-size:15px;padding:2px 0;}
-.minute-row-left{min-width:60px;}
-.minute-row-right{flex:1;text-align:left;padding-left:10px;}
-@media(max-width:800px){
-  .menu{gap:12px;font-size:16px;}
-  table{display:block;overflow-x:auto;white-space:nowrap;}
-  #monitorWrapper{flex-direction:column;}
-  #monitorRoute{width:100%;border-right:none;border-bottom:3px solid #0f0;padding-bottom:10px;}
-  input,select,button{width:100%;margin-top:6px;font-size:16px;}
-  .detail-timetable{margin-left:10px;padding-left:10px;}
-  .detail-stop-times{min-width:80px;}
-}
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: #fff;
+    color: #000;
+  }
+
+  /* 上部バー */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #111;
+    color: #fff;
+    padding: 18px 24px;
+    border-bottom: 3px solid #0f0;
+  }
+  .menu {
+    display: flex;
+    gap: 40px;
+    font-size: 20px;
+    font-weight: bold;
+    justify-content: center;
+    flex: 1;
+    flex-wrap: wrap;
+  }
+  .menu-item {
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: 0.2s;
+  }
+  .menu-item:hover {
+    background: #0f0;
+    color: #000;
+  }
+  .clock {
+    font-family: monospace;
+    font-size: 22px;
+    font-weight: bold;
+    color: #0f0;
+  }
+
+  .page {
+    display: none;
+    padding: 20px;
+    background: #fff;
+  }
+  .active {
+    display: block;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: #fff;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 6px;
+  }
+  th {
+    background: #f0f0f0;
+  }
+
+  /* 種別カラー */
+  .type-kakutei { color: #888; }
+  .type-kaisoku { color: #007bff; }
+  .type-kukan { color: #d4b000; }
+  .type-kyuko { color: #0a0; }
+  .type-tokkyu { color: #e60000; }
+  .type-etc { color: #0aa; }
+
+  /* モニター 2カラム */
+  #monitorWrapper {
+    display: flex;
+    gap: 20px;
+  }
+  #monitorRoute {
+    width: 220px;
+    border-right: 3px solid #0f0;
+    padding-right: 10px;
+  }
+  .route-station {
+    position: relative;
+    padding: 10px 0 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  .route-dot {
+    position: absolute;
+    left: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 14px;
+    background: #0f0;
+    border-radius: 4px;
+  }
+  #monitorTrains {
+    flex: 1;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding-left: 10px;
+  }
+  .monitor-station-row {
+    margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+  }
+  .monitor-station-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+  .monitor-train-icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .monitor-train-icon {
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fff;
+    font-size: 13px;
+  }
+
+  /* 列車詳細：画像完全一致の時刻表 */
+  .detail-timetable {
+    position: relative;
+    margin-left: 40px;
+    padding-left: 20px;
+    border-left: 4px solid #0f0;
+  }
+  .detail-stop-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    font-size: 16px;
+  }
+  .detail-stop-dot {
+    position: absolute;
+    left: -14px;
+    width: 14px;
+    height: 14px;
+    background: #0f0;
+    border-radius: 2px;
+  }
+  .detail-stop-times {
+    min-width: 120px;
+    color: #222;
+    font-weight: bold;
+  }
+  .detail-stop-station {
+    flex: 1;
+    padding-left: 10px;
+  }
+  .detail-stop-track {
+    min-width: 70px;
+    text-align: right;
+    color: #444;
+  }
+
+  /* 各駅時刻表 */
+  .hour-block {
+    margin-top: 16px;
+    padding: 10px;
+    background: #fff;
+    border: 1px solid #ddd;
+  }
+  .hour-title {
+    font-size: 18px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #ccc;
+  }
+  .minute-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    padding: 2px 0;
+  }
+  .minute-row-left {
+    min-width: 60px;
+  }
+  .minute-row-right {
+    flex: 1;
+    text-align: left;
+    padding-left: 10px;
+  }
+
+  /* ===== スマホ対応 ===== */
+  @media (max-width: 800px) {
+    .menu {
+      gap: 12px;
+      font-size: 16px;
+    }
+    table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    #monitorWrapper {
+      flex-direction: column;
+    }
+    #monitorRoute {
+      width: 100%;
+      border-right: none;
+      border-bottom: 3px solid #0f0;
+      padding-bottom: 10px;
+    }
+    input, select, button {
+      width: 100%;
+      margin-top: 6px;
+      font-size: 16px;
+    }
+    .detail-timetable {
+      margin-left: 10px;
+      padding-left: 10px;
+    }
+    .detail-stop-times {
+      min-width: 80px;
+    }
+  }
 </style>
 </head>
+
 <body>
+
 <div class="topbar">
   <div style="width:120px;"></div>
   <div class="menu">
@@ -64,18 +249,28 @@ th{background:#f0f0f0;}
   </div>
   <div id="clock" class="clock">--:--:--</div>
 </div>
-<div id="status" style="padding:10px;">状態: 初期化中…</div>
 
+<div id="status" style="padding:10px;">状態: 初期化中…</div>
 <!-- 列車一覧 -->
 <div id="listPage" class="page active">
   <h2>列車一覧</h2>
-  <div>列車番号検索：<input id="trainSearchInput" placeholder="例: 6001" oninput="renderTrainList()"></div>
+  <div>
+    列車番号検索：
+    <input id="trainSearchInput" placeholder="例: 6001" oninput="renderTrainList()">
+  </div>
   <button onclick="loadTrains()">再読み込み</button>
   <button onclick="addTrain()">追加（管理者のみ）</button>
   <table>
     <thead>
       <tr>
-        <th>#</th><th>列車番号</th><th>方向</th><th>始発駅</th><th>始発発車</th><th>種別</th><th>行先</th><th>終点到着</th>
+        <th>#</th>
+        <th>列車番号</th>
+        <th>方向</th>
+        <th>始発駅</th>
+        <th>始発発車</th>
+        <th>種別</th>
+        <th>行先</th>
+        <th>終点到着</th>
       </tr>
     </thead>
     <tbody id="trainListBody"></tbody>
@@ -86,21 +281,34 @@ th{background:#f0f0f0;}
 <div id="detailPage" class="page">
   <h2>列車詳細</h2>
   <div>選択中: <span id="selectedIndexLabel">なし</span></div>
-  <div><label>列車番号</label><br><input id="trainNumberInput"></div>
-  <div><label>種別</label><br><input id="trainTypeInput" placeholder="各停 / 快速 / 区急 / 急行 / 特急"></div>
-  <div><label>行先</label><br><input id="trainDestInput"></div>
+
+  <div>
+    <label>列車番号</label><br>
+    <input id="trainNumberInput">
+  </div>
+  <div>
+    <label>種別</label><br>
+    <input id="trainTypeInput" placeholder="各停 / 快速 / 区急 / 急行 / 特急">
+  </div>
+  <div>
+    <label>行先</label><br>
+    <input id="trainDestInput">
+  </div>
   <div style="margin-top:8px;">
     方向：
     <label><input type="radio" name="direction" value="up" onchange="changeDirection('up')"> 上り</label>
     <label style="margin-left:10px;"><input type="radio" name="direction" value="down" onchange="changeDirection('down')"> 下り</label>
   </div>
-  <div id="editorArea" style="margin-top:16px;display:none;">
+
+  <div id="editorArea" style="margin-top:16px; display:none;">
     <h3>停車駅（編集）</h3>
     <div id="stopsList"></div>
     <button onclick="addStop()">停車駅追加</button>
   </div>
+
   <h3 style="margin-top:20px;">停車駅（時刻表表示）</h3>
   <div id="detailRouteLine" class="detail-timetable"></div>
+
   <br>
   <div id="adminButtons" style="display:none;">
     <button onclick="saveCurrentEdit()">保存（管理者のみ）</button>
@@ -128,7 +336,7 @@ th{background:#f0f0f0;}
 
 <!-- モニター -->
 <div id="monitorPage" class="page">
-  <h2 style="color:#0a0;margin-bottom:12px;">列車位置モニター（現在時刻に基づく全列車）</h2>
+  <h2 style="color:#0a0; margin-bottom:12px;">列車位置モニター（現在時刻に基づく全列車）</h2>
   <div style="margin-bottom:8px;">
     方向：
     <label><input type="radio" name="monDirection" value="up" checked onchange="renderMonitorAll()"> 上り</label>
@@ -143,6 +351,7 @@ th{background:#f0f0f0;}
 <!-- 設定 -->
 <div id="settingPage" class="page">
   <h2>設定</h2>
+
   <label>管理者パスワード</label><br>
   <input id="adminPasswordInput" type="password" oninput="autoAdmin()">
   <div id="adminStatus">管理者モード: OFF</div>
@@ -151,408 +360,474 @@ th{background:#f0f0f0;}
   <button onclick="addTrain()">列車を追加</button>
   <button onclick="saveTrains()">クラウドへ保存</button>
   <button onclick="loadTrains()">クラウドから読み込み</button>
-
-  <h3>新しい列車を作成</h3>
-  <label>列車番号</label><input id="newNumber">
-  <label>種別</label><input id="newType" placeholder="各停 / 快速 / 急行 / 特急">
-  <label>行先</label><input id="newDest">
-  <label>方向</label>
-  <select id="newDir">
-    <option value="up">上り</option>
-    <option value="down">下り</option>
-  </select>
-  <label>始発駅</label><input id="newStartStation">
-  <label>始発時刻 (例 05:12)</label><input id="newStartTime">
-  <label>終着駅</label><input id="newEndStation">
-  <label>終着時刻 (例 06:03)</label><input id="newEndTime">
-  <button onclick="createTrain()">この内容で列車を追加</button>
 </div>
-
 <script>
-const routeStationsUp=["新宿","初台","幡ヶ谷","笹塚","代田橋","明大前","下高井戸","桜上水","京王八王子"];
-const routeStationsDown=[...routeStationsUp].slice().reverse();
+/* 路線の駅順（上り方向：新宿→京王八王子） */
+const routeStationsUp = [
+  "新宿","初台","幡ヶ谷","笹塚","代田橋","明大前","下高井戸","桜上水","京王八王子"
+];
+const routeStationsDown = [...routeStationsUp].slice().reverse();
+
+/* ★あなたの最新の Web アプリ URL ★ */
 const API_URL =
   "https://script.google.com/macros/s/AKfycbwsC0V56xwjrYJrmndLLs1OHv5pNpMPWUWPaWKj2u-9ES9tHR-DUVygIz3UpjvwzQCu/exec";
 
-let trains=[],selectedIndex=null,isAdmin=false;
+let trains = [];
+let selectedIndex = null;
+let isAdmin = false;
 
-function updateClock(){
-  const n=new Date(),h=String(n.getHours()).padStart(2,"0"),m=String(n.getMinutes()).padStart(2,"0"),s=String(n.getSeconds()).padStart(2,"0");
-  document.getElementById("clock").textContent=`${h}:${m}:${s}`;
+/* 時計 */
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, "0");
+  const m = String(now.getMinutes()).padStart(2, "0");
+  const s = String(now.getSeconds()).padStart(2, "0");
+  document.getElementById("clock").textContent = `${h}:${m}:${s}`;
 }
-setInterval(updateClock,1000);updateClock();
+setInterval(updateClock, 1000);
+updateClock();
 
-function showPage(id){
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+/* 共通 */
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
-function setStatus(msg){document.getElementById("status").textContent="状態: "+msg;}
+function setStatus(msg) {
+  document.getElementById("status").textContent = "状態: " + msg;
+}
 
-function autoAdmin(){
-  const pw=document.getElementById("adminPasswordInput").value;
-  isAdmin=(pw==="0829");
-  document.getElementById("adminStatus").textContent="管理者モード: "+(isAdmin?"ON":"OFF");
+/* 管理者モード */
+function autoAdmin() {
+  const pw = document.getElementById("adminPasswordInput").value;
+  if (pw === "0829") {
+    isAdmin = true;
+    document.getElementById("adminStatus").textContent = "管理者モード: ON";
+  } else {
+    isAdmin = false;
+    document.getElementById("adminStatus").textContent = "管理者モード: OFF";
+  }
   updateAdminUI();
 }
-function updateAdminUI(){
-  document.getElementById("adminButtons").style.display=isAdmin?"block":"none";
-  document.getElementById("editorArea").style.display=isAdmin?"block":"none";
+function updateAdminUI() {
+  document.getElementById("adminButtons").style.display = isAdmin ? "block" : "none";
+  document.getElementById("editorArea").style.display = isAdmin ? "block" : "none";
 }
 
-async function loadTrains(){
+/* クラウド読み込み */
+async function loadTrains() {
   setStatus("クラウドから読み込み中…");
-  try{
-    const res=await fetch(API_URL);
-    trains=await res.json();
-    if(!Array.isArray(trains))trains=[];
-    trains.forEach(t=>{
-      if(!t.direction)t.direction="up";
-      if(!Array.isArray(t.stops))t.stops=[];
-      t.stops=t.stops.map(s=>({
-        station:s.station||"",
-        arr:s.arr||s.time||"",
-        dep:s.dep||s.time||"",
-        track:s.track||"1"
-      }));
-    });
-    renderTrainList();
-    renderStationSelect();
-    renderMonitorAll();
-    setStatus("読み込み完了");
-  }catch(e){
-    console.error(e);
-    setStatus("読み込みエラー");
-  }
+  const res = await fetch(API_URL);
+  trains = await res.json();
+  if (!Array.isArray(trains)) trains = [];
+  trains.forEach(t => {
+    if (!t.direction) t.direction = "up";
+    if (!Array.isArray(t.stops)) t.stops = [];
+    t.stops = t.stops.map(s => ({
+      station: s.station || "",
+      arr: s.arr || s.time || "",
+      dep: s.dep || s.time || "",
+      track: s.track || "1"
+    }));
+  });
+  renderTrainList();
+  renderStationSelect();
+  renderMonitorAll();
+  setStatus("読み込み完了");
 }
 
-async function saveTrains(){
-  if(!isAdmin){alert("管理者モードが必要です");return;}
+/* クラウド保存 */
+async function saveTrains() {
+  if (!isAdmin) {
+    alert("管理者モードが必要です");
+    return;
+  }
   setStatus("クラウドへ保存中…");
-  try{
-    await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(trains)});
-    setStatus("保存完了");
-  }catch(e){
-    console.error(e);
-    setStatus("保存エラー");
-  }
+  await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(trains)
+  });
+  setStatus("保存完了");
 }
 
-function getTypeClass(type){
-  if(!type)return"type-etc";
-  if(type.includes("各停"))return"type-kakutei";
-  if(type.includes("快速"))return"type-kaisoku";
-  if(type.includes("区急"))return"type-kukan";
-  if(type.includes("急行"))return"type-kyuko";
-  if(type.includes("特急"))return"type-tokkyu";
-  return"type-etc";
+/* 種別カラー */
+function getTypeClass(type) {
+  if (!type) return "type-etc";
+  if (type.includes("各停")) return "type-kakutei";
+  if (type.includes("快速")) return "type-kaisoku";
+  if (type.includes("区急")) return "type-kukan";
+  if (type.includes("急行")) return "type-kyuko";
+  if (type.includes("特急")) return "type-tokkyu";
+  return "type-etc";
 }
 
-function renderTrainList(){
-  const body=document.getElementById("trainListBody");
-  const keyword=document.getElementById("trainSearchInput").value.trim();
-  body.innerHTML="";
-  let list=trains.map((t,i)=>({t,i}));
-  if(!keyword){
-    list.sort((a,b)=>{
-      const na=parseInt(a.t.number||"0",10),nb=parseInt(b.t.number||"0",10);
-      if(isNaN(na)&&isNaN(nb))return 0;
-      if(isNaN(na))return 1;
-      if(isNaN(nb))return-1;
-      return na-nb;
+/* 列車一覧 */
+function renderTrainList() {
+  const body = document.getElementById("trainListBody");
+  const keyword = document.getElementById("trainSearchInput").value.trim();
+  body.innerHTML = "";
+
+  let list = trains.map((t, i) => ({ t, i }));
+
+  if (!keyword) {
+    list.sort((a, b) => {
+      const na = parseInt(a.t.number || "0", 10);
+      const nb = parseInt(b.t.number || "0", 10);
+      if (isNaN(na) && isNaN(nb)) return 0;
+      if (isNaN(na)) return 1;
+      if (isNaN(nb)) return -1;
+      return na - nb;
     });
   }
-  list.forEach(({t,i})=>{
-    if(keyword&&!String(t.number||"").includes(keyword))return;
-    const stops=t.stops||[],first=stops[0]||{},last=stops[stops.length-1]||{};
-    const tr=document.createElement("tr");
-    tr.onclick=()=>selectTrain(i);
-    tr.innerHTML=`
+
+  list.forEach(({ t, i }) => {
+    if (keyword && !String(t.number || "").includes(keyword)) return;
+
+    const stops = t.stops || [];
+    const first = stops[0] || {};
+    const last = stops[stops.length - 1] || {};
+
+    const tr = document.createElement("tr");
+    tr.onclick = () => selectTrain(i);
+    tr.innerHTML = `
       <td>${i}</td>
-      <td>${t.number||""}</td>
-      <td>${t.direction==="up"?"上り":"下り"}</td>
-      <td>${first.station||""}</td>
-      <td>${first.dep||first.arr||""}</td>
-      <td class="${getTypeClass(t.type)}">${t.type||""}</td>
-      <td>${t.destination||""}</td>
-      <td>${last.arr||last.dep||""}</td>`;
+      <td>${t.number || ""}</td>
+      <td>${t.direction === "up" ? "上り" : "下り"}</td>
+      <td>${first.station || ""}</td>
+      <td>${first.dep || first.arr || ""}</td>
+      <td class="${getTypeClass(t.type)}">${t.type || ""}</td>
+      <td>${t.destination || ""}</td>
+      <td>${last.arr || last.dep || ""}</td>
+    `;
     body.appendChild(tr);
   });
 }
 
-function selectTrain(i){
-  selectedIndex=i;
-  const t=trains[i];
-  document.getElementById("selectedIndexLabel").textContent=i;
-  document.getElementById("trainNumberInput").value=t.number||"";
-  document.getElementById("trainTypeInput").value=t.type||"";
-  document.getElementById("trainDestInput").value=t.destination||"";
-  const dir=t.direction||"up";
-  document.querySelectorAll("input[name='direction']").forEach(r=>r.checked=(r.value===dir));
-  renderStopsEditor(t.stops||[]);
+/* 列車選択 */
+function selectTrain(i) {
+  selectedIndex = i;
+  const t = trains[i];
+  document.getElementById("selectedIndexLabel").textContent = i;
+  document.getElementById("trainNumberInput").value = t.number || "";
+  document.getElementById("trainTypeInput").value = t.type || "";
+  document.getElementById("trainDestInput").value = t.destination || "";
+  const dir = t.direction || "up";
+  document.querySelectorAll("input[name='direction']").forEach(r => {
+    r.checked = (r.value === dir);
+  });
+  renderStopsEditor(t.stops || []);
   renderDetailRouteLine();
   showPage("detailPage");
 }
 
-function changeDirection(dir){
-  if(selectedIndex==null)return;
-  trains[selectedIndex].direction=dir;
+/* 方向変更 */
+function changeDirection(dir) {
+  if (selectedIndex == null) return;
+  trains[selectedIndex].direction = dir;
   renderTrainList();
   renderMonitorAll();
   renderTimetable();
 }
 
-function renderStopsEditor(stops){
-  const list=document.getElementById("stopsList");
-  list.innerHTML="";
-  stops.forEach((s,i)=>{
-    const div=document.createElement("div");
-    div.style.marginBottom="4px";
-    div.innerHTML=`
-      駅: <input style="width:120px;" value="${s.station||""}"
+/* 停車駅編集 */
+function renderStopsEditor(stops) {
+  const list = document.getElementById("stopsList");
+  list.innerHTML = "";
+  stops.forEach((s, i) => {
+    const div = document.createElement("div");
+    div.style.marginBottom = "4px";
+    div.innerHTML = `
+      駅: <input style="width:120px;" value="${s.station || ""}"
         onchange="trains[selectedIndex].stops[${i}].station=this.value">
-      到着: <input style="width:70px;" value="${s.arr||""}"
+      到着: <input style="width:70px;" value="${s.arr || ""}"
         onchange="trains[selectedIndex].stops[${i}].arr=this.value">
-      発車: <input style="width:70px;" value="${s.dep||""}"
+      発車: <input style="width:70px;" value="${s.dep || ""}"
         onchange="trains[selectedIndex].stops[${i}].dep=this.value">
-      番線: <input style="width:50px;" value="${s.track||"1"}"
+      番線: <input style="width:50px;" value="${s.track || "1"}"
         onchange="trains[selectedIndex].stops[${i}].track=this.value">
-      <button onclick="removeStop(${i})">×</button>`;
+      <button onclick="removeStop(${i})">×</button>
+    `;
     list.appendChild(div);
   });
 }
-function addStop(){
-  if(!isAdmin)return alert("管理者モードが必要です");
-  if(selectedIndex==null)return;
-  trains[selectedIndex].stops.push({station:"",arr:"",dep:"",track:"1"});
+function addStop() {
+  if (!isAdmin) return alert("管理者モードが必要です");
+  if (selectedIndex == null) return;
+  trains[selectedIndex].stops.push({ station: "", arr: "", dep: "", track: "1" });
   renderStopsEditor(trains[selectedIndex].stops);
   renderDetailRouteLine();
 }
-function removeStop(i){
-  if(!isAdmin)return alert("管理者モードが必要です");
-  if(selectedIndex==null)return;
-  trains[selectedIndex].stops.splice(i,1);
+function removeStop(i) {
+  if (!isAdmin) return alert("管理者モードが必要です");
+  if (selectedIndex == null) return;
+  trains[selectedIndex].stops.splice(i, 1);
   renderStopsEditor(trains[selectedIndex].stops);
   renderDetailRouteLine();
 }
 
-function addTrain(){
-  if(!isAdmin)return alert("管理者モードが必要です");
-  trains.push({number:"",type:"",destination:"",direction:"up",stops:[]});
+/* 列車追加・削除 */
+function addTrain() {
+  if (!isAdmin) return alert("管理者モードが必要です");
+  trains.push({ number: "", type: "", destination: "", direction: "up", stops: [] });
   renderTrainList();
 }
-function deleteSelectedTrain(){
-  if(!isAdmin)return alert("管理者モードが必要です");
-  if(selectedIndex==null)return;
-  trains.splice(selectedIndex,1);
-  selectedIndex=null;
+function deleteSelectedTrain() {
+  if (!isAdmin) return alert("管理者モードが必要です");
+  if (selectedIndex == null) return;
+  trains.splice(selectedIndex, 1);
+  selectedIndex = null;
   renderTrainList();
 }
 
-function saveCurrentEdit(){
-  if(!isAdmin)return alert("管理者モードが必要です");
-  if(selectedIndex==null)return;
-  const t=trains[selectedIndex];
-  t.number=document.getElementById("trainNumberInput").value;
-  t.type=document.getElementById("trainTypeInput").value;
-  t.destination=document.getElementById("trainDestInput").value;
+/* 編集保存 */
+function saveCurrentEdit() {
+  if (!isAdmin) return alert("管理者モードが必要です");
+  if (selectedIndex == null) return;
+  const t = trains[selectedIndex];
+  t.number = document.getElementById("trainNumberInput").value;
+  t.type = document.getElementById("trainTypeInput").value;
+  t.destination = document.getElementById("trainDestInput").value;
   saveTrains();
   renderTrainList();
 }
 
-function renderDetailRouteLine(){
-  const c=document.getElementById("detailRouteLine");
-  c.innerHTML="";
-  if(selectedIndex==null)return;
-  const t=trains[selectedIndex],stops=t.stops||[];
-  stops.forEach(s=>{
-    const row=document.createElement("div");
-    row.className="detail-stop-row";
-    const times=[];
-    if(s.arr)times.push(s.arr);
-    if(s.dep&&s.dep!==s.arr)times.push(s.dep);
-    row.innerHTML=`
+/* 列車詳細：画像風時刻表表示 */
+function renderDetailRouteLine() {
+  const container = document.getElementById("detailRouteLine");
+  container.innerHTML = "";
+  if (selectedIndex == null) return;
+
+  const t = trains[selectedIndex];
+  const stops = t.stops || [];
+
+  stops.forEach(s => {
+    const row = document.createElement("div");
+    row.className = "detail-stop-row";
+
+    const times = [];
+    if (s.arr) times.push(s.arr);
+    if (s.dep && s.dep !== s.arr) times.push(s.dep);
+
+    row.innerHTML = `
       <div class="detail-stop-dot"></div>
       <div class="detail-stop-times">${times.join(" ")}</div>
-      <div class="detail-stop-station">${s.station||""}</div>
-      <div class="detail-stop-track">${s.track||"1"}番線</div>`;
-    c.appendChild(row);
+      <div class="detail-stop-station">${s.station || ""}</div>
+      <div class="detail-stop-track">${s.track || "1"}番線</div>
+    `;
+    container.appendChild(row);
   });
 }
 
-function renderStationSelect(){
-  const sel=document.getElementById("stationSelect");
-  sel.innerHTML="";
-  const stations=new Set();
-  trains.forEach(t=>(t.stops||[]).forEach(s=>stations.add(s.station)));
-  [...stations].forEach(st=>{
-    const opt=document.createElement("option");
-    opt.value=st;opt.textContent=st;sel.appendChild(opt);
+/* 各駅時刻表 */
+function renderStationSelect() {
+  const select = document.getElementById("stationSelect");
+  select.innerHTML = "";
+  const stations = new Set();
+  trains.forEach(t => (t.stops || []).forEach(s => stations.add(s.station)));
+  [...stations].forEach(st => {
+    const opt = document.createElement("option");
+    opt.value = st;
+    opt.textContent = st;
+    select.appendChild(opt);
   });
   renderTimetable();
 }
-function getSelectedTTDirection(){
+function getSelectedTTDirection() {
   return document.querySelector("input[name='ttDirection']:checked").value;
 }
-function renderTimetable(){
-  const st=document.getElementById("stationSelect").value;
-  renderTimetableCore(st);
+function renderTimetable() {
+  const station = document.getElementById("stationSelect").value;
+  renderTimetableCore(station);
 }
-function renderTimetableFromInput(){
-  const st=document.getElementById("stationInput").value.trim();
-  if(!st)return;
-  renderTimetableCore(st);
+function renderTimetableFromInput() {
+  const station = document.getElementById("stationInput").value.trim();
+  if (!station) return;
+  renderTimetableCore(station);
 }
-function renderTimetableCore(station){
-  const c=document.getElementById("timetableContainer");
-  c.innerHTML="";
-  if(!station)return;
-  const dir=getSelectedTTDirection(),map={};
-  trains.forEach(t=>{
-    if(t.direction!==dir)return;
-    (t.stops||[]).forEach(s=>{
-      if(s.station!==station)return;
-      const time=s.dep||s.arr;
-      if(!time)return;
-      const [hStr,mStr]=String(time).split(":");
-      if(!hStr||!mStr)return;
-      const h=parseInt(hStr,10),m=parseInt(mStr,10);
-      if(!map[h])map[h]=[];
-      map[h].push({minute:m,dest:t.destination,type:t.type});
+function renderTimetableCore(station) {
+  const container = document.getElementById("timetableContainer");
+  container.innerHTML = "";
+  if (!station) return;
+
+  const dir = getSelectedTTDirection();
+  const map = {};
+  trains.forEach(t => {
+    if (t.direction !== dir) return;
+    (t.stops || []).forEach(s => {
+      if (s.station !== station) return;
+      const time = s.dep || s.arr;
+      if (!time) return;
+      const [hStr, mStr] = String(time).split(":");
+      if (!hStr || !mStr) return;
+      const h = parseInt(hStr, 10);
+      const m = parseInt(mStr, 10);
+      if (!map[h]) map[h] = [];
+      map[h].push({
+        minute: m,
+        dest: t.destination,
+        type: t.type
+      });
     });
   });
-  const hours=Object.keys(map).map(h=>parseInt(h,10)).sort((a,b)=>a-b);
-  if(hours.length===0){c.textContent=station+" 発の列車はありません。";return;}
-  hours.forEach(h=>{
-    const block=document.createElement("div");
-    block.className="hour-block";
-    const title=document.createElement("div");
-    title.className="hour-title";title.textContent=h+"時";
+
+  const hours = Object.keys(map).map(h => parseInt(h, 10)).sort((a,b)=>a-b);
+  if (hours.length === 0) {
+    container.textContent = station + " 発の列車はありません。";
+    return;
+  }
+
+  hours.forEach(h => {
+    const block = document.createElement("div");
+    block.className = "hour-block";
+
+    const title = document.createElement("div");
+    title.className = "hour-title";
+    title.textContent = h + "時";
     block.appendChild(title);
-    const list=map[h].sort((a,b)=>a.minute-b.minute);
-    list.forEach(item=>{
-      const row=document.createElement("div");
-      row.className="minute-row";
-      const typeClass=getTypeClass(item.type);
-      row.innerHTML=`
+
+    const list = map[h].sort((a,b)=>a.minute - b.minute);
+    list.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "minute-row";
+
+      const typeClass = getTypeClass(item.type);
+
+      row.innerHTML = `
         <div class="minute-row-left">${String(item.minute).padStart(2,"0")}</div>
         <div class="minute-row-right">
-          <span class="${typeClass}">${item.type||""}</span>
-          ${item.dest||""}
-        </div>`;
+          <span class="${typeClass}">${item.type || ""}</span>
+          ${item.dest || ""}
+        </div>
+      `;
       block.appendChild(row);
     });
-    c.appendChild(block);
+
+    container.appendChild(block);
   });
 }
 
-function timeToMinutes(str){
-  if(!str)return null;
-  const [hStr,mStr]=String(str).split(":");
-  if(!hStr||!mStr)return null;
-  const h=parseInt(hStr,10),m=parseInt(mStr,10);
-  if(isNaN(h)||isNaN(m))return null;
-  return h*60+m;
+/* 時刻→分 */
+function timeToMinutes(str) {
+  if (!str) return null;
+  const [hStr, mStr] = String(str).split(":");
+  if (!hStr || !mStr) return null;
+  const h = parseInt(hStr, 10);
+  const m = parseInt(mStr, 10);
+  if (isNaN(h) || isNaN(m)) return null;
+  return h * 60 + m;
 }
-function getNowMinutes(){
-  const n=new Date();
-  return n.getHours()*60+n.getMinutes();
+function getNowMinutes() {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
 }
 
-function getMonitorDirection(){
+/* モニター */
+function getMonitorDirection() {
   return document.querySelector("input[name='monDirection']:checked").value;
 }
-function renderMonitorAll(){
-  const routeDiv=document.getElementById("monitorRoute");
-  const trainsDiv=document.getElementById("monitorTrains");
-  routeDiv.innerHTML="";trainsDiv.innerHTML="";
-  const nowMin=getNowMinutes(),dir=getMonitorDirection();
-  const routeStations=dir==="up"?routeStationsUp:routeStationsDown;
-  const stationData=routeStations.map((st,idx)=>({station:st,index:idx,trainsHere:[],trainsPassing:[]}));
+function renderMonitorAll() {
+  const routeDiv = document.getElementById("monitorRoute");
+  const trainsDiv = document.getElementById("monitorTrains");
 
-  trains.forEach(t=>{
-    if(t.direction!==dir)return;
-    const stops=(t.stops||[]).map(s=>({
-      station:s.station,arr:s.arr,dep:s.dep,
-      minArr:timeToMinutes(s.arr),minDep:timeToMinutes(s.dep)
-    })).filter(s=>s.minArr!=null||s.minDep!=null);
-    if(stops.length===0)return;
-    for(let i=0;i<stops.length;i++){
-      const cur=stops[i],next=stops[i+1];
-      const curTime=cur.minDep??cur.minArr;
-      if(curTime!=null&&nowMin===curTime){
-        const idx=routeStations.indexOf(cur.station);
-        if(idx>=0)stationData[idx].trainsHere.push(t);
+  routeDiv.innerHTML = "";
+  trainsDiv.innerHTML = "";
+
+  const nowMin = getNowMinutes();
+  const dir = getMonitorDirection();
+  const routeStations = dir === "up" ? routeStationsUp : routeStationsDown;
+
+  const stationData = routeStations.map((st, idx) => ({
+    station: st,
+    index: idx,
+    trainsHere: [],
+    trainsPassing: []
+  }));
+
+  trains.forEach(t => {
+    if (t.direction !== dir) return;
+    const stops = (t.stops || []).map(s => ({
+      station: s.station,
+      arr: s.arr,
+      dep: s.dep,
+      minArr: timeToMinutes(s.arr),
+      minDep: timeToMinutes(s.dep)
+    })).filter(s => s.minArr != null || s.minDep != null);
+
+    if (stops.length === 0) return;
+
+    for (let i = 0; i < stops.length; i++) {
+      const cur = stops[i];
+      const next = stops[i + 1];
+
+      const curTime = cur.minDep ?? cur.minArr;
+      if (curTime != null && nowMin === curTime) {
+        const stIndex = routeStations.indexOf(cur.station);
+        if (stIndex >= 0) {
+          stationData[stIndex].trainsHere.push(t);
+        }
       }
-      const curRef=cur.minDep??cur.minArr;
-      const nextRef=next?(next.minArr??next.minDep):null;
-      if(next&&curRef!=null&&nextRef!=null&&nowMin>curRef&&nowMin<nextRef){
-        const idx=routeStations.indexOf(cur.station);
-        if(idx>=0)stationData[idx].trainsPassing.push({train:t,nextStation:next.station});
+
+      const curRef = cur.minDep ?? cur.minArr;
+      const nextRef = next ? (next.minArr ?? next.minDep) : null;
+      if (next && curRef != null && nextRef != null && nowMin > curRef && nowMin < nextRef) {
+        const stIndex = routeStations.indexOf(cur.station);
+        if (stIndex >= 0) {
+          stationData[stIndex].trainsPassing.push({
+            train: t,
+            nextStation: next.station
+          });
+        }
       }
     }
   });
 
-  routeStations.forEach(st=>{
-    const div=document.createElement("div");
-    div.className="route-station";
-    div.innerHTML=`<div class="route-dot"></div>${st}`;
+  routeStations.forEach(st => {
+    const div = document.createElement("div");
+    div.className = "route-station";
+    div.innerHTML = `
+      <div class="route-dot"></div>
+      ${st}
+    `;
     routeDiv.appendChild(div);
   });
 
-  routeStations.forEach(st=>{
-    const row=document.createElement("div");
-    row.className="monitor-station-row";
-    row.innerHTML=`
-      <div class="monitor-station-name">${st}</div>
-      <div class="monitor-train-icons"></div>`;
-    const iconsDiv=row.querySelector(".monitor-train-icons");
-    const sd=stationData.find(x=>x.station===st);
-    sd.trainsHere.forEach(t=>{
-      const icon=document.createElement("div");
-      icon.className="monitor-train-icon "+getTypeClass(t.type);
-      icon.textContent=`${t.number||""} ${t.type||""} ${t.destination||""}`;
+  stationData.forEach(sd => {
+    const row = document.createElement("div");
+    row.className = "monitor-station-row";
+
+    row.innerHTML = `
+      <div class="monitor-station-name">${sd.station}</div>
+      <div class="monitor-train-icons"></div>
+    `;
+
+    const iconsDiv = row.querySelector(".monitor-train-icons");
+
+    sd.trainsHere.forEach(t => {
+      const icon = document.createElement("div");
+      icon.className = "monitor-train-icon " + getTypeClass(t.type);
+      icon.textContent = `${t.number || ""} ${t.type || ""} ${t.destination || ""}`;
       iconsDiv.appendChild(icon);
     });
-    sd.trainsPassing.forEach(obj=>{
-      const t=obj.train;
-      const icon=document.createElement("div");
-      icon.className="monitor-train-icon "+getTypeClass(t.type);
-      icon.textContent=`${t.number||""} ${t.type||""} ${t.destination||""}（${st}〜${obj.nextStation}）`;
+
+    sd.trainsPassing.forEach(obj => {
+      const t = obj.train;
+      const icon = document.createElement("div");
+      icon.className = "monitor-train-icon " + getTypeClass(t.type);
+      icon.textContent = `${t.number || ""} ${t.type || ""} ${t.destination || ""}（${sd.station}〜${obj.nextStation}）`;
       iconsDiv.appendChild(icon);
     });
+
     trainsDiv.appendChild(row);
   });
 }
 
-setInterval(renderMonitorAll,60*1000);
+/* モニターを1分ごと更新 */
+setInterval(renderMonitorAll, 60 * 1000);
 
-function createTrain(){
-  if(!isAdmin)return alert("管理者モードが必要です");
-  const number=document.getElementById("newNumber").value;
-  const type=document.getElementById("newType").value;
-  const dest=document.getElementById("newDest").value;
-  const dir=document.getElementById("newDir").value;
-  const startSt=document.getElementById("newStartStation").value;
-  const startTm=document.getElementById("newStartTime").value;
-  const endSt=document.getElementById("newEndStation").value;
-  const endTm=document.getElementById("newEndTime").value;
-  if(!number||!startSt||!startTm||!endSt||!endTm){
-    alert("必要な項目が足りません");
-    return;
-  }
-  trains.push({
-    number,type,destination:dest,direction:dir,
-    stops:[
-      {station:startSt,arr:startTm,dep:startTm,track:"1"},
-      {station:endSt,arr:endTm,dep:endTm,track:"1"}
-    ]
-  });
-  alert("列車を追加しました");
-  renderTrainList();
-}
-
+/* 初期ロード */
 updateAdminUI();
 loadTrains();
 </script>
+
 </body>
 </html>
