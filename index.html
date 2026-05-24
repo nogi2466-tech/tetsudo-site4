@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>クラウド版ダイヤ管理システム</title>
-
 <style>
   body {
     margin: 0;
@@ -29,7 +28,6 @@
     font-weight: bold;
     justify-content: center;
     flex: 1;
-    flex-wrap: wrap;
   }
   .menu-item {
     cursor: pointer;
@@ -141,7 +139,7 @@
     position: relative;
     margin-left: 40px;
     padding-left: 20px;
-    border-left: 4px solid #0f0;
+    border-left: 4px solid #0f0; /* 縦線 */
   }
   .detail-stop-row {
     position: relative;
@@ -156,7 +154,7 @@
     width: 14px;
     height: 14px;
     background: #0f0;
-    border-radius: 2px;
+    border-radius: 2px; /* 四角っぽい */
   }
   .detail-stop-times {
     min-width: 120px;
@@ -173,7 +171,7 @@
     color: #444;
   }
 
-  /* 各駅時刻表 */
+  /* 各駅時刻表：右側に時刻 */
   .hour-block {
     margin-top: 16px;
     padding: 10px;
@@ -200,42 +198,11 @@
     padding-left: 10px;
   }
 
-  /* ===== スマホ対応 ===== */
-  @media (max-width: 800px) {
-    .menu {
-      gap: 12px;
-      font-size: 16px;
-    }
-    table {
-      display: block;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-    #monitorWrapper {
-      flex-direction: column;
-    }
-    #monitorRoute {
-      width: 100%;
-      border-right: none;
-      border-bottom: 3px solid #0f0;
-      padding-bottom: 10px;
-    }
-    input, select, button {
-      width: 100%;
-      margin-top: 6px;
-      font-size: 16px;
-    }
-    .detail-timetable {
-      margin-left: 10px;
-      padding-left: 10px;
-    }
-    .detail-stop-times {
-      min-width: 80px;
-    }
+  .direction-label {
+    margin-right: 10px;
   }
 </style>
 </head>
-
 <body>
 
 <div class="topbar">
@@ -251,6 +218,7 @@
 </div>
 
 <div id="status" style="padding:10px;">状態: 初期化中…</div>
+
 <!-- 列車一覧 -->
 <div id="listPage" class="page active">
   <h2>列車一覧</h2>
@@ -295,11 +263,12 @@
     <input id="trainDestInput">
   </div>
   <div style="margin-top:8px;">
-    方向：
+    <span class="direction-label">方向：</span>
     <label><input type="radio" name="direction" value="up" onchange="changeDirection('up')"> 上り</label>
     <label style="margin-left:10px;"><input type="radio" name="direction" value="down" onchange="changeDirection('down')"> 下り</label>
   </div>
 
+  <!-- 編集UI（パスワード入力時のみ表示） -->
   <div id="editorArea" style="margin-top:16px; display:none;">
     <h3>停車駅（編集）</h3>
     <div id="stopsList"></div>
@@ -351,21 +320,25 @@
 <!-- 設定 -->
 <div id="settingPage" class="page">
   <h2>設定</h2>
-
   <label>管理者パスワード</label><br>
   <input id="adminPasswordInput" type="password" oninput="autoAdmin()">
   <div id="adminStatus">管理者モード: OFF</div>
-
-  <h3>操作</h3>
-  <button onclick="addTrain()">列車を追加</button>
-  <button onclick="saveTrains()">クラウドへ保存</button>
-  <button onclick="loadTrains()">クラウドから読み込み</button>
 </div>
+
 <script>
 /* 路線の駅順（上り方向：新宿→京王八王子） */
 const routeStationsUp = [
-  "新宿","初台","幡ヶ谷","笹塚","代田橋","明大前","下高井戸","桜上水","京王八王子"
+  "新宿",
+  "初台",
+  "幡ヶ谷",
+  "笹塚",
+  "代田橋",
+  "明大前",
+  "下高井戸",
+  "桜上水",
+  "京王八王子"
 ];
+/* 下り方向は逆順 */
 const routeStationsDown = [...routeStationsUp].slice().reverse();
 
 /* ★あなたの最新の Web アプリ URL ★ */
@@ -396,7 +369,7 @@ function setStatus(msg) {
   document.getElementById("status").textContent = "状態: " + msg;
 }
 
-/* 管理者モード */
+/* 管理者モード（パスワード入力でON） */
 function autoAdmin() {
   const pw = document.getElementById("adminPasswordInput").value;
   if (pw === "0829") {
@@ -497,7 +470,7 @@ function renderTrainList() {
       <td>${first.dep || first.arr || ""}</td>
       <td class="${getTypeClass(t.type)}">${t.type || ""}</td>
       <td>${t.destination || ""}</td>
-      <td>${last.arr || last.dep || ""}</td>
+            <td>${last.arr || last.dep || ""}</td>
     `;
     body.appendChild(tr);
   });
@@ -529,7 +502,7 @@ function changeDirection(dir) {
   renderTimetable();
 }
 
-/* 停車駅編集 */
+/* 停車駅編集（駅名＋到着＋発車＋番線） */
 function renderStopsEditor(stops) {
   const list = document.getElementById("stopsList");
   list.innerHTML = "";
@@ -553,6 +526,7 @@ function renderStopsEditor(stops) {
 function addStop() {
   if (!isAdmin) return alert("管理者モードが必要です");
   if (selectedIndex == null) return;
+  if (!Array.isArray(trains[selectedIndex].stops)) trains[selectedIndex].stops = [];
   trains[selectedIndex].stops.push({ station: "", arr: "", dep: "", track: "1" });
   renderStopsEditor(trains[selectedIndex].stops);
   renderDetailRouteLine();
@@ -721,7 +695,7 @@ function getNowMinutes() {
   return now.getHours() * 60 + now.getMinutes();
 }
 
-/* モニター */
+/* モニター：駅ごとに列車を並べる（左に路線図固定） */
 function getMonitorDirection() {
   return document.querySelector("input[name='monDirection']:checked").value;
 }
