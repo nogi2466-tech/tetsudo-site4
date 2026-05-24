@@ -323,6 +323,28 @@
   <label>管理者パスワード</label><br>
   <input id="adminPasswordInput" type="password" oninput="autoAdmin()">
   <div id="adminStatus">管理者モード: OFF</div>
+  <!-- 設定セクション -->
+<div class="settings-section">
+    <h2>設定</h2>
+    
+    <div class="form-group">
+        <label for="admin-password">管理者パスワード</label>
+        <input type="password" id="admin-password" placeholder="パスワードを入力">
+    </div>
+    
+    <div class="form-group">
+        <span>管理者モード: <span id="admin-mode-status">OFF</span></span>
+    </div>
+
+    <!-- ▼ ここから追加：クラウド保存・読み込みボタン ▼ -->
+    <div class="cloud-actions" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ccc;">
+        <h3>クラウド連携</h3>
+        <button type="button" id="btn-cloud-save" style="margin-right: 10px; padding: 5px 15px;">クラウドに保存</button>
+        <button type="button" id="btn-cloud-load" style="padding: 5px 15px;">クラウドから読み込み</button>
+    </div>
+    <!-- ▲ ここまで追加 ▲ -->
+</div>
+
 </div>
 
 <script>
