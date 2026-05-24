@@ -172,7 +172,7 @@ th{background:#f0f0f0;}
 const routeStationsUp=["新宿","初台","幡ヶ谷","笹塚","代田橋","明大前","下高井戸","桜上水","京王八王子"];
 const routeStationsDown=[...routeStationsUp].slice().reverse();
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbw-ID5qlp9cgnExvPnz0rjfCBRKqCcwiVmhSq4c2aU8ns_jG5l4T9itHBzMC0AcsYY/exec";
+  "https://script.google.com/macros/s/AKfycbw16Gtp9ik_Ra7gbBloeBm3M-Y6iFgiem5-mKfzRNuRrFkHSJcwS2zPnZLfLxMnfM1H/exec";
 
 let trains=[],selectedIndex=null,isAdmin=false;
 
