@@ -5,16 +5,21 @@
 <title>京王運行管理システム</title>
 <link rel="stylesheet" href="style.css">
 
-<!-- Firebase -->
+<!-- Firebase v8（app.js と完全互換） -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
 <script>
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_DOMAIN",
-    projectId: "YOUR_PROJECT_ID"
+    apiKey: "AIzaSyAxJVAx7CIK4U21Qxl20n4yxagcl9dfItE",
+    authDomain: "train-system-9622f.firebaseapp.com",
+    projectId: "train-system-9622f",
+    storageBucket: "train-system-9622f.firebasestorage.app",
+    messagingSenderId: "1066598708695",
+    appId: "1:1066598708695:web:e682df702e58caaaedc792",
+    measurementId: "G-CKP4Z2F65W"
   };
+
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 </script>
@@ -110,21 +115,12 @@
 </section>
 
 <!-- ============================
-     現在位置（路線図）
+     現在位置（縦型路線図）
 ============================ -->
 <section id="location" class="page">
   <h2>現在位置</h2>
 
-  <div class="direction-buttons">
-    <button id="btn-up">上り</button>
-    <button id="btn-down">下り</button>
-  </div>
-
-  <h3>京王線</h3>
-  <div id="line-main-body" class="line-body"></div>
-
-  <h3>相模原線</h3>
-  <div id="line-sagami-body" class="line-body"></div>
+  <div id="line-main-body" class="vertical-line-body"></div>
 </section>
 
 <!-- ============================
