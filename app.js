@@ -90,18 +90,28 @@ document.querySelectorAll("nav a").forEach(a => {
     document.getElementById(id).classList.add("active");
   };
 });
+
+/* ============================
+   ★ 各駅時刻表メニューの追加
+============================ */
+const timetableMenu = document.createElement("a");
+timetableMenu.textContent = "各駅時刻表";
+timetableMenu.dataset.target = "timetable";
+document.querySelector("nav").appendChild(timetableMenu);
 /* ============================
    停車駅入力フォーム生成
-   上り/下りで駅順を自動反転
+   ★ 上り/下りの駅順バグ修正済み
 ============================ */
 function createStopInput(line){
   const div = document.createElement("div");
 
   const baseStations = (line === "sagami" ? stationsSagami : stationsMain);
 
-  // 上りなら駅順を反転
+  // ★ 正しい方向に修正
+  // 上り → 新宿・調布方面（反転しない）
+  // 下り → 八王子・橋本方面（反転する）
   const direction = document.getElementById("add-direction").value;
-  const sts = (direction === "up" ? baseStations.slice().reverse() : baseStations);
+  const sts = (direction === "up" ? baseStations : baseStations.slice().reverse());
 
   div.style.marginBottom = "6px";
 
@@ -145,6 +155,7 @@ document.getElementById("btn-add-stop").onclick = () => {
 
 /* ============================
    列車保存（追加・編集）
+   ★ ログイン後は自動で編集画面へ移動
 ============================ */
 document.getElementById("btn-save-train").onclick = () => {
   if(!isAdmin){
@@ -205,10 +216,18 @@ document.getElementById("btn-save-train").onclick = () => {
 
   renderTrainTable();
   updateLocation();
+
+  // ★ 保存後に自動で「列車一覧」へ移動
+  document.querySelectorAll("nav a").forEach(a => a.classList.remove("active"));
+  document.querySelector('nav a[data-target="train-list"]').classList.add("active");
+
+  document.querySelectorAll("main section").forEach(s => s.classList.remove("active"));
+  document.getElementById("train-list").classList.add("active");
 };
 
 /* ============================
    列車一覧テーブル描画
+   ★ 詳細画面にも編集/削除ボタンを出す準備
 ============================ */
 function renderTrainTable(){
   const tbody = document.querySelector("#train-table tbody");
@@ -261,6 +280,13 @@ function renderTrainTable(){
       const t = trains[i];
       editingIndex = i;
 
+      // ★ 編集画面へ自動移動
+      document.querySelectorAll("nav a").forEach(a => a.classList.remove("active"));
+      document.querySelector('nav a[data-target="train-add"]').classList.add("active");
+
+      document.querySelectorAll("main section").forEach(s => s.classList.remove("active"));
+      document.getElementById("train-add").classList.add("active");
+
       document.getElementById("add-number").value = t.number;
       document.getElementById("add-type").value = t.type;
       document.getElementById("add-line").value = t.line;
@@ -279,8 +305,6 @@ function renderTrainTable(){
         div.querySelector(".stop-pass").checked = !!s.pass;
         list.appendChild(div);
       });
-
-      alert("編集モードになりました");
     };
   });
 
@@ -400,11 +424,15 @@ function updateLocation(){
 
 function renderLine(lineId, stations, containerId, now){
   let order = stations.map(s => s.name);
+
+  // ★ 上り＝新宿/調布方面 → そのまま
+  // ★ 下り＝八王子/橋本方面 → 反転
   if(currentDirection === "down") order = order.slice().reverse();
 
   const box = document.getElementById(containerId);
   box.innerHTML = "";
 
+  // 駅ブロック生成
   order.forEach((stationName, i) => {
     const block = document.createElement("div");
     block.className = "station-block";
@@ -424,10 +452,12 @@ function renderLine(lineId, stations, containerId, now){
     }
   });
 
+  // この路線・方向の列車だけ抽出
   const listTrains = trains.filter(
     t => t.line === lineId && t.direction === currentDirection
   );
 
+  // 各列車の現在位置を描画
   listTrains.forEach(train => {
     const stops = train.stops;
 
@@ -484,9 +514,187 @@ document.getElementById("btn-down").onclick = () => {
   currentDirection = "down";
   updateLocation();
 };
+/* ============================
+   ★ 各駅時刻表：駅リスト生成
+============================ */
+function renderTimetableStationList(){
+  const select = document.getElementById("timetable-station");
+  select.innerHTML = "";
+
+  const allStations = [
+    ...stationsMain.map(s => s.name),
+    ...stationsSagami.map(s => s.name)
+  ];
+
+  allStations.forEach(st => {
+    const op = document.createElement("option");
+    op.value = st;
+    op.textContent = st;
+    select.appendChild(op);
+  });
+
+  select.onchange = () => {
+    renderTimetable(select.value);
+  };
+}
 
 /* ============================
-   クラウド保存・受信
+   ★ 各駅時刻表：データ生成
+============================ */
+function generateTimetableData(station){
+  const table = {}; // { "06": [ {min, type, dest}, ... ] }
+
+  trains.forEach(train => {
+    train.stops.forEach(stop => {
+      if(stop.station !== station) return;
+      if(stop.pass) return; // 通過は表示しない
+
+      const time = stop.depart || stop.arrive;
+      if(!time) return;
+
+      const [h, m] = time.split(":");
+      if(!table[h]) table[h] = [];
+
+      table[h].push({
+        min: Number(m),
+        type: train.type,
+        dest: train.destination
+      });
+    });
+  });
+
+  // 分順に並べる
+  Object.keys(table).forEach(h => {
+    table[h].sort((a,b) => a.min - b.min);
+  });
+
+  return table;
+}
+
+/* ============================
+   ★ 各駅時刻表：描画
+============================ */
+function renderTimetable(station){
+  const body = document.getElementById("timetable-body");
+  body.innerHTML = "";
+
+  const data = generateTimetableData(station);
+
+  const hours = Object.keys(data).sort((a,b) => Number(a) - Number(b));
+
+  hours.forEach(h => {
+    const row = document.createElement("div");
+    row.className = "timetable-row";
+
+    let html = `<div class="timetable-hour">${h}</div>`;
+
+    // 00〜59分を横に並べる
+    for(let m = 0; m < 60; m++){
+      const item = data[h].find(x => x.min === m);
+
+      if(item){
+        html += `
+          <div class="timetable-cell ${getTypeClass(item.type)}">
+            ${String(m).padStart(2,"0")}
+            <div class="timetable-dest">${item.dest}</div>
+          </div>
+        `;
+      }else{
+        html += `<div class="timetable-cell empty"></div>`;
+      }
+    }
+
+    row.innerHTML = html;
+    body.appendChild(row);
+  });
+}
+/* ============================
+   ★ 列車詳細画面（編集/削除ボタン追加）
+============================ */
+function showTrainDetail(train){
+  const box = document.getElementById("train-detail-box");
+  box.innerHTML = "";
+
+  let html = `
+    <h3>${train.number}（${train.type}）</h3>
+    <p>行き先：${train.destination}</p>
+    <p>路線：${train.line === "main" ? "京王線" : "相模原線"}</p>
+    <p>方向：${train.direction === "up" ? "上り" : "下り"}</p>
+    <h4>停車駅</h4>
+  `;
+
+  train.stops.forEach(s => {
+    html += `
+      <div class="detail-stop">
+        <strong>${s.station}</strong>
+        <span>${s.arrive || ""}</span> →
+        <span>${s.depart || ""}</span>
+        ${s.pass ? "<span class='pass-label'>通過</span>" : ""}
+      </div>
+    `;
+  });
+
+  // ★ 管理者なら編集/削除ボタンを表示
+  if(isAdmin){
+    html += `
+      <button id="detail-edit-btn">編集</button>
+      <button id="detail-delete-btn">削除</button>
+    `;
+  }
+
+  box.innerHTML = html;
+
+  // 編集ボタン
+  if(isAdmin){
+    document.getElementById("detail-edit-btn").onclick = () => {
+      const index = trains.indexOf(train);
+      if(index >= 0){
+        editingIndex = index;
+
+        // 編集画面へ移動
+        document.querySelectorAll("nav a").forEach(a => a.classList.remove("active"));
+        document.querySelector('nav a[data-target="train-add"]').classList.add("active");
+
+        document.querySelectorAll("main section").forEach(s => s.classList.remove("active"));
+        document.getElementById("train-add").classList.add("active");
+
+        // フォームに反映
+        document.getElementById("add-number").value = train.number;
+        document.getElementById("add-type").value = train.type;
+        document.getElementById("add-line").value = train.line;
+        document.getElementById("add-direction").value = train.direction;
+        document.getElementById("add-dest").value = train.destination;
+
+        const list = document.getElementById("stop-list");
+        list.innerHTML = "";
+
+        train.stops.forEach(s => {
+          const div = createStopInput(train.line);
+          div.querySelector(".stop-station").value = s.station;
+          div.querySelector(".stop-arrive").value = s.arrive || "";
+          div.querySelector(".stop-depart").value = s.depart || "";
+          div.querySelector(".stop-track").value = s.track || "1";
+          div.querySelector(".stop-pass").checked = !!s.pass;
+          list.appendChild(div);
+        });
+      }
+    };
+
+    // 削除ボタン
+    document.getElementById("detail-delete-btn").onclick = () => {
+      const index = trains.indexOf(train);
+      if(index >= 0 && confirm("削除しますか？")){
+        trains.splice(index, 1);
+        renderTrainTable();
+        updateLocation();
+        alert("削除しました");
+      }
+    };
+  }
+}
+
+/* ============================
+   ★ クラウド保存・読み込み
 ============================ */
 document.getElementById("btn-save-cloud").onclick = async () => {
   if(!isAdmin){
@@ -510,7 +718,8 @@ document.getElementById("btn-load-cloud").onclick = async () => {
 };
 
 /* ============================
-   ログイン（パスワード 0829）
+   ★ ログイン（パスワード 0829）
+   → 成功したら自動で管理画面へ移動
 ============================ */
 document.getElementById("toggle-pass").onclick = () => {
   const pw = document.getElementById("login-password");
@@ -528,6 +737,13 @@ document.getElementById("btn-login").onclick = () => {
       e.style.display = "block";
     });
 
+    // ★ ログイン成功 → 列車追加画面へ移動
+    document.querySelectorAll("nav a").forEach(a => a.classList.remove("active"));
+    document.querySelector('nav a[data-target="train-add"]').classList.add("active");
+
+    document.querySelectorAll("main section").forEach(s => s.classList.remove("active"));
+    document.getElementById("train-add").classList.add("active");
+
     renderTrainTable();
   }else{
     alert("パスワードが違います");
@@ -535,10 +751,18 @@ document.getElementById("btn-login").onclick = () => {
 };
 
 /* ============================
-   初期ロード
+   ★ 初期ロード（自動クラウド読み込み）
 ============================ */
-window.onload = () => {
+window.onload = async () => {
+  // 起動時にクラウドから自動読み込み
+  const doc = await db.collection("keio-trains").doc("data").get();
+  if(doc.exists){
+    trains = doc.data().trains || [];
+  }
+
   renderTrainTable();
   updateLocation();
+  renderTimetableStationList();
+
   setInterval(updateLocation, 30000);
 };
