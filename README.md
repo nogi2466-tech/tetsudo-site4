@@ -8,10 +8,241 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
-<!-- CSS は Part B で読み込む -->
-<link rel="stylesheet" href="style.css">
+<style>
+/* ==========================
+   全体デザイン
+========================== */
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #f5f5f5;
+}
 
+/* ヘッダー */
+header {
+  background: #1f2933;
+  color: white;
+  padding: 10px 16px;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ハンバーガー */
+#menu-btn {
+  font-size: 24px;
+  cursor: pointer;
+  display: none;
+}
+
+/* メニュー */
+nav {
+  background: #111827;
+  display: flex;
+  gap: 16px;
+  padding: 8px 20px;
+  flex-wrap: wrap;
+}
+
+nav a {
+  color: #d1d5db;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+nav a.active {
+  background: #2563eb;
+  color: white;
+}
+
+/* ページ */
+main {
+  padding: 20px;
+}
+
+section {
+  display: none;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+section.active {
+  display: block;
+}
+
+/* テーブル */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #2563eb;
+  color: white;
+}
+
+/* 管理者専用 */
+.admin-only {
+  display: none;
+}
+
+/* 大きい入力欄 */
+.big-input {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  margin: 6px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.big-select {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  margin: 6px 0;
+  border-radius: 8px;
+}
+
+/* クラウドボタン */
+.cloud-btn {
+  display: inline-block;
+  padding: 14px 22px;
+  margin: 8px 6px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  color: white;
+}
+.cloud-save { background: #16a34a; }
+.cloud-load { background: #2563eb; }
+.cloud-btn:active { transform: scale(0.97); }
+
+/* ==========================
+   縦路線図 UI（本体）
+========================== */
+#line-container {
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+}
+
+/* 駅ブロック（駅名＋ノード＋列車カード） */
+.station-block {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+}
+
+/* 駅ノード（丸） */
+.station-node {
+  width: 18px;
+  height: 18px;
+  background: #d0006f; /* 京王カラー */
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+/* 駅名（横書き） */
+.station-name {
+  width: 80px;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+/* 列車カードを並べる領域 */
+.train-list {
+  flex-grow: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* 駅間の縦線 */
+.line-segment {
+  width: 4px;
+  height: 40px;
+  background: #d0006f;
+  margin-left: 7px;
+}
+
+/* ==========================
+   列車カード（京王アプリ風）
+========================== */
+.train-card {
+  background: white;
+  border: 2px solid #d0006f;
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 12px;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 列車番号（太字） */
+.train-number {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+/* 種別＋行先 */
+.train-type {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+/* 種別色 */
+.type-local { color: #6b7280; }
+.type-rapid { color: #2563eb; }
+.type-semi-exp { color: #facc15; }
+.type-exp { color: #22c55e; }
+.type-ltd-exp { color: #ef4444; }
+
+/* ==========================
+   駅間アニメーション（列車マーカー）
+========================== */
+.track-bar {
+  height: 6px;
+  background: #ccc;
+  margin: 4px 0;
+  border-radius: 3px;
+  position: relative;
+}
+
+.train-marker {
+  width: 14px;
+  height: 14px;
+  background: red;
+  border-radius: 50%;
+  position: absolute;
+  top: -4px;
+  transition: left 1s linear; /* ← アニメーション */
+}
+
+/* スマホ対応 */
+@media (max-width: 600px) {
+  #menu-btn { display: block; }
+  nav { display: none; flex-direction: column; }
+  input, select, button { width: 100%; }
+  .station-name { width: 60px; font-size: 13px; }
+  .train-card { min-width: 70px; }
+}
+</style>
 </head>
+
 <body>
 
 <header>
@@ -81,64 +312,3 @@
   <!-- ★ 縦路線図のコンテナ -->
   <div id="line-container"></div>
 </section>
-
-<!-- 設定 -->
-<section id="settings">
-  <h2>設定</h2>
-
-  <div style="margin-bottom:16px;">
-    <button id="btn-save-cloud" class="cloud-btn cloud-save">☁ クラウドに保存</button>
-    <button id="btn-load-cloud" class="cloud-btn cloud-load">⬇ クラウドから受信</button>
-  </div>
-
-  <h3>管理者ログイン</h3>
-
-  <div style="display:flex; gap:8px; max-width:320px;">
-    <input id="login-password" class="big-input" type="password" inputmode="numeric" placeholder="パスワード">
-    <button id="toggle-pass">👁</button>
-  </div>
-
-  <button id="btn-login" class="cloud-btn cloud-load">ログイン</button>
-  <button id="btn-logout" class="cloud-btn cloud-save admin-only">ログアウト</button>
-
-  <p id="login-status"></p>
-
-  <hr>
-
-  <h3>列車追加（管理者のみ）</h3>
-
-  <div id="train-add-area" class="admin-only">
-
-    <input id="add-number" class="big-input" placeholder="列車番号">
-
-    <select id="add-type" class="big-select">
-      <option value="">種別を選択</option>
-      <option value="各停">各停</option>
-      <option value="快速">快速</option>
-      <option value="区急">区急</option>
-      <option value="急行">急行</option>
-      <option value="特急">特急</option>
-    </select>
-
-    <select id="add-direction" class="big-select">
-      <option value="up">上り</option>
-      <option value="down">下り</option>
-    </select>
-
-    <input id="add-dest" class="big-input" placeholder="行き先">
-
-    <h4>停車駅</h4>
-    <div id="stop-list"></div>
-    <button id="btn-add-stop" class="cloud-btn cloud-load">停車駅を追加</button>
-
-    <button id="btn-save-train" class="cloud-btn cloud-save">列車を保存</button>
-  </div>
-</section>
-
-</main>
-
-<!-- JS は Part C で読み込む -->
-<script src="script.js"></script>
-
-</body>
-</html>
