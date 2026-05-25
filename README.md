@@ -9,21 +9,30 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
+<script>
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_DOMAIN",
+    projectId: "YOUR_PROJECT_ID"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
 </head>
 <body>
 
 <header>
-  <button id="menu-btn">≡</button>
   <h1>京王運行管理システム</h1>
   <div id="now-time">現在時刻: --:--</div>
 </header>
 
-<nav id="menu">
+<nav>
   <a data-target="train-list" class="active">列車一覧</a>
   <a data-target="train-add">列車追加</a>
   <a data-target="location">現在位置</a>
+  <a data-target="timetable">各駅時刻表</a>
   <a data-target="login">ログイン</a>
-  <!-- ★ JS がここに「各駅時刻表」を追加する -->
 </nav>
 
 <main>
@@ -119,7 +128,7 @@
 </section>
 
 <!-- ============================
-     各駅時刻表（★新規）
+     各駅時刻表
 ============================ -->
 <section id="timetable" class="page">
   <h2>各駅時刻表</h2>
