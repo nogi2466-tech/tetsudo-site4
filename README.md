@@ -114,4 +114,87 @@
     <tbody></tbody>
   </table>
 </section>
+<!-- 列車詳細 -->
+<section id="train-detail">
+  <h2>列車詳細</h2>
+  <div id="detail-basic"></div>
 
+  <h3>停車駅</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>駅</th><th>到着</th><th>発車</th><th>番線</th><th>通過</th>
+      </tr>
+    </thead>
+    <tbody id="detail-stops"></tbody>
+  </table>
+</section>
+
+<!-- 現在位置 -->
+<section id="location">
+  <h2>現在位置</h2>
+  <div id="now-time" style="font-size:18px;font-weight:bold;margin-bottom:10px;"></div>
+
+  <button id="btn-up" class="cloud-btn cloud-load">上り（新宿方面）</button>
+  <button id="btn-down" class="cloud-btn cloud-load">下り（八王子・橋本方面）</button>
+
+  <div id="lines-wrapper">
+    <div class="line-box">
+      <div class="line-title">京王線（本線）</div>
+      <div id="line-main-body"></div>
+    </div>
+
+    <div class="line-box">
+      <div class="line-title">相模原線</div>
+      <div id="line-sagami-body"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 設定（管理者） -->
+<section id="settings">
+  <h2>設定（管理者）</h2>
+
+  <h3>ログイン</h3>
+  <input id="login-password" class="big-input" type="password" placeholder="パスワード">
+  <button id="toggle-pass" class="cloud-btn cloud-load">表示切替</button>
+  <button id="btn-login" class="cloud-btn cloud-save">ログイン</button>
+  <p id="login-status" style="font-weight:bold;"></p>
+
+  <h3>列車追加 / 編集</h3>
+  <input id="add-number" class="big-input" placeholder="列車番号">
+  <select id="add-type" class="big-select">
+    <option>各停</option><option>快速</option><option>区急</option>
+    <option>急行</option><option>特急</option>
+  </select>
+
+  <select id="add-line" class="big-select">
+    <option value="main">京王線</option>
+    <option value="sagami">相模原線</option>
+  </select>
+
+  <select id="add-direction" class="big-select">
+    <option value="up">上り</option>
+    <option value="down">下り</option>
+  </select>
+
+  <input id="add-dest" class="big-input" placeholder="行き先">
+
+  <h3>停車駅</h3>
+  <div id="stop-list"></div>
+  <button id="btn-add-stop" class="cloud-btn cloud-load admin-only">停車駅を追加</button>
+
+  <button id="btn-save-train" class="cloud-btn cloud-save admin-only">保存</button>
+
+  <h3>クラウド</h3>
+  <button id="btn-save-cloud" class="cloud-btn cloud-save admin-only">クラウド保存</button>
+  <button id="btn-load-cloud" class="cloud-btn cloud-load">クラウド受信</button>
+</section>
+
+</main>
+
+<!-- JavaScript -->
+<script src="app.js"></script>
+
+</body>
+</html>
