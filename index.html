@@ -2,7 +2,11 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>列車管理システム（京王＋相模原 Y字）</title>
+
+  <!-- ★ スマホ対応（重要） -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>列車管理システム（京王＋相模原）</title>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -18,18 +22,18 @@
     main{padding:20px;}
     section{display:none;background:#fff;padding:20px;border-radius:8px;}
     section.active{display:block;}
+
     table{width:100%;border-collapse:collapse;margin-top:10px;}
     th,td{padding:8px;border-bottom:1px solid #ddd;}
     th{background:#2563eb;color:#fff;}
+
     .admin-only{display:none;}
 
-    /* 入力 */
     .big-input,.big-select{
       width:100%;padding:10px;font-size:16px;margin:4px 0;
       border-radius:8px;border:1px solid #ccc;
     }
 
-    /* ボタン */
     .cloud-btn{
       display:inline-block;padding:10px 16px;margin:6px 4px;
       font-size:15px;font-weight:bold;border-radius:8px;
@@ -55,7 +59,6 @@
     }
     .station-name{width:90px;font-weight:bold;font-size:13px;}
 
-    /* カード（現在位置） */
     .train-card{
       background:#fff;border-radius:6px;padding:6px 8px;
       font-size:12px;min-width:140px;
@@ -66,7 +69,6 @@
     .train-type{font-size:11px;opacity:.9;margin-bottom:4px;}
     .train-status{font-size:12px;}
 
-    /* 種別色 */
     .type-local{border-color:#6b7280;color:#374151;}
     .type-rapid{border-color:#2563eb;color:#1d4ed8;}
     .type-semi-exp{border-color:#facc15;color:#ca8a04;}
@@ -88,7 +90,7 @@
 
 <body>
 <header>
-  <span>列車管理システム（京王＋相模原 Y字）</span>
+  <span>列車管理システム（京王＋相模原）</span>
   <div id="menu-btn">☰</div>
 </header>
 
@@ -100,9 +102,13 @@
 </nav>
 
 <main>
+
+<!-- 列車一覧 -->
 <section id="train-list" class="active">
   <h2>列車一覧</h2>
+
   <input id="search-number" class="big-input" placeholder="列車番号で検索">
+
   <table id="train-table">
     <thead>
       <tr>
@@ -198,3 +204,4 @@
 
 </body>
 </html>
+
