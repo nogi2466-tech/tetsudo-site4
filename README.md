@@ -22,39 +22,66 @@
     th,td{padding:8px;border-bottom:1px solid #ddd;}
     th{background:#2563eb;color:#fff;}
     .admin-only{display:none;}
-    .big-input,.big-select{width:100%;padding:10px;font-size:16px;margin:4px 0;border-radius:8px;border:1px solid #ccc;}
-    .cloud-btn{display:inline-block;padding:10px 16px;margin:6px 4px;font-size:15px;font-weight:bold;border-radius:8px;border:none;cursor:pointer;color:#fff;}
+
+    /* 入力 */
+    .big-input,.big-select{
+      width:100%;padding:10px;font-size:16px;margin:4px 0;
+      border-radius:8px;border:1px solid #ccc;
+    }
+
+    /* ボタン */
+    .cloud-btn{
+      display:inline-block;padding:10px 16px;margin:6px 4px;
+      font-size:15px;font-weight:bold;border-radius:8px;
+      border:none;cursor:pointer;color:#fff;
+    }
     .cloud-save{background:#16a34a;}
     .cloud-load{background:#2563eb;}
 
-    /* Y字分岐：京王線＋相模原線 */
+    /* 路線図 */
     #lines-wrapper{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;}
-    .line-box{flex:1 1 260px;border:1px solid #ddd;border-radius:8px;background:#fafafa;padding:8px;}
+    .line-box{
+      flex:1 1 260px;border:1px solid #ddd;border-radius:8px;
+      background:#fafafa;padding:8px;
+    }
     .line-title{font-weight:bold;margin-bottom:4px;font-size:14px;}
-    .station-block{display:flex;align-items:center;margin:8px 0;}
-    .station-node{width:16px;height:16px;background:#d0006f;border-radius:50%;margin-right:8px;}
+    .station-block{
+      display:flex;align-items:flex-start;margin:8px 0;
+      gap:8px;
+    }
+    .station-node{
+      width:16px;height:16px;background:#d0006f;border-radius:50%;
+      margin-top:4px;
+    }
     .station-name{width:90px;font-weight:bold;font-size:13px;}
-    .train-list{flex-grow:1;display:flex;flex-wrap:wrap;gap:4px;}
-    .line-segment{width:3px;height:32px;background:#d0006f;margin-left:7px;}
 
-    .train-card{background:#fff;border-radius:6px;padding:3px 5px;font-size:11px;min-width:70px;display:flex;flex-direction:column;border:2px solid #9ca3af;cursor:pointer;}
-    .train-number{font-weight:bold;font-size:12px;}
-    .train-type{font-size:10px;opacity:.9;}
+    /* カード（現在位置） */
+    .train-card{
+      background:#fff;border-radius:6px;padding:6px 8px;
+      font-size:12px;min-width:140px;
+      border:2px solid #9ca3af;margin-bottom:4px;
+      cursor:pointer;
+    }
+    .train-number{font-weight:bold;font-size:13px;}
+    .train-type{font-size:11px;opacity:.9;margin-bottom:4px;}
+    .train-status{font-size:12px;}
+
+    /* 種別色 */
     .type-local{border-color:#6b7280;color:#374151;}
     .type-rapid{border-color:#2563eb;color:#1d4ed8;}
     .type-semi-exp{border-color:#facc15;color:#ca8a04;}
     .type-exp{border-color:#22c55e;color:#15803d;}
     .type-ltd-exp{border-color:#ef4444;color:#b91c1c;}
 
-    .track-bar{height:6px;background:#e5e7eb;margin:4px 0;border-radius:3px;position:relative;cursor:pointer;}
-    .train-marker{width:14px;height:14px;background:#ef4444;border-radius:50%;position:absolute;top:-4px;transition:left .4s linear;}
+    .line-segment{
+      width:3px;height:32px;background:#d0006f;margin-left:7px;
+    }
 
     @media(max-width:600px){
       #menu-btn{display:block;}
       nav{display:none;flex-direction:column;}
-      input,select,button{width:100%;}
       .station-name{width:70px;font-size:12px;}
-      .train-card{min-width:64px;}
+      .train-card{min-width:120px;}
     }
   </style>
 </head>
@@ -73,7 +100,6 @@
 </nav>
 
 <main>
-
 <section id="train-list" class="active">
   <h2>列車一覧</h2>
   <input id="search-number" class="big-input" placeholder="列車番号で検索">
@@ -88,92 +114,4 @@
     <tbody></tbody>
   </table>
 </section>
-
-<section id="train-detail">
-  <h2>列車詳細</h2>
-  <div id="detail-basic"></div>
-  <h3>各駅時刻</h3>
-  <table>
-    <thead>
-      <tr><th>駅名</th><th>到着</th><th>発車</th><th>番線</th><th>通過</th></tr>
-    </thead>
-    <tbody id="detail-stops"></tbody>
-  </table>
-</section>
-
-<section id="location">
-  <h2>現在位置（縦路線図）</h2>
-  <button id="btn-up" class="cloud-btn cloud-load">上り</button>
-  <button id="btn-down" class="cloud-btn cloud-load">下り</button>
-  <p id="now-time"></p>
-
-  <div id="lines-wrapper">
-    <div class="line-box">
-      <div class="line-title">京王線（京王八王子〜新宿）</div>
-      <div id="line-main-body"></div>
-    </div>
-    <div class="line-box">
-      <div class="line-title">相模原線（橋本〜調布）</div>
-      <div id="line-sagami-body"></div>
-    </div>
-  </div>
-</section>
-
-<section id="settings">
-  <h2>設定</h2>
-
-  <div style="margin-bottom:12px;">
-    <button id="btn-save-cloud" class="cloud-btn cloud-save">☁ 保存</button>
-    <button id="btn-load-cloud" class="cloud-btn cloud-load">⬇ 受信</button>
-  </div>
-
-  <h3>管理者ログイン</h3>
-  <div style="display:flex;gap:8px;max-width:320px;">
-    <input id="login-password" class="big-input" type="password" placeholder="パスワード">
-    <button id="toggle-pass">👁</button>
-  </div>
-  <button id="btn-login" class="cloud-btn cloud-load">ログイン</button>
-  <p id="login-status"></p>
-
-  <hr>
-
-  <h3>列車追加（管理者のみ）</h3>
-  <div id="train-add-area" class="admin-only">
-    <input id="add-number" class="big-input" placeholder="列車番号">
-
-    <select id="add-type" class="big-select">
-      <option value="">種別を選択</option>
-      <option value="各停">各停</option>
-      <option value="快速">快速</option>
-      <option value="区急">区急</option>
-      <option value="急行">急行</option>
-      <option value="特急">特急</option>
-    </select>
-
-    <select id="add-line" class="big-select">
-      <option value="main">京王線</option>
-      <option value="sagami">相模原線</option>
-    </select>
-
-    <select id="add-direction" class="big-select">
-      <option value="up">上り</option>
-      <option value="down">下り</option>
-    </select>
-
-    <input id="add-dest" class="big-input" placeholder="行き先">
-
-    <h4>停車駅</h4>
-    <div id="stop-list"></div>
-    <button id="btn-add-stop" class="cloud-btn cloud-load">停車駅を追加</button>
-
-    <button id="btn-save-train" class="cloud-btn cloud-save">列車を保存</button>
-  </div>
-</section>
-
-</main>
-
-<!-- JavaScript本体 -->
-<script src="app.js"></script>
-</body>
-</html>
 
