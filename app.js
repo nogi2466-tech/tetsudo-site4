@@ -502,3 +502,67 @@ window.onload = () => {
   updateLocation();
   setInterval(updateLocation, 30000);
 };
+/* ============================
+   列車保存（追加・編集）
+============================ */
+document.getElementById("btn-save-train").onclick = () => {
+  if(!isAdmin){
+    alert("管理者のみ保存できます");
+    return;
+  }
+
+  const number = document.getElementById("add-number").value.trim();
+  const type = document.getElementById("add-type").value;
+  const line = document.getElementById("add-line").value;
+  const direction = document.getElementById("add-direction").value;
+  const dest = document.getElementById("add-dest").value.trim();
+
+  if(!number || !dest){
+    alert("列車番号と行き先は必須です");
+    return;
+  }
+
+  const stopDivs = document.querySelectorAll("#stop-list > div");
+  const stops = [];
+
+  stopDivs.forEach(div => {
+    stops.push({
+      station: div.querySelector(".stop-station").value,
+      arrive: div.querySelector(".stop-arrive").value,
+      depart: div.querySelector(".stop-depart").value,
+      track: div.querySelector(".stop-track").value,
+      pass: div.querySelector(".stop-pass").checked
+    });
+  });
+
+  const start = stops[0].station;
+  const startTime = stops[0].depart || stops[0].arrive || "";
+  const end = stops[stops.length - 1].station;
+  const endTime = stops[stops.length - 1].arrive || stops[stops.length - 1].depart || "";
+
+  const trainData = {
+    number,
+    type,
+    line,
+    direction,
+    destination: dest,
+    start,
+    startTime,
+    end,
+    endTime,
+    stops
+  };
+
+  if(editingIndex !== null){
+    trains[editingIndex] = trainData;
+    editingIndex = null;
+    alert("列車を更新しました");
+  }else{
+    trains.push(trainData);
+    alert("列車を追加しました");
+  }
+
+  renderTrainTable();
+  updateLocation();
+};
+
