@@ -324,3 +324,156 @@ function getTrainStatusAtStation(train, stationIndex, now){
 
   return null;
 }
+/* ============================
+   路線図への描画（四角いカード版）
+============================ */
+function updateLocation(){
+  const now = new Date();
+  const nowStr = now.toTimeString().slice(0,5);
+  document.getElementById("now-time").textContent = "現在時刻: " + nowStr;
+
+  renderLine("main", stationsMain, "line-main-body", now);
+  renderLine("sagami", stationsSagami, "line-sagami-body", now);
+}
+
+function renderLine(lineId, stations, containerId, now){
+  let order = stations.map(s => s.name);
+  if(currentDirection === "down") order = order.slice().reverse();
+
+  const box = document.getElementById(containerId);
+  box.innerHTML = "";
+
+  /* 駅ブロック生成 */
+  order.forEach((stationName, i) => {
+    const block = document.createElement("div");
+    block.className = "station-block";
+
+    block.innerHTML = `
+      <div class="station-node"></div>
+      <div class="station-name">${stationName}</div>
+      <div class="train-list" id="${containerId}-tl-${i}"></div>
+    `;
+
+    box.appendChild(block);
+
+    if(i < order.length - 1){
+      const seg = document.createElement("div");
+      seg.className = "line-segment";
+      box.appendChild(seg);
+    }
+  });
+
+  /* 路線の列車を抽出 */
+  const listTrains = trains.filter(
+    t => t.line === lineId && t.direction === currentDirection
+  );
+
+  /* 各列車の現在位置を判定してカード配置 */
+  listTrains.forEach(train => {
+    const stops = train.stops;
+
+    for(let i = 0; i < stops.length; i++){
+      const status = getTrainStatusAtStation(train, i, now);
+      if(!status) continue;
+
+      /* 停車中 */
+      if(status.type === "停車"){
+        const idx = order.indexOf(status.station);
+        if(idx >= 0){
+          const list = document.getElementById(`${containerId}-tl-${idx}`);
+          list.appendChild(createStatusCard(train, `${status.station} 停車中`));
+        }
+        return;
+      }
+
+      /* 通過中 */
+      if(status.type === "通過"){
+        const idx = order.indexOf(status.station);
+        if(idx >= 0){
+          const list = document.getElementById(`${containerId}-tl-${idx}`);
+          list.appendChild(createStatusCard(train, `${status.station} 通過中`));
+        }
+        return;
+      }
+
+      /* 駅間走行中 */
+      if(status.type === "走行"){
+        const idx = order.indexOf(status.from);
+        if(idx >= 0){
+          const list = document.getElementById(`${containerId}-tl-${idx}`);
+          list.appendChild(
+            createStatusCard(train, `${status.from} → ${status.to} 走行中`)
+          );
+        }
+        return;
+      }
+    }
+  });
+}
+
+/* 上り・下り切替 */
+document.getElementById("btn-up").onclick = () => {
+  currentDirection = "up";
+  updateLocation();
+};
+document.getElementById("btn-down").onclick = () => {
+  currentDirection = "down";
+  updateLocation();
+};
+
+/* ============================
+   クラウド保存・受信
+============================ */
+document.getElementById("btn-save-cloud").onclick = async () => {
+  if(!isAdmin){
+    alert("管理者のみ保存できます");
+    return;
+  }
+  await db.collection("keio-trains").doc("data").set({ trains });
+  alert("クラウドに保存しました");
+};
+
+document.getElementById("btn-load-cloud").onclick = async () => {
+  const doc = await db.collection("keio-trains").doc("data").get();
+  if(doc.exists){
+    trains = doc.data().trains || [];
+    renderTrainTable();
+    updateLocation();
+    alert("クラウドから受信しました");
+  }else{
+    alert("クラウドにデータがありません");
+  }
+};
+
+/* ============================
+   ログイン
+============================ */
+document.getElementById("toggle-pass").onclick = () => {
+  const pw = document.getElementById("login-password");
+  pw.type = (pw.type === "password") ? "text" : "password";
+};
+
+document.getElementById("btn-login").onclick = () => {
+  const pw = document.getElementById("login-password").value;
+  if(pw === "admin123"){
+    isAdmin = true;
+    document.getElementById("login-status").textContent = "ログイン済み（管理者）";
+
+    document.querySelectorAll(".admin-only").forEach(e => {
+      e.style.display = "inline-block";
+    });
+
+    renderTrainTable();
+  }else{
+    alert("パスワードが違います");
+  }
+};
+
+/* ============================
+   初期ロード
+============================ */
+window.onload = () => {
+  renderTrainTable();
+  updateLocation();
+  setInterval(updateLocation, 30000);
+};
