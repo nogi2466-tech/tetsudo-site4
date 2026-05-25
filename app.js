@@ -373,7 +373,7 @@ function renderLine(lineId, stations, containerId, now){
 
     box.appendChild(block);
 
-    /* ★ 調布の分岐を描画する（京王線 → 布田 / 相模原線 → 京王多摩川） */
+    /* ★ 調布の分岐（京王線 → 布田 / 相模原線 → 京王多摩川） */
     if(stationName === "調布"){
       const branch = document.createElement("div");
       branch.style.marginLeft = "7px";
@@ -501,76 +501,4 @@ window.onload = () => {
   renderTrainTable();
   updateLocation();
   setInterval(updateLocation, 30000);
-};
-/* ============================
-   列車保存（追加・編集）
-============================ */
-document.getElementById("btn-save-train").onclick = () => {
-  if(!isAdmin){
-    alert("管理者のみ保存できます");
-    return;
-  }
-
-  const number = document.getElementById("add-number").value.trim();
-  const type = document.getElementById("add-type").value;
-  const line = document.getElementById("add-line").value;
-  const direction = document.getElementById("add-direction").value;
-  const dest = document.getElementById("add-dest").value.trim();
-
-  if(!number || !dest){
-    alert("列車番号と行き先は必須です");
-    return;
-  }
-
-  /* 停車駅データを集める */
-  const stopDivs = document.querySelectorAll("#stop-list > div");
-  const stops = [];
-
-  stopDivs.forEach(div => {
-    const station = div.querySelector(".stop-station").value;
-    const arrive = div.querySelector(".stop-arrive").value;
-    const depart = div.querySelector(".stop-depart").value;
-    const track = div.querySelector(".stop-track").value;
-    const pass = div.querySelector(".stop-pass").checked;
-
-    stops.push({
-      station,
-      arrive,
-      depart,
-      track,
-      pass
-    });
-  });
-
-  /* 始発・終着を自動設定 */
-  const start = stops[0].station;
-  const startTime = stops[0].depart || stops[0].arrive || "";
-  const end = stops[stops.length - 1].station;
-  const endTime = stops[stops.length - 1].arrive || stops[stops.length - 1].depart || "";
-
-  const trainData = {
-    number,
-    type,
-    line,
-    direction,
-    destination: dest,
-    start,
-    startTime,
-    end,
-    endTime,
-    stops
-  };
-
-  /* 編集モードか追加モードか */
-  if(editingIndex !== null){
-    trains[editingIndex] = trainData;
-    editingIndex = null;
-    alert("列車を更新しました");
-  }else{
-    trains.push(trainData);
-    alert("列車を追加しました");
-  }
-
-  renderTrainTable();
-  updateLocation();
 };
