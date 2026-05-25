@@ -1,70 +1,68 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>列車管理システム（京王・相模原分岐版）</title>
+  <meta charset="UTF-8">
+  <title>列車管理システム（京王＋相模原 Y字）</title>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
-<style>
-body{margin:0;font-family:system-ui,sans-serif;background:#f5f5f5;}
-header{background:#1f2933;color:#fff;padding:10px 16px;font-size:18px;font-weight:bold;display:flex;justify-content:space-between;align-items:center;}
-#menu-btn{font-size:24px;cursor:pointer;display:none;}
-nav{background:#111827;display:flex;gap:16px;padding:8px 20px;flex-wrap:wrap;}
-nav a{color:#d1d5db;text-decoration:none;padding:6px 10px;border-radius:4px;}
-nav a.active{background:#2563eb;color:#fff;}
-main{padding:20px;}
-section{display:none;background:#fff;padding:20px;border-radius:8px;}
-section.active{display:block;}
-table{width:100%;border-collapse:collapse;margin-top:10px;}
-th,td{padding:8px;border-bottom:1px solid #ddd;}
-th{background:#2563eb;color:#fff;}
-.admin-only{display:none;}
-.big-input,.big-select{width:100%;padding:14px;font-size:18px;margin:6px 0;border-radius:8px;border:1px solid #ccc;}
-.cloud-btn{display:inline-block;padding:14px 22px;margin:8px 6px;font-size:18px;font-weight:bold;border-radius:10px;border:none;cursor:pointer;color:#fff;}
-.cloud-save{background:#16a34a;}
-.cloud-load{background:#2563eb;}
-.cloud-btn:active{transform:scale(.97);}
+  <style>
+    body{margin:0;font-family:system-ui,sans-serif;background:#f5f5f5;}
+    header{background:#1f2933;color:#fff;padding:10px 16px;font-size:18px;font-weight:bold;display:flex;justify-content:space-between;align-items:center;}
+    #menu-btn{font-size:24px;cursor:pointer;display:none;}
+    nav{background:#111827;display:flex;gap:16px;padding:8px 20px;flex-wrap:wrap;}
+    nav a{color:#d1d5db;text-decoration:none;padding:6px 10px;border-radius:4px;}
+    nav a.active{background:#2563eb;color:#fff;}
+    main{padding:20px;}
+    section{display:none;background:#fff;padding:20px;border-radius:8px;}
+    section.active{display:block;}
+    table{width:100%;border-collapse:collapse;margin-top:10px;}
+    th,td{padding:8px;border-bottom:1px solid #ddd;}
+    th{background:#2563eb;color:#fff;}
+    .admin-only{display:none;}
+    .big-input,.big-select{width:100%;padding:10px;font-size:16px;margin:4px 0;border-radius:8px;border:1px solid #ccc;}
+    .cloud-btn{display:inline-block;padding:10px 16px;margin:6px 4px;font-size:15px;font-weight:bold;border-radius:8px;border:none;cursor:pointer;color:#fff;}
+    .cloud-save{background:#16a34a;}
+    .cloud-load{background:#2563eb;}
+    .cloud-btn:active{transform:scale(.97);}
 
-/* 縦路線図 */
-#line-main,#line-sagami{width:100%;padding:10px;margin-top:20px;border:1px solid #ddd;border-radius:8px;background:#fafafa;}
-.line-title{font-weight:bold;margin-bottom:4px;}
-.station-block{display:flex;align-items:center;margin:10px 0;}
-.station-node{width:18px;height:18px;background:#d0006f;border-radius:50%;margin-right:10px;}
-.station-name{width:90px;font-weight:bold;font-size:14px;}
-.train-list{flex-grow:1;display:flex;flex-wrap:wrap;gap:6px;}
-.line-segment{width:4px;height:40px;background:#d0006f;margin-left:7px;}
+    /* 縦路線図：Y字分岐（左：京王線 / 右：相模原線） */
+    #lines-wrapper{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;}
+    .line-box{flex:1 1 260px;border:1px solid #ddd;border-radius:8px;background:#fafafa;padding:8px;}
+    .line-title{font-weight:bold;margin-bottom:4px;font-size:14px;}
+    .station-block{display:flex;align-items:center;margin:8px 0;}
+    .station-node{width:16px;height:16px;background:#d0006f;border-radius:50%;margin-right:8px;}
+    .station-name{width:90px;font-weight:bold;font-size:13px;}
+    .train-list{flex-grow:1;display:flex;flex-wrap:wrap;gap:4px;}
+    .line-segment{width:3px;height:32px;background:#d0006f;margin-left:7px;}
 
-/* 列車カード */
-.train-card{background:#fff;border-radius:6px;padding:4px 6px;font-size:11px;min-width:80px;display:flex;flex-direction:column;border:2px solid #9ca3af;cursor:pointer;}
-.train-number{font-weight:bold;font-size:12px;}
-.train-type{font-size:10px;opacity:.9;}
-.type-local{border-color:#6b7280;color:#374151;}
-.type-rapid{border-color:#2563eb;color:#1d4ed8;}
-.type-semi-exp{border-color:#facc15;color:#ca8a04;}
-.type-exp{border-color:#22c55e;color:#15803d;}
-.type-ltd-exp{border-color:#ef4444;color:#b91c1c;}
+    .train-card{background:#fff;border-radius:6px;padding:3px 5px;font-size:11px;min-width:70px;display:flex;flex-direction:column;border:2px solid #9ca3af;cursor:pointer;}
+    .train-number{font-weight:bold;font-size:12px;}
+    .train-type{font-size:10px;opacity:.9;}
+    .type-local{border-color:#6b7280;color:#374151;}
+    .type-rapid{border-color:#2563eb;color:#1d4ed8;}
+    .type-semi-exp{border-color:#facc15;color:#ca8a04;}
+    .type-exp{border-color:#22c55e;color:#15803d;}
+    .type-ltd-exp{border-color:#ef4444;color:#b91c1c;}
 
-/* 駅間マーカー */
-.track-bar{height:6px;background:#e5e7eb;margin:4px 0;border-radius:3px;position:relative;cursor:pointer;}
-.train-marker{width:14px;height:14px;background:#ef4444;border-radius:50%;position:absolute;top:-4px;transition:left .5s linear;}
+    .track-bar{height:6px;background:#e5e7eb;margin:4px 0;border-radius:3px;position:relative;cursor:pointer;}
+    .train-marker{width:14px;height:14px;background:#ef4444;border-radius:50%;position:absolute;top:-4px;transition:left .4s linear;}
 
-/* スマホ */
-@media(max-width:600px){
-  #menu-btn{display:block;}
-  nav{display:none;flex-direction:column;}
-  input,select,button{width:100%;}
-  .station-name{width:70px;font-size:12px;}
-  .train-card{min-width:70px;}
-}
-</style>
+    @media(max-width:600px){
+      #menu-btn{display:block;}
+      nav{display:none;flex-direction:column;}
+      input,select,button{width:100%;}
+      .station-name{width:70px;font-size:12px;}
+      .train-card{min-width:64px;}
+    }
+  </style>
 </head>
 
 <body>
 <header>
-  <span>列車管理システム（京王＋相模原）</span>
+  <span>列車管理システム（京王＋相模原 Y字）</span>
   <div id="menu-btn">☰</div>
 </header>
 
@@ -110,21 +108,22 @@ th{background:#2563eb;color:#fff;}
   <button id="btn-down" class="cloud-btn cloud-load">下り</button>
   <p id="now-time"></p>
 
-  <div id="line-main">
-    <div class="line-title">京王線（京王八王子〜新宿）</div>
-    <div id="line-main-body"></div>
-  </div>
-
-  <div id="line-sagami" style="margin-top:16px;">
-    <div class="line-title">相模原線（橋本〜調布）</div>
-    <div id="line-sagami-body"></div>
+  <div id="lines-wrapper">
+    <div class="line-box">
+      <div class="line-title">京王線（京王八王子〜新宿）</div>
+      <div id="line-main-body"></div>
+    </div>
+    <div class="line-box">
+      <div class="line-title">相模原線（橋本〜調布）</div>
+      <div id="line-sagami-body"></div>
+    </div>
   </div>
 </section>
 
 <section id="settings">
   <h2>設定</h2>
 
-  <div style="margin-bottom:16px;">
+  <div style="margin-bottom:12px;">
     <button id="btn-save-cloud" class="cloud-btn cloud-save">☁ 保存</button>
     <button id="btn-load-cloud" class="cloud-btn cloud-load">⬇ 受信</button>
   </div>
@@ -174,5 +173,8 @@ th{background:#2563eb;color:#fff;}
 
 </main>
 
-<script>
+<!-- ここで app.js を読み込む -->
+<script src="app.js"></script>
+</body>
+</html>
 
