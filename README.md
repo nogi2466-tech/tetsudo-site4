@@ -5,7 +5,7 @@
 <title>京王運行管理システム</title>
 <link rel="stylesheet" href="style.css">
 
-<!-- Firebase v8（app.js と完全互換） -->
+<!-- Firebase v8 -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
@@ -34,10 +34,10 @@
 
 <nav>
   <a data-target="train-list" class="active">列車一覧</a>
-  <a data-target="train-add">列車追加</a>
+  <a data-target="train-detail">列車詳細</a>
   <a data-target="location">現在位置</a>
   <a data-target="timetable">各駅時刻表</a>
-  <a data-target="login">ログイン</a>
+  <a data-target="settings">設定</a>
 </nav>
 
 <main>
@@ -53,73 +53,27 @@
   <table id="train-table">
     <thead>
       <tr>
-        <th>番号</th><th>種別</th><th>路線</th><th>方向</th>
+        <th>番号</th><th>種別</th><th>行先</th>
         <th>始発</th><th>発</th><th>終着</th><th>着</th>
-        <th class="admin-only" style="display:none;">操作</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
-
-  <div id="train-detail-box"></div>
 </section>
 
 <!-- ============================
-     列車追加 / 編集
+     列車詳細（表示専用）
 ============================ -->
-<section id="train-add" class="page">
-  <h2>列車追加 / 編集</h2>
-
-  <div class="form-row">
-    <label>列車番号</label>
-    <input id="add-number">
-  </div>
-
-  <div class="form-row">
-    <label>種別</label>
-    <select id="add-type">
-      <option>各停</option>
-      <option>快速</option>
-      <option>区急</option>
-      <option>急行</option>
-      <option>特急</option>
-    </select>
-  </div>
-
-  <div class="form-row">
-    <label>路線</label>
-    <select id="add-line">
-      <option value="main">京王線</option>
-      <option value="sagami">相模原線</option>
-    </select>
-  </div>
-
-  <div class="form-row">
-    <label>方向</label>
-    <select id="add-direction">
-      <option value="up">上り</option>
-      <option value="down">下り</option>
-    </select>
-  </div>
-
-  <div class="form-row">
-    <label>行き先</label>
-    <input id="add-dest">
-  </div>
-
-  <h3>停車駅</h3>
-  <div id="stop-list"></div>
-  <button id="btn-add-stop" class="admin-only" style="display:none;">＋ 停車駅追加</button>
-
-  <button id="btn-save-train" class="admin-only" style="display:none;">保存</button>
+<section id="train-detail" class="page">
+  <h2>列車詳細</h2>
+  <div id="train-detail-box">列車を選択してください</div>
 </section>
 
 <!-- ============================
-     現在位置（縦型路線図）
+     現在位置
 ============================ -->
 <section id="location" class="page">
   <h2>現在位置</h2>
-
   <div id="line-main-body" class="vertical-line-body"></div>
 </section>
 
@@ -128,17 +82,15 @@
 ============================ -->
 <section id="timetable" class="page">
   <h2>各駅時刻表</h2>
-
   <select id="timetable-station"></select>
-
   <div id="timetable-body"></div>
 </section>
 
 <!-- ============================
-     ログイン
+     設定（ログイン＋列車追加）
 ============================ -->
-<section id="login" class="page">
-  <h2>管理者ログイン</h2>
+<section id="settings" class="page">
+  <h2>設定</h2>
 
   <div class="form-row">
     <label>パスワード</label>
@@ -146,12 +98,60 @@
     <button id="toggle-pass">表示</button>
   </div>
 
-  <button id="btn-login">ログイン</button>
+  <button id="btn-login" class="big-btn">ログイン</button>
 
-  <p id="login-status"></p>
+  <h3>クラウド</h3>
+  <button id="btn-save-cloud" class="big-btn admin-only" style="display:none;">クラウド保存</button>
+  <button id="btn-load-cloud" class="big-btn">クラウド受信</button>
 
-  <button id="btn-save-cloud" class="admin-only" style="display:none;">クラウド保存</button>
-  <button id="btn-load-cloud">クラウド受信</button>
+  <h3 class="admin-only" style="display:none;">列車追加</h3>
+
+  <div id="train-add-area" class="admin-only" style="display:none;">
+
+    <div class="form-row">
+      <label>列車番号</label>
+      <input id="add-number">
+    </div>
+
+    <div class="form-row">
+      <label>種別</label>
+      <select id="add-type">
+        <option>各停</option>
+        <option>快速</option>
+        <option>区急</option>
+        <option>急行</option>
+        <option>特急</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label>路線</label>
+      <select id="add-line">
+        <option value="main">京王線</option>
+        <option value="sagami">相模原線</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label>方向</label>
+      <select id="add-direction">
+        <option value="up">上り</option>
+        <option value="down">下り</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label>行き先</label>
+      <input id="add-dest">
+    </div>
+
+    <h3>停車駅</h3>
+    <div id="stop-list"></div>
+    <button id="btn-add-stop" class="admin-only" style="display:none;">＋ 停車駅追加</button>
+
+    <button id="btn-save-train" class="admin-only" style="display:none;">保存</button>
+
+  </div>
 </section>
 
 </main>
