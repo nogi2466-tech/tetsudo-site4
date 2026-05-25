@@ -123,13 +123,22 @@ function renderTrainTable(){
     tbody.appendChild(tr);
   });
 
+  /* 管理者だけ操作ボタンを表示 */
   if(isAdmin){
-    document.querySelectorAll("#train-table .admin-only").forEach(e => e.style.display = "table-cell");
+    document.querySelectorAll("#train-table .admin-only").forEach(e => {
+      e.style.display = "table-cell";
+    });
   }
-
+  
+  /* 編集ボタン */
   document.querySelectorAll(".edit-btn").forEach(btn => {
     btn.onclick = e => {
       e.stopPropagation();
+      if(!isAdmin){
+        alert("管理者のみ編集できます");
+        return;
+      }
+
       const i = Number(btn.dataset.i);
       const t = trains[i];
       editingIndex = i;
@@ -157,9 +166,15 @@ function renderTrainTable(){
     };
   });
 
+  /* 削除ボタン */
   document.querySelectorAll(".delete-btn").forEach(btn => {
     btn.onclick = e => {
       e.stopPropagation();
+      if(!isAdmin){
+        alert("管理者のみ削除できます");
+        return;
+      }
+
       const i = Number(btn.dataset.i);
       if(confirm("削除しますか？")){
         trains.splice(i,1);
@@ -242,7 +257,10 @@ function createStopInput(line){
 }
 
 document.getElementById("btn-add-stop").onclick = () => {
-  if(!isAdmin) return;
+  if(!isAdmin){
+    alert("管理者のみ追加できます");
+    return;
+  }
   const line = document.getElementById("add-line").value;
   document.getElementById("stop-list").appendChild(createStopInput(line));
 };
@@ -325,7 +343,7 @@ function getTrainStatusAtStation(train, stationIndex, now){
   return null;
 }
 /* ============================
-   路線図への描画（四角いカード版）
+   路線図への描画（調布の分岐対応）
 ============================ */
 function updateLocation(){
   const now = new Date();
@@ -343,7 +361,6 @@ function renderLine(lineId, stations, containerId, now){
   const box = document.getElementById(containerId);
   box.innerHTML = "";
 
-  /* 駅ブロック生成 */
   order.forEach((stationName, i) => {
     const block = document.createElement("div");
     block.className = "station-block";
@@ -355,6 +372,15 @@ function renderLine(lineId, stations, containerId, now){
     `;
 
     box.appendChild(block);
+
+    /* ★ 調布の分岐を描画する（京王線 → 布田 / 相模原線 → 京王多摩川） */
+    if(stationName === "調布"){
+      const branch = document.createElement("div");
+      branch.style.marginLeft = "7px";
+      branch.style.borderLeft = "3px solid #d0006f";
+      branch.style.height = "20px";
+      box.appendChild(branch);
+    }
 
     if(i < order.length - 1){
       const seg = document.createElement("div");
@@ -368,7 +394,7 @@ function renderLine(lineId, stations, containerId, now){
     t => t.line === lineId && t.direction === currentDirection
   );
 
-  /* 各列車の現在位置を判定してカード配置 */
+  /* 現在位置カード配置 */
   listTrains.forEach(train => {
     const stops = train.stops;
 
@@ -380,8 +406,8 @@ function renderLine(lineId, stations, containerId, now){
       if(status.type === "停車"){
         const idx = order.indexOf(status.station);
         if(idx >= 0){
-          const list = document.getElementById(`${containerId}-tl-${idx}`);
-          list.appendChild(createStatusCard(train, `${status.station} 停車中`));
+          document.getElementById(`${containerId}-tl-${idx}`)
+            .appendChild(createStatusCard(train, `${status.station} 停車中`));
         }
         return;
       }
@@ -390,8 +416,8 @@ function renderLine(lineId, stations, containerId, now){
       if(status.type === "通過"){
         const idx = order.indexOf(status.station);
         if(idx >= 0){
-          const list = document.getElementById(`${containerId}-tl-${idx}`);
-          list.appendChild(createStatusCard(train, `${status.station} 通過中`));
+          document.getElementById(`${containerId}-tl-${idx}`)
+            .appendChild(createStatusCard(train, `${status.station} 通過中`));
         }
         return;
       }
@@ -400,10 +426,8 @@ function renderLine(lineId, stations, containerId, now){
       if(status.type === "走行"){
         const idx = order.indexOf(status.from);
         if(idx >= 0){
-          const list = document.getElementById(`${containerId}-tl-${idx}`);
-          list.appendChild(
-            createStatusCard(train, `${status.from} → ${status.to} 走行中`)
-          );
+          document.getElementById(`${containerId}-tl-${idx}`)
+            .appendChild(createStatusCard(train, `${status.from} → ${status.to} 走行中`));
         }
         return;
       }
@@ -446,7 +470,7 @@ document.getElementById("btn-load-cloud").onclick = async () => {
 };
 
 /* ============================
-   ログイン
+   ログイン（パスワード 0829）
 ============================ */
 document.getElementById("toggle-pass").onclick = () => {
   const pw = document.getElementById("login-password");
@@ -455,12 +479,13 @@ document.getElementById("toggle-pass").onclick = () => {
 
 document.getElementById("btn-login").onclick = () => {
   const pw = document.getElementById("login-password").value;
-  if(pw === "admin123"){
+
+  if(pw === "0829"){
     isAdmin = true;
     document.getElementById("login-status").textContent = "ログイン済み（管理者）";
 
     document.querySelectorAll(".admin-only").forEach(e => {
-      e.style.display = "inline-block";
+      e.style.display = "block";
     });
 
     renderTrainTable();
