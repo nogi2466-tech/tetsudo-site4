@@ -26,9 +26,8 @@
     .cloud-btn{display:inline-block;padding:10px 16px;margin:6px 4px;font-size:15px;font-weight:bold;border-radius:8px;border:none;cursor:pointer;color:#fff;}
     .cloud-save{background:#16a34a;}
     .cloud-load{background:#2563eb;}
-    .cloud-btn:active{transform:scale(.97);}
 
-    /* 縦路線図：Y字分岐（左：京王線 / 右：相模原線） */
+    /* Y字分岐：京王線＋相模原線 */
     #lines-wrapper{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;}
     .line-box{flex:1 1 260px;border:1px solid #ddd;border-radius:8px;background:#fafafa;padding:8px;}
     .line-title{font-weight:bold;margin-bottom:4px;font-size:14px;}
@@ -173,7 +172,7 @@
 
 </main>
 
-<!-- ここで app.js を読み込む -->
+<!-- JavaScript本体 -->
 <script src="app.js"></script>
 </body>
 </html>
