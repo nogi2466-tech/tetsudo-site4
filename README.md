@@ -2,175 +2,172 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <title>列車運行シミュレータ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>列車管理システム（縦路線図）</title>
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAxJVAx7CIK4U21Qxl20n4yxagcl9dfItE",
-      authDomain: "train-system-9622f.firebaseapp.com",
-      projectId: "train-system-9622f",
-      storageBucket: "train-system-9622f.appspot.com",
-      messagingSenderId: "1066598708695",
-      appId: "1:1066598708695:web:e682df702e58caaaedc792",
-      measurementId: "G-CKP4Z2F65W"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; background:#111; color:#eee; }
+    header { padding: 8px 12px; background:#222; display:flex; gap:8px; align-items:center; }
+    header h1 { font-size:18px; margin:0 8px 0 0; }
+    button, input, select { font-size:14px; }
+    main { display:flex; height:calc(100vh - 40px); }
+    nav { width:180px; background:#181818; border-right:1px solid #333; padding:8px; box-sizing:border-box; }
+    nav button { width:100%; margin-bottom:6px; padding:6px; background:#333; color:#eee; border:1px solid #555; cursor:pointer; }
+    nav button.active { background:#0a84ff; border-color:#0a84ff; }
+    section.view { flex:1; padding:8px; box-sizing:border-box; display:none; overflow:auto; }
+    section.view.active { display:block; }
+    h2 { font-size:16px; margin:4px 0 8px; }
+    h3 { font-size:14px; margin:10px 0 4px; }
+    .panel { border:1px solid #333; padding:8px; margin-bottom:8px; border-radius:4px; background:#151515; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th, td { border:1px solid #333; padding:4px 6px; text-align:left; }
+    th { background:#222; }
+    .flex { display:flex; gap:8px; flex-wrap:wrap; }
+    .field-row { margin-bottom:6px; }
+    .field-row label { display:inline-block; width:90px; }
+    input[type="text"], input[type="number"] { padding:3px 4px; width:180px; background:#111; border:1px solid #555; color:#eee; }
+    #timelineCanvas { width:100%; height:400px; background:#000; border:1px solid #333; }
+    small { color:#aaa; }
+  </style>
 </head>
-
 <body>
+  <header>
+    <h1>列車運行シミュレータ</h1>
+    <button id="btn-now">現在時刻にジャンプ</button>
+    <span id="clock"></span>
+  </header>
 
-<header>
-  <h1>列車管理システム（縦路線図）</h1>
-  <div id="now-time">現在時刻: --:--</div>
-</header>
+  <main>
+    <nav>
+      <button data-view="view-trains" class="active">列車一覧</button>
+      <button data-view="view-map">現在位置</button>
+      <button data-view="view-timetable">各駅時刻表</button>
+      <button data-view="view-settings">設定</button>
+    </nav>
 
-<!-- スマホ用メニューボタン -->
-<div id="menu-btn">☰ メニュー</div>
+    <!-- 列車一覧 -->
+    <section id="view-trains" class="view active">
+      <h2>列車一覧</h2>
+      <div class="panel">
+        <table id="train-table">
+          <thead>
+            <tr>
+              <th>列車番号</th>
+              <th>種別</th>
+              <th>行先</th>
+              <th>路線</th>
+              <th>方向</th>
+              <th>現在位置</th>
+            </tr>
+          </thead>
+          <tbody id="train-table-body">
+            <!-- JSで埋める -->
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-<nav>
-  <a data-target="train-list" class="active">列車一覧</a>
-  <a data-target="train-detail">列車詳細</a>
-  <a data-target="location">現在位置</a>
-  <a data-target="timetable">各駅時刻表</a>
-  <a data-target="settings">設定</a>
-</nav>
+    <!-- 現在位置（縦線ダイヤ） -->
+    <section id="view-map" class="view">
+      <h2>現在位置</h2>
+      <div class="panel">
+        <canvas id="timelineCanvas"></canvas>
+      </div>
+    </section>
 
-<main>
+    <!-- 各駅時刻表 -->
+    <section id="view-timetable" class="view">
+      <h2>各駅時刻表</h2>
+      <div class="panel">
+        <div class="field-row">
+          <label for="station-select">駅：</label>
+          <select id="station-select"></select>
+        </div>
+        <table id="station-table">
+          <thead>
+            <tr>
+              <th>時刻</th>
+              <th>列車</th>
+              <th>種別</th>
+              <th>行先</th>
+              <th>番線</th>
+            </tr>
+          </thead>
+          <tbody id="station-table-body">
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-  <!-- 列車一覧 -->
-  <section id="train-list" class="page active">
-    <h2>列車一覧</h2>
+    <!-- 設定 -->
+    <section id="view-settings" class="view">
+      <h2>設定・データ管理</h2>
 
-    <input id="search-number" placeholder="列車番号で検索">
-
-    <table id="train-table">
-      <thead>
-        <tr>
-          <th>列車番号</th>
-          <th>種別</th>
-          <th>行き先</th>
-          <th>始発駅</th>
-          <th>発車</th>
-          <th>終着駅</th>
-          <th>到着</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-
-  <!-- 列車詳細 -->
-  <section id="train-detail" class="page">
-    <h2>列車詳細</h2>
-    <div id="train-detail-box">列車を選択してください</div>
-  </section>
-
-  <!-- 現在位置 -->
-  <section id="location" class="page">
-    <h2>現在位置</h2>
-
-    <div id="direction-switch">
-      <button id="btn-up" class="active">上り</button>
-      <button id="btn-down">下り</button>
-    </div>
-
-    <div id="lines-wrapper">
-      <div id="line-main-body"></div>
-      <div id="line-sagami-body"></div>
-      <div id="line-takao-body"></div>
-    </div>
-  </section>
-
-  <!-- 各駅時刻表 -->
-  <section id="timetable" class="page">
-    <h2>各駅時刻表</h2>
-    <select id="timetable-station"></select>
-    <div id="timetable-body"></div>
-  </section>
-
-  <!-- 設定 -->
-  <section id="settings" class="page">
-    <h2>設定</h2>
-
-    <h3>クラウド</h3>
-    <button id="btn-save-cloud" class="admin-only" style="display:none;">クラウドに保存</button>
-    <button id="btn-load-cloud">クラウドから受信</button>
-
-    <h3>管理者ログイン</h3>
-    <div class="form-row">
-      <label>パスワード</label>
-      <input id="login-password" type="password">
-      <button id="toggle-pass">表示</button>
-    </div>
-    <button id="btn-login">ログイン</button>
-
-    <h3 class="admin-only" style="display:none;">列車追加</h3>
-
-    <div id="train-add-area" class="admin-only" style="display:none;">
-
-      <div class="form-row">
-        <label>列車番号</label>
-        <input id="add-number">
+      <div class="panel">
+        <h3>ローカル保存</h3>
+        <button id="btn-save-local">ブラウザに保存</button>
+        <button id="btn-load-local">保存データを読み込み</button>
+        <button id="btn-clear-local">保存データ削除</button>
       </div>
 
-      <div class="form-row">
-        <label>種類</label>
-        <select id="add-type">
-          <option>各停</option>
-          <option>快速</option>
-          <option>区急</option>
-          <option>急行</option>
-          <option>特急</option>
-        </select>
+      <div class="panel">
+        <h3>JSONインポート / エクスポート</h3>
+        <div class="field-row">
+          <input type="file" id="json-input" accept=".json">
+          <button id="btn-load-json">JSON読み込み</button>
+        </div>
+        <div class="field-row">
+          <button id="btn-export-json">JSONとしてダウンロード</button>
+        </div>
       </div>
 
-      <div class="form-row">
-        <label>路線</label>
-        <select id="add-line">
-          <option value="main">京王線</option>
-          <option value="sagami">相模原線</option>
-        </select>
+      <div class="panel">
+        <h3>Googleスプレッドシート読み込み</h3>
+        <div class="field-row">
+          <label for="sheet-id">シートID</label>
+          <input id="sheet-id" type="text" placeholder="1AbCdEfGhIjKlMnOpQrStUvWxYz1234567890">
+        </div>
+        <div class="field-row">
+          <label for="api-key">APIキー</label>
+          <input id="api-key" type="text" placeholder="AIza...">
+        </div>
+        <div class="field-row">
+          <button id="btn-load-sheet">スプレッドシートから読み込む</button>
+        </div>
+        <small>
+          シートは「列車番号,種別,行先,路線,方向,駅名,到着,発車,番線,通過(0/1)」の列で作成してください。<br>
+          Google Cloud Console で Google Sheets API を有効化し、この APIキーを使用します。
+        </small>
       </div>
 
-      <div class="form-row">
-        <label>方向</label>
-        <select id="add-direction">
-          <option value="up">上り</option>
-          <option value="down">下り</option>
-        </select>
+      <div class="panel">
+        <h3>デバッグ</h3>
+        <button id="btn-log-trains">trains をコンソールに表示</button>
       </div>
+    </section>
+  </main>
 
-      <div class="form-row">
-        <label>行先</label>
-        <input id="add-dest">
-      </div>
+  <script src="app.js"></script>
+  <script>
+    // タブ切り替え
+    document.querySelectorAll('nav button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('section.view').forEach(v => v.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.view).classList.add('active');
+      });
+    });
 
-      <h3>停車駅</h3>
-      <div id="stop-list"></div>
-      <button id="btn-add-stop" class="admin-only" style="display:none;">＋ 停車駅追加</button>
-
-      <button id="btn-save-train" class="admin-only" style="display:none;">保存</button>
-    </div>
-  </section>
-
-</main>
-
-<script src="app.js"></script>
-
-<script>
-  document.getElementById("menu-btn").onclick = () => {
-    document.querySelector("nav").classList.toggle("show");
-  };
-</script>
-
+    // 簡易時計
+    function updateClock() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      const ss = String(now.getSeconds()).padStart(2, "0");
+      document.getElementById("clock").textContent = `${hh}:${mm}:${ss}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
 </body>
 </html>
