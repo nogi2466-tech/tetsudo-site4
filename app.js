@@ -139,7 +139,7 @@ document.getElementById("btn-save-train").onclick = () => {
     trains.push(train);
   }
 
-  saveLocal(); // ← 追加
+  saveLocal();
   renderTrainTable();
   alert("保存しました");
 };
@@ -236,7 +236,7 @@ function editTrain(i){
 function deleteTrain(i){
   if(confirm("削除しますか？")){
     trains.splice(i, 1);
-    saveLocal(); // ← 追加
+    saveLocal();
     renderTrainTable();
   }
 }
@@ -251,6 +251,8 @@ function renderVerticalLine(){
   stations_main_up.forEach((s, i) => {
     const div = document.createElement("div");
     div.className = "station-vertical";
+    div.dataset.station = s;
+
     div.innerHTML = `
       <div class="station-name">${s}</div>
       ${i < stations_main_up.length - 1 ? '<div class="line-vertical"></div>' : ''}
@@ -260,64 +262,103 @@ function renderVerticalLine(){
 }
 
 /* =========================================
-   現在位置更新
+   カード生成
 ========================================= */
-function updateTrainPosition(){
+function createTrainCard(train, status) {
+  const card = document.createElement("div");
+  card.className = "train-card " + status;
+
+  const statusText =
+    status === "stop" ? "停車中" :
+    status === "pass" ? "通過中" :
+    "走行中";
+
+  card.innerHTML = `
+    <b>${train.number}</b><br>
+    ${train.type}<br>
+    → ${train.destination}<br>
+    <span>${statusText}</span>
+  `;
+
+  document.body.appendChild(card);
+  return card;
+}
+
+/* =========================================
+   駅の横にカードを置く
+========================================= */
+function placeCardAtStation(card, stationName) {
+  const stationEl = [...document.querySelectorAll(".station-vertical")]
+    .find(e => e.dataset.station === stationName);
+
+  if (!stationEl) return;
+
+  const rect = stationEl.getBoundingClientRect();
+  card.style.top = rect.top + "px";
+}
+
+/* =========================================
+   駅間アニメーション
+========================================= */
+function animateBetweenStations(card, st1, st2) {
+  const el1 = [...document.querySelectorAll(".station-vertical")]
+    .find(e => e.dataset.station === st1);
+  const el2 = [...document.querySelectorAll(".station-vertical")]
+    .find(e => e.dataset.station === st2);
+
+  if (!el1 || !el2) return;
+
+  const rect1 = el1.getBoundingClientRect();
+  const rect2 = el2.getBoundingClientRect();
+
+  card.style.top = rect1.top + "px";
+
+  setTimeout(() => {
+    card.style.top = rect2.top + "px";
+  }, 50);
+}
+
+/* =========================================
+   現在位置更新（停車/走行/通過）
+========================================= */
+function updateTrainPosition() {
   const now = new Date();
   const hh = String(now.getHours()).padStart(2, "0");
   const mm = String(now.getMinutes()).padStart(2, "0");
   const nowTime = `${hh}:${mm}`;
 
-  document.querySelectorAll(".station-name").forEach(e => {
-    e.style.background = "";
-    e.textContent = e.textContent.replace(/（.*）/, "");
-  });
-  document.querySelectorAll(".line-vertical").forEach(e => {
-    e.style.background = "";
-    e.textContent = "";
-  });
+  document.querySelectorAll(".train-card").forEach(e => e.remove());
 
   trains.forEach(t => {
-    for(let i = 0; i < t.stops.length; i++){
+    for (let i = 0; i < t.stops.length; i++) {
       const s = t.stops[i];
 
-      if(s.arrive === nowTime || s.depart === nowTime){
-        highlightStation(s.station, t);
+      // 停車中
+      if (s.arrive === nowTime || s.depart === nowTime) {
+        const card = createTrainCard(t, "stop");
+        placeCardAtStation(card, s.station);
         return;
       }
 
-      if(i < t.stops.length - 1){
-        const next = t.stops[i+1];
+      // 通過中
+      if (s.pass && s.arrive === nowTime) {
+        const card = createTrainCard(t, "pass");
+        placeCardAtStation(card, s.station);
+        return;
+      }
 
-        if(s.depart < nowTime && nowTime < next.arrive){
-          highlightBetween(s.station, next.station, t);
+      // 走行中（駅間）
+      if (i < t.stops.length - 1) {
+        const next = t.stops[i + 1];
+
+        if (s.depart < nowTime && nowTime < next.arrive) {
+          const card = createTrainCard(t, "running");
+          animateBetweenStations(card, s.station, next.station);
           return;
         }
       }
     }
   });
-}
-
-function highlightStation(station, train){
-  document.querySelectorAll(".station-name").forEach(e => {
-    if(e.textContent === station){
-      e.style.background = "yellow";
-      e.textContent = `${station}（${train.number} ${train.type} ${train.destination}）`;
-    }
-  });
-}
-
-function highlightBetween(st1, st2, train){
-  const items = document.querySelectorAll(".station-vertical");
-
-  for(let i = 0; i < items.length - 1; i++){
-    const name = items[i].querySelector(".station-name").textContent;
-    if(name === st1){
-      const line = items[i].querySelector(".line-vertical");
-      line.style.background = "yellow";
-      line.textContent = `${train.number} ${train.type} ${train.destination}`;
-    }
-  }
 }
 
 /* =========================================
@@ -416,7 +457,7 @@ document.getElementById("btn-save-cloud").onclick = async () => {
     return;
   }
   await db.collection("keio-trains").doc("data").set({ trains });
-  saveLocal(); // ← 追加
+  saveLocal();
   alert("クラウドに保存しました");
 };
 
@@ -424,7 +465,7 @@ document.getElementById("btn-load-cloud").onclick = async () => {
   const doc = await db.collection("keio-trains").doc("data").get();
   if(doc.exists){
     trains = doc.data().trains || [];
-    saveLocal(); // ← 追加
+    saveLocal();
     renderTrainTable();
     renderTimetable();
     alert("クラウドから受信しました");
@@ -438,15 +479,13 @@ document.getElementById("btn-load-cloud").onclick = async () => {
 ========================================= */
 window.onload = async () => {
 
-  // まず localStorage を読む
   const ok = loadLocal();
 
   if (!ok) {
-    // localStorage にデータが無いときだけ Firebase を読む
     const doc = await db.collection("keio-trains").doc("data").get();
     if (doc.exists) {
       trains = doc.data().trains || [];
-      saveLocal(); // 読んだら localStorage に保存
+      saveLocal();
     }
   }
 
