@@ -75,8 +75,18 @@
   <!-- 現在位置 -->
   <section id="location" class="page">
     <h2>現在位置</h2>
-    <!-- 縦型路線図（駅ごとに .station-vertical が入る） -->
-    <div id="line-main-body" class="vertical-line-body"></div>
+
+    <!-- 上り / 下り 切り替え -->
+    <div id="direction-switch">
+      <button id="btn-up" class="active">上り</button>
+      <button id="btn-down">下り</button>
+    </div>
+
+    <!-- 本線＋相模原線の2本表示 -->
+    <div id="lines-wrapper">
+      <div id="line-main-body"></div>
+      <div id="line-sagami-body"></div>
+    </div>
   </section>
 
   <!-- 各駅時刻表 -->
