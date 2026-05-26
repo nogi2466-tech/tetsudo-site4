@@ -1,347 +1,139 @@
 /* 全体 */
 body {
   margin: 0;
-  font-family: "Yu Gothic", sans-serif;
-  background: #f5f5f5;
+  font-family: system-ui, sans-serif;
+  background: #111;
+  color: #eee;
 }
 
+/* ヘッダー */
 header {
-  background: #d6002f;
-  color: white;
-  padding: 10px;
-  text-align: center;
+  padding: 8px 12px;
+  background: #222;
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
-
-#now-time {
-  font-size: 14px;
-  margin-top: 5px;
-}
-
-/* タイトル中央寄せ */
-h2, h3 {
-  text-align: center;
-}
-
-/* ハンバーガーメニュー（スマホ用） */
-#menu-btn {
-  display: none;
-  background: #333;
-  color: white;
-  padding: 12px;
-  text-align: center;
-  cursor: pointer;
+header h1 {
   font-size: 18px;
+  margin: 0 8px 0 0;
+}
+#clock {
+  margin-left: auto;
+  font-size: 14px;
+  color: #ccc;
 }
 
-/* ナビゲーション */
+/* レイアウト */
+main {
+  display: flex;
+  height: calc(100vh - 40px);
+}
+
+/* 左メニュー */
 nav {
-  display: flex;
-  background: #333;
-}
-
-nav a {
-  flex: 1;
-  padding: 12px;
-  color: white;
-  text-align: center;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-nav a.active {
-  background: #d6002f;
-}
-
-/* スマホ用メニュー展開 */
-@media (max-width: 600px) {
-  nav {
-    display: none;
-    flex-direction: column;
-  }
-
-  nav.show {
-    display: flex;
-  }
-
-  nav a {
-    border-bottom: 1px solid #555;
-  }
-
-  #menu-btn {
-    display: block;
-  }
-}
-
-/* ページ切り替え */
-.page {
-  display: none;
-  padding: 15px;
-}
-
-.page.active {
-  display: block;
-}
-
-/* 列車一覧 */
-#train-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  background: white;
-}
-
-#train-table th,
-#train-table td {
-  border: 1px solid #ccc;
-  padding: 6px;
-  font-size: 14px;
-}
-
-#train-table tr:hover {
-  background: #ffe5ea;
-  cursor: pointer;
-}
-
-/* 列車詳細 */
-.detail-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  background: white;
-}
-
-.detail-table th,
-.detail-table td {
-  border: 1px solid #ccc;
-  padding: 6px;
-  font-size: 14px;
-}
-
-/* 現在位置：上下切替 */
-#direction-switch {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-#direction-switch button {
-  flex: 1;
-  padding: 10px;
-  font-size: 16px;
-  border: none;
-  background: #ccc;
-  cursor: pointer;
-}
-
-#direction-switch button.active {
-  background: #d6002f;
-  color: white;
-}
-
-/* 路線図（本線＋相模原線＋高尾線） */
-#lines-wrapper {
-  display: flex;
-  gap: 20px;
-}
-
-/* スマホでは横スクロール */
-@media (max-width: 600px) {
-  #lines-wrapper {
-    overflow-x: scroll;
-    display: block;
-    white-space: nowrap;
-  }
-
-  #line-main-body,
-  #line-sagami-body,
-  #line-takao-body {
-    display: inline-block;
-    vertical-align: top;
-    width: 260px;
-    margin-right: 20px;
-  }
-}
-
-#line-main-body,
-#line-sagami-body,
-#line-takao-body {
-  flex: 1;
-  background: white;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-/* 駅の縦並び */
-.station-vertical {
-  margin-bottom: 30px;
-  position: relative;
-}
-
-.station-row {
-  display: flex;
-  align-items: center;
-}
-
-.station-name {
-  width: 90px;
-  font-size: 14px;
-}
-
-.station-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.station-dot {
-  width: 12px;
-  height: 12px;
-  background: #d6002f;
-  border-radius: 50%;
-}
-
-.line-vertical {
-  width: 3px;
-  height: 45px; /* 駅間を広げる */
-  background: #d6002f;
-}
-
-/* 調布の分岐線（右に伸ばす） */
-.station-vertical[data-station="調布"] .station-center {
-  position: relative;
-}
-
-.station-vertical[data-station="調布"] .station-center::after {
-  content: "";
-  position: absolute;
-  width: 40px;
-  height: 3px;
-  background: #d6002f;
-  right: -40px;
-  top: 5px;
-}
-
-/* 番線枠 */
-.tracks {
-  display: flex;
-  gap: 4px;
-  margin-left: 8px;
-}
-
-.track-slot {
-  width: 40px;
-  min-height: 22px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fafafa;
-}
-
-/* 現在位置カード（種別は色で表現） */
-.train-card {
-  border-radius: 6px;
-  padding: 3px;
-  margin: 2px 0;
-  font-size: 11px;
-  color: #fff;
-  text-align: center;
-}
-
-/* 種別ごとの色 */
-.train-local  { background: #2e7d32; } /* 各停 */
-.train-exp    { background: #1976d2; } /* 急行・快速・区急 */
-.train-ltd    { background: #d32f2f; } /* 特急 */
-
-/* 停車駅入力 */
-.stop-row {
-  display: flex;
-  gap: 5px;
-  margin-bottom: 5px;
-}
-
-.stop-row input[type="time"] {
-  width: 90px;
-}
-
-.stop-row input.stop-station {
-  width: 120px;
-}
-
-.stop-row input.stop-track {
-  width: 60px;
-}
-
-.stop-row button {
-  background: #d6002f;
-  color: white;
-  border: none;
-  padding: 5px;
-  cursor: pointer;
-}
-
-/* 設定ページ */
-.form-row {
-  margin-bottom: 10px;
-}
-
-.form-row label {
-  display: block;
-  font-size: 14px;
-}
-
-.form-row input,
-.form-row select {
-  width: 100%;
-  padding: 6px;
-  font-size: 14px;
-}
-
-/* ボタン共通 */
-button {
-  padding: 10px;
-  background: #d6002f;
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-button:hover {
-  opacity: 0.8;
-}
-
-/* クラウド保存ボタン大きく */
-#btn-save-cloud,
-#btn-load-cloud {
-  font-size: 20px;
-  padding: 15px;
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-/* 時刻表 */
-.timetable-row {
-  background: white;
+  width: 180px;
+  background: #181818;
+  border-right: 1px solid #333;
   padding: 8px;
-  border: 1px solid #ccc;
-  margin-bottom: 5px;
-  border-radius: 4px;
-  display: flex;
-  gap: 10px;
+  box-sizing: border-box;
+}
+nav button {
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 6px;
+  background: #333;
+  color: #eee;
+  border: 1px solid #555;
+  cursor: pointer;
+}
+nav button.active {
+  background: #0a84ff;
+  border-color: #0a84ff;
 }
 
-.tt-time {
+/* 各ビュー */
+section.view {
+  flex: 1;
+  padding: 8px;
+  box-sizing: border-box;
+  display: none;
+  overflow: auto;
+}
+section.view.active {
+  display: block;
+}
+
+h2 {
+  font-size: 16px;
+  margin: 4px 0 8px;
+}
+h3 {
+  font-size: 14px;
+  margin: 10px 0 4px;
+}
+
+/* パネル */
+.panel {
+  border: 1px solid #333;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  background: #151515;
+}
+
+/* テーブル */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th, td {
+  border: 1px solid #333;
+  padding: 4px 6px;
+  text-align: left;
+}
+th {
+  background: #222;
+}
+
+/* 入力欄 */
+.field-row {
+  margin-bottom: 6px;
+}
+.field-row label {
+  display: inline-block;
   width: 90px;
 }
-
-.tt-num {
-  width: 60px;
+input[type="text"], input[type="number"], select {
+  padding: 3px 4px;
+  width: 180px;
+  background: #111;
+  border: 1px solid #555;
+  color: #eee;
 }
 
-.tt-type {
-  width: 60px;
+/* ボタン */
+button {
+  background: #333;
+  color: #eee;
+  border: 1px solid #555;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+button:hover {
+  background: #444;
 }
 
-.tt-dest {
-  flex: 1;
+/* ダイヤ（現在位置） */
+#timelineCanvas {
+  width: 100%;
+  height: 400px;
+  background: #000;
+  border: 1px solid #333;
+}
+
+/* 補足テキスト */
+small {
+  color: #aaa;
 }
