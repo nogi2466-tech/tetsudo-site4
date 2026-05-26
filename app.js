@@ -76,11 +76,11 @@ function autoTrack(station, direction) {
 
   return "";
 }
+
 /* ============================
    ③ 停車駅入力・保存・編集
 ============================ */
 
-/* 停車駅フォームを1つ追加 */
 function addStopRow(station = "", arrive = "", depart = "", pass = false) {
   const div = document.createElement("div");
   div.className = "stop-row";
@@ -99,9 +99,11 @@ function addStopRow(station = "", arrive = "", depart = "", pass = false) {
 
   document.getElementById("stop-list").appendChild(div);
 }
+
 document.getElementById("btn-add-stop").onclick = () => {
   addStopRow();
 };
+
 document.getElementById("btn-save-train").onclick = () => {
 
   const number = document.getElementById("add-number").value;
@@ -121,7 +123,6 @@ document.getElementById("btn-save-train").onclick = () => {
 
     let track = autoTrack(station, direction);
 
-    // 通過は若い番号の番線にする
     if (pass) {
       track = track.split("・")[0] + "番線";
     }
@@ -139,8 +140,10 @@ document.getElementById("btn-save-train").onclick = () => {
   }
 
   saveLocal();
+  renderTrainList();
   alert("保存しました");
 };
+
 function saveLocal() {
   localStorage.setItem("trains", JSON.stringify(trains));
 }
@@ -150,6 +153,7 @@ function loadLocal() {
   if (data) trains = JSON.parse(data);
 }
 loadLocal();
+
 function editTrain(index) {
   editingIndex = index;
   const t = trains[index];
@@ -167,6 +171,7 @@ function editTrain(index) {
 
   showPage("settings");
 }
+
 /* ============================
    ④ 列車一覧・列車詳細
 ============================ */
@@ -182,6 +187,7 @@ function showPage(id) {
 document.querySelectorAll("nav a").forEach(a => {
   a.onclick = () => showPage(a.dataset.target);
 });
+
 function renderTrainList() {
   const tbody = document.querySelector("#train-table tbody");
   tbody.innerHTML = "";
@@ -204,35 +210,49 @@ function renderTrainList() {
     tbody.appendChild(tr);
   });
 }
+
 function showTrainDetail(index) {
   const t = trains[index];
   const box = document.getElementById("train-detail-box");
 
   box.innerHTML = `
-    <h3>${t.number}　${t.type}　${t.dest} 行き</h3>
-    <p>路線：${t.line === "main" ? "京王線" : "相模原線"}　
-       方向：${t.direction === "up" ? "上り" : "下り"}</p>
+    <h3>列車番号: ${t.number}</h3>
+    <p>種類: ${t.type}</p>
+    <p>方向: ${t.direction === "up" ? "上り" : "下り"}</p>
+    <p>行先: ${t.dest}</p>
+
+    <h3>各駅時刻</h3>
+    <table class="detail-table">
+      <thead>
+        <tr>
+          <th>駅名</th>
+          <th>到着</th>
+          <th>発車</th>
+          <th>番線</th>
+        </tr>
+      </thead>
+      <tbody id="detail-body"></tbody>
+    </table>
   `;
 
+  const tbody = document.getElementById("detail-body");
+
   t.stops.forEach(s => {
+    const tr = document.createElement("tr");
 
-    const timeText = s.pass
-      ? `${s.arrive || s.depart} 通過`
-      : s.arrive && s.depart
-        ? `${s.arrive} - ${s.depart}`
-        : s.arrive || s.depart || "";
-
-    box.innerHTML += `
-      <div class="stop-card">
-        <div class="stop-time">${timeText}</div>
-        <div class="stop-station">${s.station}</div>
-        <div class="stop-track">${s.track}</div>
-      </div>
+    tr.innerHTML = `
+      <td>${s.station}</td>
+      <td>${s.arrive || "-"}</td>
+      <td>${s.depart || "-"}</td>
+      <td>${s.track}</td>
     `;
+
+    tbody.appendChild(tr);
   });
 
   showPage("train-detail");
 }
+
 document.getElementById("search-number").oninput = function () {
   const word = this.value;
   const tbody = document.querySelector("#train-table tbody");
@@ -241,7 +261,9 @@ document.getElementById("search-number").oninput = function () {
     tr.style.display = tr.children[0].textContent.includes(word) ? "" : "none";
   });
 };
+
 renderTrainList();
+
 /* ============================
    ⑤ 現在位置（本線＋相模原線）
 ============================ */
@@ -261,6 +283,7 @@ document.getElementById("btn-down").onclick = () => {
   renderVerticalLine();
   updateTrainPosition();
 };
+
 function renderVerticalLine() {
 
   const mainList = currentDirection === "up"
@@ -295,7 +318,7 @@ function renderVerticalLine() {
     mainBody.appendChild(div);
   });
 
-  // 相模原線（調布から分岐）
+  // 相模原線
   sagamiList.forEach((s, i) => {
     const div = document.createElement("div");
     div.className = "station-vertical";
@@ -313,6 +336,7 @@ function renderVerticalLine() {
     sagamiBody.appendChild(div);
   });
 }
+
 setInterval(() => {
   const now = new Date();
   const hh = String(now.getHours()).padStart(2, "0");
@@ -320,6 +344,7 @@ setInterval(() => {
   document.getElementById("now-time").textContent = `現在時刻: ${hh}:${mm}`;
   updateTrainPosition();
 }, 10000);
+
 function createTrainCard(train, status) {
   const div = document.createElement("div");
   div.className = `train-card ${status}`;
@@ -332,10 +357,12 @@ function createTrainCard(train, status) {
 
   return div;
 }
+
 function placeCardAtStation(card, station) {
   const target = document.querySelector(`[data-station="${station}"]`);
   if (target) target.appendChild(card);
 }
+
 function updateTrainPosition() {
 
   document.querySelectorAll(".train-card").forEach(e => e.remove());
@@ -378,6 +405,7 @@ function updateTrainPosition() {
     }
   });
 }
+
 /* ============================
    ⑥ 時刻表・ログイン・クラウド保存
 ============================ */
@@ -397,6 +425,7 @@ function initTimetableStationList() {
   });
 }
 initTimetableStationList();
+
 document.getElementById("timetable-station").onchange = renderTimetable;
 
 function renderTimetable() {
@@ -441,10 +470,12 @@ function renderTimetable() {
     body.appendChild(div);
   });
 }
+
 document.getElementById("toggle-pass").onclick = () => {
   const input = document.getElementById("login-password");
   input.type = input.type === "password" ? "text" : "password";
 };
+
 document.getElementById("btn-login").onclick = () => {
   const pw = document.getElementById("login-password").value;
 
@@ -457,12 +488,14 @@ document.getElementById("btn-login").onclick = () => {
     alert("パスワードが違います");
   }
 };
+
 document.getElementById("btn-save-cloud").onclick = async () => {
   if (!isAdmin) return alert("管理者のみ");
 
   await db.collection("trains").doc("data").set({ trains });
   alert("クラウドに保存しました");
 };
+
 document.getElementById("btn-load-cloud").onclick = async () => {
   const doc = await db.collection("trains").doc("data").get();
   if (doc.exists) {
