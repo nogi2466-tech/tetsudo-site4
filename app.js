@@ -30,10 +30,14 @@ setInterval(() => {
 }, 1000);
 
 /* =========================================
-   停車駅リスト（正しい順番）
+   京王線 全駅リスト（上り）
 ========================================= */
 const stations_main_up = [
-  "新宿","笹塚","明大前","桜上水","千歳烏山","仙川","つつじヶ丘","調布"
+  "新宿","笹塚","代田橋","明大前","下高井戸","桜上水","上北沢","八幡山",
+  "芦花公園","千歳烏山","仙川","つつじヶ丘","柴崎","国領","布田","調布",
+  "西調布","飛田給","武蔵野台","多磨霊園","東府中","府中","分倍河原",
+  "中河原","聖蹟桜ヶ丘","百草園","高幡不動","南平","平山城址公園",
+  "長沼","北野","京王八王子"
 ];
 
 const stations_main_down = [...stations_main_up].reverse();
@@ -220,7 +224,7 @@ function deleteTrain(i){
 }
 
 /* =========================================
-   縦型路線図（現在位置）
+   縦型路線図（全駅表示）
 ========================================= */
 function renderVerticalLine(){
   const body = document.getElementById("line-main-body");
@@ -238,7 +242,7 @@ function renderVerticalLine(){
 }
 
 /* =========================================
-   現在位置更新
+   現在位置更新（列車番号＋種別＋行き先）
 ========================================= */
 function updateTrainPosition(){
   const now = new Date();
@@ -260,7 +264,7 @@ function updateTrainPosition(){
       const s = t.stops[i];
 
       if(s.arrive === nowTime || s.depart === nowTime){
-        highlightStation(s.station, t.number);
+        highlightStation(s.station, t);
         return;
       }
 
@@ -268,7 +272,7 @@ function updateTrainPosition(){
         const next = t.stops[i+1];
 
         if(s.depart < nowTime && nowTime < next.arrive){
-          highlightBetween(s.station, next.station, t.number);
+          highlightBetween(s.station, next.station, t);
           return;
         }
       }
@@ -276,16 +280,16 @@ function updateTrainPosition(){
   });
 }
 
-function highlightStation(station, number){
+function highlightStation(station, train){
   document.querySelectorAll(".station-name").forEach(e => {
     if(e.textContent === station){
       e.style.background = "yellow";
-      e.textContent = `${station}（${number}）`;
+      e.textContent = `${station}（${train.number} ${train.type} ${train.destination}）`;
     }
   });
 }
 
-function highlightBetween(st1, st2, number){
+function highlightBetween(st1, st2, train){
   const items = document.querySelectorAll(".station-vertical");
 
   for(let i = 0; i < items.length - 1; i++){
@@ -293,7 +297,7 @@ function highlightBetween(st1, st2, number){
     if(name === st1){
       const line = items[i].querySelector(".line-vertical");
       line.style.background = "yellow";
-      line.textContent = number;
+      line.textContent = `${train.number} ${train.type} ${train.destination}`;
     }
   }
 }
@@ -305,9 +309,7 @@ function renderTimetableStationList(){
   const select = document.getElementById("timetable-station");
   select.innerHTML = "";
 
-  const allStations = stations_main_up;
-
-  allStations.forEach(s => {
+  stations_main_up.forEach(s => {
     const op = document.createElement("option");
     op.textContent = s;
     select.appendChild(op);
@@ -420,3 +422,4 @@ window.onload = () => {
   renderVerticalLine();
   setInterval(updateTrainPosition, 1000);
 };
+
