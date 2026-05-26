@@ -1,6 +1,3 @@
-body {
-  background: #d0e7ff !important;
-}
 /* ============================
    全体
 ============================ */
@@ -8,10 +5,11 @@ body {
   margin: 0;
   font-family: "Yu Gothic", sans-serif;
   background: #ffffff;
+  text-align: center; /* 全体中央寄せ */
 }
 
 header {
-  background: #007bff; /* 青に変更 */
+  background: #007bff; /* 青テーマ */
   color: white;
   padding: 15px;
   display: flex;
@@ -26,6 +24,7 @@ nav {
   background: #e8f0ff;
   padding: 10px;
   border-bottom: 2px solid #bcd4ff;
+  overflow-x: auto;
 }
 
 nav a {
@@ -36,6 +35,7 @@ nav a {
   color: #004a99;
   cursor: pointer;
   font-weight: bold;
+  white-space: nowrap;
 }
 
 nav a.active {
@@ -86,12 +86,15 @@ main {
 .form-row {
   margin: 12px 0;
   font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 中央寄せ */
 }
 
 .form-row input {
-  width: 250px;
-  padding: 10px;
-  font-size: 20px; /* パスワード欄を大きく */
+  width: 260px;
+  padding: 12px;
+  font-size: 22px; /* パスワード欄大きく */
   border: 2px solid #007bff;
   border-radius: 6px;
 }
@@ -99,23 +102,30 @@ main {
 #toggle-pass {
   padding: 10px;
   font-size: 16px;
-  margin-left: 10px;
+  margin-top: 5px;
 }
 
 .big-btn {
-  width: 250px;
-  padding: 15px;
-  margin: 10px 0;
-  font-size: 22px; /* ボタンを大きく */
+  width: 260px;
+  padding: 18px;
+  margin: 12px 0;
+  font-size: 24px; /* ボタン大きく */
   background: #007bff;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
 }
 
 .big-btn:hover {
   background: #005fcc;
+}
+
+/* 列車追加の保存ボタンを特別に大きく */
+#btn-save-train {
+  background: #28a745;
+  font-size: 26px;
+  padding: 20px;
 }
 
 /* ============================
@@ -126,6 +136,7 @@ main {
   padding: 15px;
   border-radius: 8px;
   margin-top: 15px;
+  text-align: center;
 }
 
 #stop-list > div {
@@ -137,7 +148,7 @@ main {
 }
 
 /* ============================
-   縦型路線図（現在位置）
+   現在位置（全駅表示＋列車情報）
 ============================ */
 .vertical-line-body {
   margin-top: 20px;
@@ -154,20 +165,20 @@ main {
   background: #e8f0ff;
   border-radius: 6px;
   margin: 4px 0;
-  width: 150px;
+  width: 180px;
   text-align: center;
   font-size: 18px;
 }
 
 .line-vertical {
-  width: 4px;
-  height: 40px;
+  width: 6px;
+  height: 45px;
   background: #007bff;
   margin: 2px 0;
-  border-radius: 2px;
+  border-radius: 3px;
   text-align: center;
   color: black;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 /* ============================
@@ -215,3 +226,39 @@ main {
 .admin-only {
   display: none;
 }
+
+/* ============================
+   スマホ最適化
+============================ */
+@media (max-width: 600px) {
+  header {
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  nav a {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+
+  #train-table th, #train-table td {
+    font-size: 12px;
+    padding: 5px;
+  }
+
+  .station-name {
+    width: 140px;
+    font-size: 16px;
+  }
+
+  .big-btn {
+    width: 220px;
+    font-size: 20px;
+  }
+
+  .form-row input {
+    width: 220px;
+    font-size: 20px;
+  }
+}
+
