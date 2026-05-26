@@ -33,6 +33,9 @@
   <div id="now-time">現在時刻: --:--</div>
 </header>
 
+<!-- スマホ用メニューボタン -->
+<div id="menu-btn">☰ メニュー</div>
+
 <nav>
   <a data-target="train-list" class="active">列車一覧</a>
   <a data-target="train-detail">列車詳細</a>
@@ -53,11 +56,11 @@
       <thead>
         <tr>
           <th>列車番号</th>
-          <th>種類</th>
-          <th>行先</th>
-          <th>始まり</th>
+          <th>種別</th>
+          <th>行き先</th>
+          <th>始発駅</th>
           <th>発車</th>
-          <th>終着</th>
+          <th>終着駅</th>
           <th>到着</th>
         </tr>
       </thead>
@@ -83,6 +86,7 @@
     <div id="lines-wrapper">
       <div id="line-main-body"></div>
       <div id="line-sagami-body"></div>
+      <div id="line-takao-body"></div>
     </div>
   </section>
 
@@ -161,5 +165,11 @@
 </main>
 
 <script src="app.js"></script>
+<script>
+  // ハンバーガーメニュー開閉
+  document.getElementById("menu-btn").onclick = () => {
+    document.querySelector("nav").classList.toggle("show");
+  };
+</script>
 </body>
 </html>
