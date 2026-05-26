@@ -1,124 +1,247 @@
+/* =========================================
+   style.css（前半）
+   全体レイアウト・青いメニューバー・スマホ対応
+========================================= */
+
 /* 全体 */
 body {
   margin: 0;
-  font-family: sans-serif;
+  padding: 0;
+  font-family: "Yu Gothic", sans-serif;
   background: #f5f5f5;
-  color: #000;
+  color: #222;
 }
 
-/* ヘッダー */
-header {
-  padding: 10px;
-  background: #e0e0e0;
-  border-bottom: 1px solid #ccc;
-}
-header h1 {
-  margin: 0;
-  font-size: 20px;
-  display: inline-block;
-}
-#clock {
-  float: right;
-  font-size: 14px;
-  margin-top: 3px;
-}
-
-/* レイアウト */
-main {
-  display: flex;
-  height: calc(100vh - 50px);
-}
-
-/* 左メニュー */
-nav {
-  width: 180px;
-  background: #fafafa;
-  border-right: 1px solid #ccc;
-  padding: 10px;
-  box-sizing: border-box;
-}
-nav button {
-  width: 100%;
-  margin-bottom: 8px;
-  padding: 8px;
-  background: #fff;
-  border: 1px solid #ccc;
-  cursor: pointer;
-}
-nav button.active {
-  background: #d0e7ff;
-  border-color: #7bb4ff;
-}
-
-/* 各ビュー */
-section.view {
-  flex: 1;
-  padding: 12px;
-  display: none;
-  overflow: auto;
-}
-section.view.active {
-  display: block;
-}
-
-h2 {
-  margin-top: 0;
-  font-size: 18px;
+h2, h3 {
+  margin: 10px 0;
 }
 
 /* パネル */
 .panel {
   background: #fff;
-  border: 1px solid #ccc;
+  padding: 12px;
+  margin: 10px;
+  border-radius: 8px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.1);
+}
+
+.field-row {
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* =========================================
+   上部メニューバー（青）
+========================================= */
+
+.top-bar {
+  background: #007bff;
+  color: #fff;
+  padding: 8px 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.top-bar-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px;
+}
+
+.app-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* メニュー（PC） */
+.top-nav {
+  display: flex;
+  gap: 10px;
+}
+
+.nav-item {
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.nav-item.active {
+  background: #fff;
+  color: #007bff;
+}
+
+/* 現在時刻 */
+.clock {
+  font-size: 14px;
+  margin-left: 10px;
+}
+
+/* 現在時刻ジャンプボタン */
+.btn-now {
+  background: #fff;
+  color: #007bff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-now:hover {
+  background: #e6e6e6;
+}
+
+/* =========================================
+   スマホ用ハンバーガーメニュー
+========================================= */
+
+.menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* スマホ表示 */
+@media (max-width: 700px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .top-nav {
+    display: none;
+    flex-direction: column;
+    background: #007bff;
+    padding: 10px;
+  }
+
+  .top-nav.open {
+    display: flex;
+  }
+}
+/* =========================================
+   現在位置：駅縦並びレイアウト
+========================================= */
+
+.station-list {
   padding: 10px;
-  margin-bottom: 12px;
+}
+
+.station-block {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.station-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.station-dot {
+  font-size: 20px;
+}
+
+.station-name {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 6px;
   border-radius: 4px;
 }
 
-/* テーブル */
-table {
+.station-name:hover {
+  background: #e0e0e0;
+}
+
+/* 駅間の縦線 */
+.station-line {
+  font-size: 22px;
+  text-align: center;
+  margin: 4px 0;
+  position: relative;
+}
+
+/* =========================================
+   番線の四角い枠
+========================================= */
+
+.platform-row {
+  display: flex;
+  gap: 10px;
+  margin: 6px 0;
+}
+
+.platform {
+  width: 120px;
+  min-height: 70px;
+  background: #fafafa;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  padding: 4px;
+  position: relative;
+}
+
+.platform-label {
+  font-size: 12px;
+  color: #555;
+  position: absolute;
+  top: 2px;
+  left: 4px;
+}
+
+.train-slot {
+  margin-top: 18px;
+}
+
+/* =========================================
+   列車の上下2段ボックス
+========================================= */
+
+.train-box {
   width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-}
-th, td {
-  border: 1px solid #ccc;
-  padding: 6px;
-}
-th {
-  background: #eee;
-}
-
-/* 入力欄 */
-.field-row {
-  margin-bottom: 8px;
-}
-.field-row label {
-  display: inline-block;
-  width: 90px;
-}
-input[type="text"], input[type="number"], select {
-  padding: 5px;
-  width: 200px;
-  border: 1px solid #aaa;
-  background: #fff;
-}
-
-/* ボタン */
-button {
-  padding: 6px 10px;
-  background: #fff;
-  border: 1px solid #aaa;
+  margin: 2px 0;
   cursor: pointer;
 }
-button:hover {
-  background: #f0f0f0;
+
+.train-box-top {
+  background: #fff;
+  border: 1px solid #aaa;
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 4px 4px 0 0;
 }
 
-/* ダイヤ（現在位置） */
-#timelineCanvas {
-  width: 100%;
-  height: 400px;
-  background: #fff;
-  border: 1px solid #ccc;
+.train-box-bottom {
+  border: 1px solid #aaa;
+  padding: 4px;
+  text-align: center;
+  border-radius: 0 0 4px 4px;
+  color: #fff;
+  font-size: 14px;
+}
+
+/* =========================================
+   駅間走行中の列車
+========================================= */
+
+.train-between {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
 }
