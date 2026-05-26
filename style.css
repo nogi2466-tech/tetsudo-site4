@@ -157,7 +157,7 @@ nav a.active {
   #line-takao-body {
     display: inline-block;
     vertical-align: top;
-    width: 250px;
+    width: 260px;
     margin-right: 20px;
   }
 }
@@ -174,7 +174,7 @@ nav a.active {
 
 /* 駅の縦並び */
 .station-vertical {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   position: relative;
 }
 
@@ -203,7 +203,7 @@ nav a.active {
 
 .line-vertical {
   width: 3px;
-  height: 25px;
+  height: 45px; /* 駅間を広げる */
   background: #d6002f;
 }
 
@@ -222,29 +222,35 @@ nav a.active {
   top: 5px;
 }
 
-/* 現在位置カード */
+/* 番線枠 */
+.tracks {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.track-slot {
+  width: 40px;
+  min-height: 22px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fafafa;
+}
+
+/* 現在位置カード（種別は色で表現） */
 .train-card {
-  background: #fff;
-  border: 2px solid #d6002f;
-  padding: 5px;
-  margin-top: 5px;
   border-radius: 6px;
-  width: 80px;
+  padding: 3px;
+  margin: 2px 0;
+  font-size: 11px;
+  color: #fff;
   text-align: center;
-  font-size: 12px;
 }
 
-.train-card.stop {
-  background: #ffe5ea;
-}
-
-.train-card.pass {
-  background: #e5f0ff;
-}
-
-.train-card.run {
-  background: #eaffea;
-}
+/* 種別ごとの色 */
+.train-local  { background: #2e7d32; } /* 各停 */
+.train-exp    { background: #1976d2; } /* 急行・快速・区急 */
+.train-ltd    { background: #d32f2f; } /* 特急 */
 
 /* 停車駅入力 */
 .stop-row {
@@ -259,6 +265,10 @@ nav a.active {
 
 .stop-row input.stop-station {
   width: 120px;
+}
+
+.stop-row input.stop-track {
+  width: 60px;
 }
 
 .stop-row button {
