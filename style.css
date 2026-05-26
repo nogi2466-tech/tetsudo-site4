@@ -8,37 +8,40 @@ body {
 }
 
 header {
-  background: #8b004f;
+  background: #007bff; /* 青に変更 */
   color: white;
-  padding: 10px;
+  padding: 15px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  font-size: 20px;
 }
 
 nav {
   display: flex;
   gap: 10px;
-  background: #eee;
+  background: #e8f0ff;
   padding: 10px;
+  border-bottom: 2px solid #bcd4ff;
 }
 
 nav a {
-  padding: 8px 12px;
+  padding: 10px 15px;
   background: white;
-  border-radius: 4px;
+  border-radius: 6px;
   text-decoration: none;
-  color: black;
+  color: #004a99;
   cursor: pointer;
+  font-weight: bold;
 }
 
 nav a.active {
-  background: #8b004f;
+  background: #007bff;
   color: white;
 }
 
 main {
-  padding: 10px;
+  padding: 15px;
 }
 
 .page {
@@ -56,41 +59,78 @@ main {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
+  font-size: 16px;
 }
 
 #train-table th,
 #train-table td {
   border: 1px solid #ccc;
-  padding: 5px;
+  padding: 8px;
   text-align: center;
 }
 
 #train-detail-box {
   margin-top: 15px;
-  padding: 10px;
-  background: #f8f8f8;
-  border-radius: 4px;
+  padding: 15px;
+  background: #f0f6ff;
+  border-radius: 6px;
+  font-size: 18px;
 }
 
-/* 種別色（一覧・時刻表共通） */
-.type-local { background: #cce5ff !important; }   /* 各停＝青 */
-.type-rapid { background: #d4f5d4 !important; }   /* 快速＝緑 */
-.type-semi-exp { background: #d4e5ff !important; }/* 区急＝水色 */
-.type-exp { background: #d4f5d4 !important; }     /* 急行＝緑 */
-.type-ltd-exp { background: #ffd4d4 !important; } /* 特急＝赤 */
-
 /* ============================
-   フォーム
+   設定ページ（UI強化）
 ============================ */
 .form-row {
-  margin: 8px 0;
+  margin: 12px 0;
+  font-size: 18px;
+}
+
+.form-row input {
+  width: 250px;
+  padding: 10px;
+  font-size: 20px; /* パスワード欄を大きく */
+  border: 2px solid #007bff;
+  border-radius: 6px;
+}
+
+#toggle-pass {
+  padding: 10px;
+  font-size: 16px;
+  margin-left: 10px;
+}
+
+.big-btn {
+  width: 250px;
+  padding: 15px;
+  margin: 10px 0;
+  font-size: 22px; /* ボタンを大きく */
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.big-btn:hover {
+  background: #005fcc;
+}
+
+/* ============================
+   列車追加フォーム
+============================ */
+#train-add-area {
+  background: #eef5ff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 15px;
 }
 
 #stop-list > div {
   margin-bottom: 10px;
-  padding: 6px;
+  padding: 10px;
   background: #f8f8f8;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 16px;
 }
 
 /* ============================
@@ -107,23 +147,24 @@ main {
 }
 
 .station-name {
-  padding: 6px 10px;
-  background: #eee;
-  border-radius: 4px;
+  padding: 8px 12px;
+  background: #e8f0ff;
+  border-radius: 6px;
   margin: 4px 0;
-  width: 120px;
+  width: 150px;
   text-align: center;
+  font-size: 18px;
 }
 
 .line-vertical {
   width: 4px;
   height: 40px;
-  background: #333;
+  background: #007bff;
   margin: 2px 0;
   border-radius: 2px;
   text-align: center;
   color: black;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 /* ============================
@@ -142,14 +183,14 @@ main {
 }
 
 .timetable-hour {
-  width: 40px;
+  width: 50px;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .timetable-cell {
-  width: 40px;
-  height: 40px;
+  width: 45px;
+  height: 45px;
   border: 1px solid #ddd;
   font-size: 12px;
   text-align: center;
