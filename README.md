@@ -163,6 +163,12 @@
       </div>
 
       <div class="panel">
+        <h3>クラウド</h3>
+        <button id="btn-cloud-save" class="need-auth" disabled>クラウド保存</button>
+        <button id="btn-cloud-load">クラウド受信</button>
+      </div>
+
+      <div class="panel">
         <h3>デバッグ</h3>
         <button id="btn-log-trains">trains を表示</button>
       </div>
@@ -171,6 +177,12 @@
 
   </main>
 
+  <!-- Firebase（Realtime Database 用） -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <!-- アプリ本体 -->
   <script src="app.js"></script>
 </body>
 </html>
+
