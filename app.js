@@ -27,8 +27,15 @@ const stations_sagami_up = [
 
 const stations_sagami_down = [...stations_sagami_up].reverse();
 
+/* 高尾線 駅リスト */
+const stations_takao_up = [
+  "北野","京王片倉","山田","めじろ台","狭間","高尾","高尾山口"
+];
+
+const stations_takao_down = [...stations_takao_up].reverse();
+
 /* ============================
-   ② 番線自動判定（本線＋相模原線）
+   ② 番線自動判定
 ============================ */
 
 function autoTrack(station, direction) {
@@ -50,13 +57,11 @@ function autoTrack(station, direction) {
     return direction === "up" ? "4・5番線" : "2・3番線";
   }
 
-  // 相模原線（若葉台・京王多摩センター特別）
+  // 相模原線
   if (sagamiStations.includes(station)) {
-
     if (station === "若葉台" || station === "京王多摩センター") {
       return direction === "up" ? "3・4番線" : "1・2番線";
     }
-
     return "1・2番線";
   }
 
@@ -78,7 +83,7 @@ function autoTrack(station, direction) {
 }
 
 /* ============================
-   ③ 停車駅入力・保存・編集
+   ③ 停車駅入力
 ============================ */
 
 function addStopRow(station = "", arrive = "", depart = "", pass = false) {
@@ -154,24 +159,6 @@ function loadLocal() {
 }
 loadLocal();
 
-function editTrain(index) {
-  editingIndex = index;
-  const t = trains[index];
-
-  document.getElementById("add-number").value = t.number;
-  document.getElementById("add-type").value = t.type;
-  document.getElementById("add-line").value = t.line;
-  document.getElementById("add-direction").value = t.direction;
-  document.getElementById("add-dest").value = t.dest;
-
-  document.getElementById("stop-list").innerHTML = "";
-  t.stops.forEach(s => {
-    addStopRow(s.station, s.arrive, s.depart, s.pass);
-  });
-
-  showPage("settings");
-}
-
 /* ============================
    ④ 列車一覧・列車詳細
 ============================ */
@@ -193,16 +180,19 @@ function renderTrainList() {
   tbody.innerHTML = "";
 
   trains.forEach((t, i) => {
+    const first = t.stops[0];
+    const last = t.stops[t.stops.length - 1];
+
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
       <td>${t.number}</td>
       <td>${t.type}</td>
       <td>${t.dest}</td>
-      <td>${t.stops[0]?.station || ""}</td>
-      <td>${t.stops[0]?.depart || ""}</td>
-      <td>${t.stops[t.stops.length - 1]?.station || ""}</td>
-      <td>${t.stops[t.stops.length - 1]?.arrive || ""}</td>
+      <td>${first.station}</td>
+      <td>${first.depart}</td>
+      <td>${last.station}</td>
+      <td>${last.arrive}</td>
     `;
 
     tr.onclick = () => showTrainDetail(i);
@@ -265,7 +255,7 @@ document.getElementById("search-number").oninput = function () {
 renderTrainList();
 
 /* ============================
-   ⑤ 現在位置（本線＋相模原線）
+   ⑤ 現在位置（本線＋相模原線＋高尾線）
 ============================ */
 
 document.getElementById("btn-up").onclick = () => {
@@ -294,11 +284,17 @@ function renderVerticalLine() {
     ? stations_sagami_up
     : stations_sagami_down;
 
+  const takaoList = currentDirection === "up"
+    ? stations_takao_up
+    : stations_takao_down;
+
   const mainBody = document.getElementById("line-main-body");
   const sagamiBody = document.getElementById("line-sagami-body");
+  const takaoBody = document.getElementById("line-takao-body");
 
   mainBody.innerHTML = "";
   sagamiBody.innerHTML = "";
+  takaoBody.innerHTML = "";
 
   // 本線
   mainList.forEach((s, i) => {
@@ -334,6 +330,24 @@ function renderVerticalLine() {
       </div>
     `;
     sagamiBody.appendChild(div);
+  });
+
+  // 高尾線
+  takaoList.forEach((s, i) => {
+    const div = document.createElement("div");
+    div.className = "station-vertical";
+    div.dataset.station = s;
+
+    div.innerHTML = `
+      <div class="station-row">
+        <div class="station-name">${s}</div>
+        <div class="station-center">
+          <div class="station-dot"></div>
+          ${i < takaoList.length - 1 ? '<div class="line-vertical"></div>' : ''}
+        </div>
+      </div>
+    `;
+    takaoBody.appendChild(div);
   });
 }
 
@@ -414,7 +428,7 @@ function initTimetableStationList() {
   const sel = document.getElementById("timetable-station");
   sel.innerHTML = "";
 
-  const allStations = [...stations_main_up, ...stations_sagami_up];
+  const allStations = [...stations_main_up, ...stations_sagami_up, ...stations_takao_up];
   const unique = [...new Set(allStations)];
 
   unique.forEach(st => {
@@ -477,9 +491,9 @@ document.getElementById("toggle-pass").onclick = () => {
 };
 
 document.getElementById("btn-login").onclick = () => {
-  const pw = document.getElementById("login-password").value;
+  const pw = document.getElementById("login-password").value.trim();
 
-  if (pw === "keio") {
+  if (pw === "0829") {
     isAdmin = true;
     alert("管理者モードになりました");
 
@@ -502,6 +516,8 @@ document.getElementById("btn-load-cloud").onclick = async () => {
     trains = doc.data().trains;
     saveLocal();
     renderTrainList();
+    renderVerticalLine();
+    updateTrainPosition();
     alert("クラウドから受信しました");
   } else {
     alert("クラウドにデータがありません");
