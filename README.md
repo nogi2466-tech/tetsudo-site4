@@ -2,14 +2,12 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-
-  <!-- スマホ対応 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>京王運行管理システム</title>
+  <title>列車管理システム（縦路線図）</title>
   <link rel="stylesheet" href="style.css">
 
-  <!-- Firebase v8 -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
@@ -27,10 +25,11 @@
     const db = firebase.firestore();
   </script>
 </head>
+
 <body>
 
 <header>
-  <h1>京王運行管理システム</h1>
+  <h1>列車管理システム（縦路線図）</h1>
   <div id="now-time">現在時刻: --:--</div>
 </header>
 
@@ -48,18 +47,18 @@
   <section id="train-list" class="page active">
     <h2>列車一覧</h2>
 
-    <input id="search-number" placeholder="列車番号検索">
+    <input id="search-number" placeholder="列車番号で検索">
 
     <table id="train-table">
       <thead>
         <tr>
-          <th>番号</th>
-          <th>種別</th>
+          <th>列車番号</th>
+          <th>種類</th>
           <th>行先</th>
-          <th>始発</th>
-          <th>発</th>
+          <th>始まり</th>
+          <th>発車</th>
           <th>終着</th>
-          <th>着</th>
+          <th>到着</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -76,13 +75,11 @@
   <section id="location" class="page">
     <h2>現在位置</h2>
 
-    <!-- 上り / 下り 切り替え -->
     <div id="direction-switch">
       <button id="btn-up" class="active">上り</button>
       <button id="btn-down">下り</button>
     </div>
 
-    <!-- 本線＋相模原線の2本表示 -->
     <div id="lines-wrapper">
       <div id="line-main-body"></div>
       <div id="line-sagami-body"></div>
@@ -96,21 +93,21 @@
     <div id="timetable-body"></div>
   </section>
 
-  <!-- 設定・ログイン・列車追加 -->
+  <!-- 設定 -->
   <section id="settings" class="page">
     <h2>設定</h2>
 
+    <h3>クラウド</h3>
+    <button id="btn-save-cloud" class="admin-only" style="display:none;">クラウドに保存</button>
+    <button id="btn-load-cloud">クラウドから受信</button>
+
+    <h3>管理者ログイン</h3>
     <div class="form-row">
       <label>パスワード</label>
       <input id="login-password" type="password">
       <button id="toggle-pass">表示</button>
     </div>
-
-    <button id="btn-login" class="big-btn">ログイン</button>
-
-    <h3>クラウド</h3>
-    <button id="btn-save-cloud" class="big-btn admin-only" style="display:none;">クラウド保存</button>
-    <button id="btn-load-cloud" class="big-btn">クラウド受信</button>
+    <button id="btn-login">ログイン</button>
 
     <h3 class="admin-only" style="display:none;">列車追加</h3>
 
@@ -122,7 +119,7 @@
       </div>
 
       <div class="form-row">
-        <label>種別</label>
+        <label>種類</label>
         <select id="add-type">
           <option>各停</option>
           <option>快速</option>
@@ -149,15 +146,15 @@
       </div>
 
       <div class="form-row">
-        <label>行き先</label>
+        <label>行先</label>
         <input id="add-dest">
       </div>
 
       <h3>停車駅</h3>
       <div id="stop-list"></div>
-      <button id="btn-add-stop" class="big-btn admin-only" style="display:none;">＋ 停車駅追加</button>
+      <button id="btn-add-stop" class="admin-only" style="display:none;">＋ 停車駅追加</button>
 
-      <button id="btn-save-train" class="big-btn admin-only" style="display:none;">保存</button>
+      <button id="btn-save-train" class="admin-only" style="display:none;">保存</button>
     </div>
   </section>
 
@@ -166,4 +163,3 @@
 <script src="app.js"></script>
 </body>
 </html>
-
