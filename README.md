@@ -165,11 +165,12 @@
 </main>
 
 <script src="app.js"></script>
+
 <script>
-  // ハンバーガーメニュー開閉
   document.getElementById("menu-btn").onclick = () => {
     document.querySelector("nav").classList.toggle("show");
   };
 </script>
+
 </body>
 </html>
