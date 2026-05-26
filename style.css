@@ -17,6 +17,22 @@ header {
   margin-top: 5px;
 }
 
+/* タイトル中央寄せ */
+h2, h3 {
+  text-align: center;
+}
+
+/* ハンバーガーメニュー（スマホ用） */
+#menu-btn {
+  display: none;
+  background: #333;
+  color: white;
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 18px;
+}
+
 /* ナビゲーション */
 nav {
   display: flex;
@@ -34,6 +50,26 @@ nav a {
 
 nav a.active {
   background: #d6002f;
+}
+
+/* スマホ用メニュー展開 */
+@media (max-width: 600px) {
+  nav {
+    display: none;
+    flex-direction: column;
+  }
+
+  nav.show {
+    display: flex;
+  }
+
+  nav a {
+    border-bottom: 1px solid #555;
+  }
+
+  #menu-btn {
+    display: block;
+  }
 }
 
 /* ページ切り替え */
@@ -102,14 +138,33 @@ nav a.active {
   color: white;
 }
 
-/* 路線図（本線＋相模原線） */
+/* 路線図（本線＋相模原線＋高尾線） */
 #lines-wrapper {
   display: flex;
   gap: 20px;
 }
 
+/* スマホでは横スクロール */
+@media (max-width: 600px) {
+  #lines-wrapper {
+    overflow-x: scroll;
+    display: block;
+    white-space: nowrap;
+  }
+
+  #line-main-body,
+  #line-sagami-body,
+  #line-takao-body {
+    display: inline-block;
+    vertical-align: top;
+    width: 250px;
+    margin-right: 20px;
+  }
+}
+
 #line-main-body,
-#line-sagami-body {
+#line-sagami-body,
+#line-takao-body {
   flex: 1;
   background: white;
   padding: 10px;
@@ -150,6 +205,21 @@ nav a.active {
   width: 3px;
   height: 25px;
   background: #d6002f;
+}
+
+/* 調布の分岐線（右に伸ばす） */
+.station-vertical[data-station="調布"] .station-center {
+  position: relative;
+}
+
+.station-vertical[data-station="調布"] .station-center::after {
+  content: "";
+  position: absolute;
+  width: 40px;
+  height: 3px;
+  background: #d6002f;
+  right: -40px;
+  top: 5px;
 }
 
 /* 現在位置カード */
@@ -216,6 +286,7 @@ nav a.active {
   font-size: 14px;
 }
 
+/* ボタン共通 */
 button {
   padding: 10px;
   background: #d6002f;
@@ -227,6 +298,15 @@ button {
 
 button:hover {
   opacity: 0.8;
+}
+
+/* クラウド保存ボタン大きく */
+#btn-save-cloud,
+#btn-load-cloud {
+  font-size: 20px;
+  padding: 15px;
+  width: 100%;
+  margin-bottom: 10px;
 }
 
 /* 時刻表 */
