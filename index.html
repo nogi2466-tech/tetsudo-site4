@@ -2,10 +2,14 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+
+<!-- スマホ対応（重要） -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>京王運行管理システム</title>
 <link rel="stylesheet" href="style.css">
 
-<!-- Firebase v8 -->
+<!-- Firebase v8（必ずこれだけ） -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
@@ -14,7 +18,7 @@
     apiKey: "AIzaSyAxJVAx7CIK4U21Qxl20n4yxagcl9dfItE",
     authDomain: "train-system-9622f.firebaseapp.com",
     projectId: "train-system-9622f",
-    storageBucket: "train-system-9622f.firebasestorage.app",
+    storageBucket: "train-system-9622f.appspot.com",
     messagingSenderId: "1066598708695",
     appId: "1:1066598708695:web:e682df702e58caaaedc792",
     measurementId: "G-CKP4Z2F65W"
@@ -62,7 +66,7 @@
 </section>
 
 <!-- ============================
-     列車詳細（表示専用）
+     列車詳細
 ============================ -->
 <section id="train-detail" class="page">
   <h2>列車詳細</h2>
@@ -147,9 +151,9 @@
 
     <h3>停車駅</h3>
     <div id="stop-list"></div>
-    <button id="btn-add-stop" class="admin-only" style="display:none;">＋ 停車駅追加</button>
+    <button id="btn-add-stop" class="big-btn admin-only" style="display:none;">＋ 停車駅追加</button>
 
-    <button id="btn-save-train" class="admin-only" style="display:none;">保存</button>
+    <button id="btn-save-train" class="big-btn admin-only" style="display:none;">保存</button>
 
   </div>
 </section>
@@ -159,3 +163,4 @@
 <script src="app.js"></script>
 </body>
 </html>
+
