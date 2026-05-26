@@ -6,6 +6,22 @@ let editingIndex = -1;
 let isAdmin = false;
 
 /* =========================================
+   ローカル保存
+========================================= */
+function saveLocal() {
+  localStorage.setItem("keio-trains", JSON.stringify(trains));
+}
+
+function loadLocal() {
+  const data = localStorage.getItem("keio-trains");
+  if (data) {
+    trains = JSON.parse(data);
+    return true;
+  }
+  return false;
+}
+
+/* =========================================
    ページ切り替え
 ========================================= */
 document.querySelectorAll("nav a").forEach(a => {
@@ -123,6 +139,7 @@ document.getElementById("btn-save-train").onclick = () => {
     trains.push(train);
   }
 
+  saveLocal(); // ← 追加
   renderTrainTable();
   alert("保存しました");
 };
@@ -153,7 +170,7 @@ function renderTrainTable(){
 }
 
 /* =========================================
-   列車詳細（縦線つなぎ表示）
+   列車詳細
 ========================================= */
 function showTrainDetail(train, index){
   document.querySelector('nav a[data-target="train-detail"]').click();
@@ -219,12 +236,13 @@ function editTrain(i){
 function deleteTrain(i){
   if(confirm("削除しますか？")){
     trains.splice(i, 1);
+    saveLocal(); // ← 追加
     renderTrainTable();
   }
 }
 
 /* =========================================
-   縦型路線図（全駅表示）
+   縦型路線図
 ========================================= */
 function renderVerticalLine(){
   const body = document.getElementById("line-main-body");
@@ -242,7 +260,7 @@ function renderVerticalLine(){
 }
 
 /* =========================================
-   現在位置更新（列車番号＋種別＋行き先）
+   現在位置更新
 ========================================= */
 function updateTrainPosition(){
   const now = new Date();
@@ -398,6 +416,7 @@ document.getElementById("btn-save-cloud").onclick = async () => {
     return;
   }
   await db.collection("keio-trains").doc("data").set({ trains });
+  saveLocal(); // ← 追加
   alert("クラウドに保存しました");
 };
 
@@ -405,6 +424,7 @@ document.getElementById("btn-load-cloud").onclick = async () => {
   const doc = await db.collection("keio-trains").doc("data").get();
   if(doc.exists){
     trains = doc.data().trains || [];
+    saveLocal(); // ← 追加
     renderTrainTable();
     renderTimetable();
     alert("クラウドから受信しました");
@@ -414,9 +434,22 @@ document.getElementById("btn-load-cloud").onclick = async () => {
 };
 
 /* =========================================
-   初期ロード
+   初期ロード（localStorage 優先）
 ========================================= */
-window.onload = () => {
+window.onload = async () => {
+
+  // まず localStorage を読む
+  const ok = loadLocal();
+
+  if (!ok) {
+    // localStorage にデータが無いときだけ Firebase を読む
+    const doc = await db.collection("keio-trains").doc("data").get();
+    if (doc.exists) {
+      trains = doc.data().trains || [];
+      saveLocal(); // 読んだら localStorage に保存
+    }
+  }
+
   renderTrainTable();
   renderTimetableStationList();
   renderVerticalLine();
