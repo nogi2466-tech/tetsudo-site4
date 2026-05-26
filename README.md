@@ -4,40 +4,44 @@
   <meta charset="UTF-8">
   <title>列車運行シミュレータ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- 青いメニューバーなどの見た目は style.css 側で定義 -->
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <!-- 上部メニューバー（PC：中央、スマホ：ハンバーガー） -->
+
+  <!-- 上部メニューバー -->
   <header class="top-bar">
     <div class="top-bar-inner">
+
       <div class="top-bar-left">
-        <button id="menu-toggle" class="menu-toggle" aria-label="メニュー">
-          &#9776;
-        </button>
+        <button id="menu-toggle" class="menu-toggle">&#9776;</button>
         <span class="app-title">列車運行シミュレータ</span>
       </div>
+
       <nav class="top-nav" id="top-nav">
         <button class="nav-item active" data-view="view-train-list">列車番号一覧</button>
         <button class="nav-item" data-view="view-current">現在位置</button>
         <button class="nav-item" data-view="view-timetable">各駅時刻表</button>
         <button class="nav-item" data-view="view-settings">設定</button>
       </nav>
+
       <div class="top-bar-right">
-        <button id="btn-now" class="btn-now">現在時刻にジャンプ</button>
+        <button id="btn-now" class="btn-now">現在時刻</button>
         <span id="clock" class="clock"></span>
       </div>
+
     </div>
   </header>
 
   <main>
+
     <!-- ① 列車番号一覧 -->
     <section id="view-train-list" class="view active">
       <h2>列車番号一覧</h2>
 
       <div class="panel">
         <div class="field-row">
-          <label for="train-search">列車番号検索：</label>
+          <label>列車番号検索：</label>
           <input type="text" id="train-search" placeholder="例：101">
           <button id="btn-train-search">検索</button>
           <button id="btn-train-search-clear">クリア</button>
@@ -45,7 +49,7 @@
       </div>
 
       <div class="panel">
-        <table id="train-list-table">
+        <table>
           <thead>
             <tr>
               <th>列車番号</th>
@@ -57,20 +61,16 @@
               <th>到着時間</th>
             </tr>
           </thead>
-          <tbody id="train-list-body">
-            <!-- JSで列車一覧を挿入。行をクリックで詳細表示 -->
-          </tbody>
+          <tbody id="train-list-body"></tbody>
         </table>
       </div>
 
-      <!-- 列車詳細モーダル（現在位置からタップしたときも共通で使う） -->
+      <!-- 列車詳細モーダル -->
       <div id="train-detail-modal" class="modal" aria-hidden="true">
         <div class="modal-content">
-          <button class="modal-close" id="train-detail-close">×</button>
+          <button id="train-detail-close" class="modal-close">×</button>
           <h3>列車詳細</h3>
-          <div id="train-detail-body">
-            <!-- JSで詳細情報を挿入 -->
-          </div>
+          <div id="train-detail-body"></div>
         </div>
       </div>
     </section>
@@ -85,42 +85,10 @@
           <button id="dir-down" class="dir-btn active" data-direction="down">下り</button>
           <button id="dir-up" class="dir-btn" data-direction="up">上り</button>
         </div>
-        <div class="field-row">
-          <button id="btn-scroll-up">▲ 上へ</button>
-          <button id="btn-scroll-down">▼ 下へ</button>
-        </div>
       </div>
 
-      <!-- 駅縦並び＋番線＋列車表示エリア -->
-      <div class="panel current-layout">
-        <div id="station-list" class="station-list">
-          <!--
-            JSで以下のような構造を生成する想定：
-
-            <div class="station-block" data-station-id="shinjuku">
-              <div class="station-header">
-                <span class="station-dot">〇</span>
-                <button class="station-name" data-station-id="shinjuku">新宿</button>
-              </div>
-              <div class="platforms">
-                <div class="platform-row down">
-                  <div class="platform" data-platform="1">
-                    <div class="platform-label">1番線</div>
-                    <div class="train-slot"></div>
-                  </div>
-                  ...
-                </div>
-                <div class="platform-row up">
-                  ...
-                </div>
-              </div>
-              <div class="station-line">｜</div>
-            </div>
-
-            駅間走行中の列車は station-line の途中に表示。
-            列車は上下2段の四角（上：列車番号、下：行き先＋状態＋種別色）で表示。
-          -->
-        </div>
+      <div class="panel">
+        <div id="station-list"></div>
       </div>
     </section>
 
@@ -130,17 +98,13 @@
 
       <div class="panel">
         <div class="field-row">
-          <label for="timetable-station-select">駅：</label>
-          <select id="timetable-station-select">
-            <!-- JSで駅一覧を挿入 -->
-          </select>
+          <label>駅：</label>
+          <select id="timetable-station-select"></select>
         </div>
       </div>
 
       <div class="panel">
-        <h3 id="timetable-station-title">駅時刻表</h3>
-        <!-- 君が見せてくれた「色付きの表」のイメージに近い形で表示 -->
-        <table id="timetable-table">
+        <table>
           <thead>
             <tr>
               <th>時刻</th>
@@ -148,102 +112,65 @@
               <th>種別</th>
               <th>行き先</th>
               <th>番線</th>
-              <th>種別色</th>
+              <th>色</th>
               <th>停車/通過</th>
             </tr>
           </thead>
-          <tbody id="timetable-body">
-            <!-- 追加した列車データから自動生成 -->
-          </tbody>
+          <tbody id="timetable-body"></tbody>
         </table>
       </div>
     </section>
 
     <!-- ④ 設定 -->
     <section id="view-settings" class="view">
-      <h2>設定・データ管理</h2>
+      <h2>設定</h2>
 
-      <!-- パスワード認証 -->
       <div class="panel">
         <h3>パスワード認証</h3>
         <div class="field-row">
-          <label for="admin-password">パスワード：</label>
-          <input type="password" id="admin-password" placeholder="0829">
+          <label>パスワード：</label>
+          <input type="password" id="admin-password">
           <button id="btn-auth">認証</button>
         </div>
-        <p id="auth-status" class="auth-status">
-          編集機能はパスワード認証後に使用できます。
-        </p>
+        <p id="auth-status" class="auth-status">編集機能は認証後に有効になります。</p>
       </div>
 
-      <!-- 列車編集系（パスワード必須） -->
       <div class="panel">
-        <h3>列車データ編集（認証後に有効）</h3>
+        <h3>スプレッドシート読み込み</h3>
         <div class="field-row">
-          <button id="btn-add-train" class="need-auth" disabled>列車を追加</button>
-          <button id="btn-edit-train" class="need-auth" disabled>列車を編集</button>
-          <button id="btn-delete-train" class="need-auth" disabled>列車を削除</button>
+          <label>シートID：</label>
+          <input type="text" id="sheet-id">
         </div>
+        <div class="field-row">
+          <label>APIキー：</label>
+          <input type="text" id="api-key">
+        </div>
+        <button id="btn-load-sheet" class="need-auth" disabled>読み込む</button>
       </div>
 
-      <!-- スプレッドシート読み込み（パスワード必須） -->
-      <div class="panel">
-        <h3>Googleスプレッドシート読み込み（認証後に有効）</h3>
-        <div class="field-row">
-          <label for="sheet-id">シートID：</label>
-          <input id="sheet-id" type="text" placeholder="スプレッドシートのID">
-        </div>
-        <div class="field-row">
-          <label for="api-key">APIキー：</label>
-          <input id="api-key" type="text" placeholder="APIキー">
-        </div>
-        <div class="field-row">
-          <button id="btn-load-sheet" class="need-auth" disabled>スプレッドシートから読み込む</button>
-        </div>
-        <small>Google Cloud Console で Sheets API を有効化し、APIキーを入力してください。</small>
-      </div>
-
-      <!-- ローカル保存（誰でも可） -->
       <div class="panel">
         <h3>ローカル保存</h3>
-        <div class="field-row">
-          <button id="btn-save-local">ブラウザに保存</button>
-          <button id="btn-load-local">保存データを読み込み</button>
-          <button id="btn-clear-local">保存データ削除</button>
-        </div>
+        <button id="btn-save-local">保存</button>
+        <button id="btn-load-local">読み込み</button>
+        <button id="btn-clear-local">削除</button>
       </div>
 
-      <!-- JSONインポート／エクスポート（誰でも可） -->
       <div class="panel">
-        <h3>JSONインポート／エクスポート</h3>
-        <div class="field-row">
-          <input type="file" id="json-input" accept=".json">
-          <button id="btn-load-json">JSON読み込み</button>
-        </div>
-        <div class="field-row">
-          <button id="btn-export-json">JSONとしてダウンロード</button>
-        </div>
+        <h3>JSON入出力</h3>
+        <input type="file" id="json-input" accept=".json">
+        <button id="btn-load-json">読み込み</button>
+        <button id="btn-export-json">エクスポート</button>
       </div>
 
-      <!-- クラウド保存・受信（パスワード不要） -->
-      <div class="panel">
-        <h3>クラウド保存・受信（パスワード不要）</h3>
-        <div class="field-row">
-          <button id="btn-cloud-save">クラウドに保存</button>
-          <button id="btn-cloud-load">クラウドから受信</button>
-        </div>
-        <small>クラウドの仕組み（Firebase など）は app.js 側で実装。</small>
-      </div>
-
-      <!-- デバッグ -->
       <div class="panel">
         <h3>デバッグ</h3>
-        <button id="btn-log-trains">trains をコンソールに表示</button>
+        <button id="btn-log-trains">trains を表示</button>
       </div>
+
     </section>
+
   </main>
 
-  <!-- 振る舞いは app.js 側で実装 -->
   <script src="app.js"></script>
 </body>
 </html>
