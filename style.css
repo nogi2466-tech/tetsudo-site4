@@ -1,9 +1,7 @@
 /* =========================================
-   style.css（前半）
-   全体レイアウト・青いメニューバー・スマホ対応
+   全体
 ========================================= */
 
-/* 全体 */
 body {
   margin: 0;
   padding: 0;
@@ -14,6 +12,14 @@ body {
 
 h2, h3 {
   margin: 10px 0;
+}
+
+.view {
+  display: none;
+}
+
+.view.active {
+  display: block;
 }
 
 /* パネル */
@@ -57,7 +63,6 @@ h2, h3 {
   font-weight: bold;
 }
 
-/* メニュー（PC） */
 .top-nav {
   display: flex;
   gap: 10px;
@@ -82,13 +87,11 @@ h2, h3 {
   color: #007bff;
 }
 
-/* 現在時刻 */
 .clock {
   font-size: 14px;
   margin-left: 10px;
 }
 
-/* 現在時刻ジャンプボタン */
 .btn-now {
   background: #fff;
   color: #007bff;
@@ -102,7 +105,7 @@ h2, h3 {
 }
 
 /* =========================================
-   スマホ用ハンバーガーメニュー
+   スマホ用ハンバーガー
 ========================================= */
 
 .menu-toggle {
@@ -114,7 +117,6 @@ h2, h3 {
   cursor: pointer;
 }
 
-/* スマホ表示 */
 @media (max-width: 700px) {
   .menu-toggle {
     display: block;
@@ -131,9 +133,16 @@ h2, h3 {
     display: flex;
   }
 }
+
 /* =========================================
-   現在位置：駅縦並びレイアウト
+   現在位置：駅縦並び
 ========================================= */
+
+#station-list {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
 
 .station-list {
   padding: 10px;
@@ -167,7 +176,6 @@ h2, h3 {
   background: #e0e0e0;
 }
 
-/* 駅間の縦線 */
 .station-line {
   font-size: 22px;
   text-align: center;
@@ -176,7 +184,7 @@ h2, h3 {
 }
 
 /* =========================================
-   番線の四角い枠
+   番線枠
 ========================================= */
 
 .platform-row {
@@ -208,7 +216,7 @@ h2, h3 {
 }
 
 /* =========================================
-   列車の上下2段ボックス
+   列車ボックス
 ========================================= */
 
 .train-box {
@@ -235,18 +243,15 @@ h2, h3 {
   font-size: 14px;
 }
 
-/* =========================================
-   駅間走行中の列車
-========================================= */
-
 .train-between {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   margin-top: 4px;
 }
+
 /* =========================================
-   列車番号一覧・駅時刻表のテーブル
+   テーブル
 ========================================= */
 
 table {
@@ -272,7 +277,7 @@ tr:hover {
 }
 
 /* =========================================
-   モーダル（列車詳細）
+   モーダル
 ========================================= */
 
 .modal {
@@ -334,38 +339,6 @@ tr:hover {
   background: #0066d6;
 }
 
-/* JSON・クラウドボタン */
-#btn-save-local,
-#btn-load-local,
-#btn-clear-local,
-#btn-load-json,
-#btn-export-json,
-#btn-cloud-save,
-#btn-cloud-load,
-#btn-log-trains {
-  background: #007bff;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-#btn-save-local:hover,
-#btn-load-local:hover,
-#btn-clear-local:hover,
-#btn-load-json:hover,
-#btn-export-json:hover,
-#btn-cloud-save:hover,
-#btn-cloud-load:hover,
-#btn-log-trains:hover {
-  background: #0066d6;
-}
-
-/* =========================================
-   入力欄
-========================================= */
-
 input[type="text"],
 input[type="password"],
 select {
@@ -373,28 +346,6 @@ select {
   border: 1px solid #aaa;
   border-radius: 6px;
   font-size: 14px;
-}
-
-/* =========================================
-   ボタン共通
-========================================= */
-
-button {
-  font-size: 14px;
-}
-
-button:active {
-  transform: scale(0.97);
-}
-
-/* =========================================
-   スクロール調整（現在位置）
-========================================= */
-
-#station-list {
-  max-height: 70vh;
-  overflow-y: auto;
-  padding-right: 6px;
 }
 
 /* =========================================
