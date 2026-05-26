@@ -5,11 +5,11 @@ body {
   margin: 0;
   font-family: "Yu Gothic", sans-serif;
   background: #ffffff;
-  text-align: center; /* 全体中央寄せ */
+  text-align: center;
 }
 
 header {
-  background: #007bff; /* 青テーマ */
+  background: #007bff;
   color: white;
   padding: 15px;
   display: flex;
@@ -81,20 +81,20 @@ main {
 }
 
 /* ============================
-   設定ページ（UI強化）
+   設定ページ
 ============================ */
 .form-row {
   margin: 12px 0;
   font-size: 18px;
   display: flex;
   flex-direction: column;
-  align-items: center; /* 中央寄せ */
+  align-items: center;
 }
 
 .form-row input {
   width: 260px;
   padding: 12px;
-  font-size: 22px; /* パスワード欄大きく */
+  font-size: 22px;
   border: 2px solid #007bff;
   border-radius: 6px;
 }
@@ -109,7 +109,7 @@ main {
   width: 260px;
   padding: 18px;
   margin: 12px 0;
-  font-size: 24px; /* ボタン大きく */
+  font-size: 24px;
   background: #007bff;
   color: white;
   border: none;
@@ -121,7 +121,6 @@ main {
   background: #005fcc;
 }
 
-/* 列車追加の保存ボタンを特別に大きく */
 #btn-save-train {
   background: #28a745;
   font-size: 26px;
@@ -148,7 +147,7 @@ main {
 }
 
 /* ============================
-   現在位置（全駅表示＋列車情報）
+   現在位置（縦型路線図）
 ============================ */
 .vertical-line-body {
   margin-top: 20px;
@@ -158,6 +157,7 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
 .station-name {
@@ -176,9 +176,34 @@ main {
   background: #007bff;
   margin: 2px 0;
   border-radius: 3px;
-  text-align: center;
-  color: black;
-  font-size: 12px;
+}
+
+/* ============================
+   列車カード（アニメーション）
+============================ */
+.train-card {
+  position: absolute;
+  left: 220px;
+  padding: 8px 12px;
+  background: white;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: top 1s linear;
+  z-index: 1000;
+}
+
+.train-card.stop {
+  border-color: #ff9800; /* 停車中：オレンジ */
+}
+
+.train-card.running {
+  border-color: #28a745; /* 走行中：緑 */
+}
+
+.train-card.pass {
+  border-color: #f44336; /* 通過中：赤 */
 }
 
 /* ============================
@@ -208,7 +233,6 @@ main {
   border: 1px solid #ddd;
   font-size: 12px;
   text-align: center;
-  position: relative;
 }
 
 .timetable-cell.empty {
@@ -259,6 +283,11 @@ main {
   .form-row input {
     width: 220px;
     font-size: 20px;
+  }
+
+  .train-card {
+    left: 180px;
+    font-size: 12px;
   }
 }
 
