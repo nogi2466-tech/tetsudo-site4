@@ -290,4 +290,60 @@ main {
     font-size: 12px;
   }
 }
+/* 駅全体を横並びにする */
+.station-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* 駅名は左側に寄せる */
+.station-name {
+  width: 150px;
+  text-align: left;
+  padding: 8px 12px;
+  background: #e8f0ff;
+  border-radius: 6px;
+  margin-right: 20px;
+  font-size: 18px;
+}
+
+/* 駅の中心（丸＋縦線）を中央に配置 */
+.station-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 駅の丸 */
+.station-dot {
+  width: 16px;
+  height: 16px;
+  background: #007bff;
+  border-radius: 50%;
+  margin-bottom: 4px;
+}
+
+/* 駅間の縦線 */
+.line-vertical {
+  width: 6px;
+  height: 45px;
+  background: #007bff;
+  border-radius: 3px;
+}
+
+/* 列車カードは右側に固定 */
+.train-card {
+  position: absolute;
+  left: 260px; /* 駅の右側に表示 */
+  padding: 8px 12px;
+  background: white;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: top 1s linear;
+  z-index: 1000;
+}
 
