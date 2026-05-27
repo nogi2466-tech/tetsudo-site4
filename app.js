@@ -1,12 +1,12 @@
 /* ===============================
-   Firebase 初期化
+   Firebase 初期化（v8 CDN）
 ================================ */
 const firebaseConfig = {
   apiKey: "AIzaSyAxJVAx7CIK4U21Qxl20n4yxagcl9dfItE",
   authDomain: "train-system-9622f.firebaseapp.com",
   databaseURL: "https://train-system-9622f-default-rtdb.firebaseio.com",
   projectId: "train-system-9622f",
-  storageBucket: "train-system-9622f.firebasestorage.app",
+  storageBucket: "train-system-9622f.appspot.com",
   messagingSenderId: "1066598708695",
   appId: "1:1066598708695:web:e682df702e58caaaedc792",
   measurementId: "G-CKP4Z2F65W"
@@ -200,7 +200,7 @@ function getCurrentPositions(nowMinutes) {
 }
 
 /* ===============================
-   現在位置描画（路線図＋車両アイコン）
+   現在位置描画（左：駅名／右：列車）
 ================================ */
 function renderPosition() {
   const val = document.getElementById("nowTimeInput").value;
@@ -237,7 +237,6 @@ function renderPosition() {
     const st = document.createElement("div");
     st.className = "station-node";
     st.textContent = p.label;
-    st.onclick = () => openStationTimetable(p.label);
     left.appendChild(st);
 
     const line = document.createElement("div");
@@ -380,9 +379,18 @@ window.onload = () => {
 
   document.getElementById("dirUp").onclick = () => {
     currentDirection = "up";
-    renderPosition();
+    renderStationTable();
   };
   document.getElementById("dirDown").onclick = () => {
+    currentDirection = "down";
+    renderStationTable();
+  };
+
+  document.getElementById("posUp").onclick = () => {
+    currentDirection = "up";
+    renderPosition();
+  };
+  document.getElementById("posDown").onclick = () => {
     currentDirection = "down";
     renderPosition();
   };
