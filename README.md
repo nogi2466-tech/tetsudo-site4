@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <title>列車管理システム</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+  <!-- Firebase CDN（Realtime Database 用）-->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 
 <body>
@@ -15,10 +19,10 @@
       <span></span><span></span><span></span>
     </div>
     <div id="navLinks">
-      <a data-page="list">列車番号一覧</a>
-      <a data-page="stations">各駅時刻表</a>
-      <a data-page="position">現在位置</a>
-      <a data-page="settings">設定</a>
+      <a href="javascript:void(0)" data-page="page-list" class="active">列車番号一覧</a>
+      <a href="javascript:void(0)" data-page="page-stations">各駅時刻表</a>
+      <a href="javascript:void(0)" data-page="page-position">現在位置</a>
+      <a href="javascript:void(0)" data-page="page-settings">設定</a>
     </div>
   </nav>
 </header>
@@ -28,114 +32,168 @@
   <!-- 列車番号一覧 -->
   <section id="page-list">
     <h2>列車番号一覧</h2>
-    <input id="searchInput" placeholder="検索">
-    <table>
-      <thead>
-        <tr>
-          <th>列車番号</th>
-          <th>種別</th>
-          <th>行き先</th>
-          <th>始発</th>
-          <th>発車</th>
-          <th>終着</th>
-          <th>到着</th>
-        </tr>
-      </thead>
-      <tbody id="trainListBody"></tbody>
-    </table>
+    <div class="card">
+      <input id="searchInput" placeholder="列車番号・行き先・駅名などで検索">
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+          <tr>
+            <th>列車番号</th>
+            <th>種別</th>
+            <th>行き先</th>
+            <th>始発</th>
+            <th>発車</th>
+            <th>終着</th>
+            <th>到着</th>
+          </tr>
+          </thead>
+          <tbody id="trainListBody"></tbody>
+        </table>
+      </div>
+    </div>
   </section>
 
   <!-- 列車詳細 -->
   <section id="page-detail" class="hidden">
-    <div id="backToList">← 戻る</div>
-    <div id="detailCard"></div>
-    <table>
-      <thead>
-        <tr>
-          <th>駅</th>
-          <th>到着</th>
-          <th>発車</th>
-          <th>番線</th>
-        </tr>
-      </thead>
-      <tbody id="detailTimetableBody"></tbody>
-    </table>
+    <div id="backToList">← 列車番号一覧に戻る</div>
+    <div class="card" id="detailCard"></div>
+    <div class="card">
+      <h3 style="margin-top:0;font-size:15px;">各駅時刻</h3>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+          <tr>
+            <th>駅</th>
+            <th>到着</th>
+            <th>発車</th>
+            <th>番線</th>
+          </tr>
+          </thead>
+          <tbody id="detailTimetableBody"></tbody>
+        </table>
+      </div>
+    </div>
   </section>
 
   <!-- 各駅時刻表 -->
   <section id="page-stations" class="hidden">
     <h2>各駅時刻表</h2>
-    <select id="stationSelect"></select>
-    <div id="directionToggle">
-      <button id="dirUp">上り</button>
-      <button id="dirDown">下り</button>
+    <div class="card">
+      <div style="margin-bottom:8px;">
+        <select id="stationSelect"></select>
+        <span id="directionToggle">
+          <button id="dirUp" class="active">上り</button>
+          <button id="dirDown">下り</button>
+        </span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+          <tr>
+            <th>列車番号</th>
+            <th>種別</th>
+            <th>行き先</th>
+            <th>到着</th>
+            <th>発車</th>
+          </tr>
+          </thead>
+          <tbody id="stationTableBody"></tbody>
+        </table>
+      </div>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>列車番号</th>
-          <th>種別</th>
-          <th>行き先</th>
-          <th>到着</th>
-          <th>発車</th>
-        </tr>
-      </thead>
-      <tbody id="stationTableBody"></tbody>
-    </table>
   </section>
 
   <!-- 現在位置 -->
   <section id="page-position" class="hidden">
     <h2>現在位置</h2>
-
-    <div>
-      <input type="time" id="nowTimeInput">
-      <button id="nowTimeSetBtn">現在時刻</button>
-    </div>
-
-    <div id="nowTimeLabel"></div>
-
-    <div id="positionLayout">
-      <div id="positionStationList"></div>
-      <div id="positionTrainList"></div>
+    <div class="card">
+      <div style="margin-bottom:8px;">
+        <input type="time" id="nowTimeInput">
+        <button id="nowTimeSetBtn">現在時刻を反映</button>
+      </div>
+      <div id="nowTimeLabel" style="font-size:13px;color:#6b7280;margin-bottom:8px;"></div>
+      <div id="positionLayout">
+        <div id="positionStationList"></div>
+        <div id="positionTrainList"></div>
+      </div>
     </div>
   </section>
 
   <!-- 設定 -->
   <section id="page-settings" class="hidden">
     <h2>設定</h2>
-
-    <div>
+    <div class="card">
       <h3>クラウド保存 / 受信</h3>
       <button id="btnSaveCloud">保存</button>
       <button id="btnLoadCloud">受信</button>
+      <p style="font-size:12px;color:#6b7280;">
+        ※Firebase Realtime Database を使って、別デバイスでも同じ内容を共有できます。
+      </p>
     </div>
 
-    <div>
+    <div class="card">
       <h3>管理者モード</h3>
       <input type="password" id="adminPassword" placeholder="パスワード">
       <button id="btnLogin">ログイン</button>
-      <div id="loginStatus"></div>
-    </div>
+      <div id="loginStatus" style="font-size:12px;margin-top:4px;"></div>
 
-    <div id="adminArea" class="hidden">
-      <h3>列車追加 / 編集 / 削除</h3>
-
-      <input id="admTrainNumber" placeholder="列車番号">
-      <input id="admType" placeholder="種別">
-      <input id="admOrigin" placeholder="始発駅">
-      <input id="admDeparture" placeholder="発車">
-      <input id="admDestination" placeholder="終着駅">
-      <input id="admArrival" placeholder="到着">
-
-      <button id="btnAddTrain">追加</button>
-      <button id="btnUpdateTrain">編集</button>
-      <button id="btnDeleteTrain">削除</button>
+      <div id="adminArea" class="hidden" style="margin-top:10px;">
+        <h3>列車追加 / 編集 / 削除</h3>
+        <input id="admTrainNumber" placeholder="列車番号">
+        <input id="admType" placeholder="種別">
+        <input id="admOrigin" placeholder="始発駅">
+        <input id="admDeparture" placeholder="発車 (HH:MM)">
+        <input id="admDestination" placeholder="終着駅">
+        <input id="admArrival" placeholder="到着 (HH:MM)">
+        <div style="margin-top:6px;">
+          <button id="btnAddTrain">追加</button>
+          <button id="btnUpdateTrain">編集</button>
+          <button id="btnDeleteTrain">削除</button>
+        </div>
+        <p style="font-size:12px;color:#6b7280;margin-top:4px;">
+          ※各駅の時刻表（timetable）は今はコード内で編集。あとでUI化もできる。
+        </p>
+      </div>
     </div>
   </section>
 
 </main>
 
+<script>
+  // ハンバーガーメニューとナビの基本動作だけ HTML 側で定義
+  const hamburger = document.getElementById("hamburger");
+  const navLinks = document.getElementById("navLinks");
+
+  hamburger.addEventListener("click", () => {
+    navLinks.classList.toggle("show");
+  });
+
+  navLinks.addEventListener("click", (e) => {
+    const pageId = e.target.getAttribute("data-page");
+    if (!pageId) return;
+    e.preventDefault();
+    document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
+    document.getElementById(pageId).classList.remove("hidden");
+    navLinks.querySelectorAll("a").forEach(a => a.classList.remove("active"));
+    e.target.classList.add("active");
+    navLinks.classList.remove("show");
+  });
+
+  // 戻るリンク（詳細 → 一覧）
+  document.addEventListener("DOMContentLoaded", () => {
+    const back = document.getElementById("backToList");
+    if (back) {
+      back.addEventListener("click", () => {
+        document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
+        document.getElementById("page-list").classList.remove("hidden");
+        navLinks.querySelectorAll("a").forEach(a => a.classList.remove("active"));
+        navLinks.querySelector('a[data-page="page-list"]').classList.add("active");
+      });
+    }
+  });
+</script>
+
+<script src="app.js"></script>
 </body>
 </html>
 
