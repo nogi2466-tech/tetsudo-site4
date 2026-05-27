@@ -16,6 +16,19 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 /* ===============================
+   駅一覧（固定：B方式）
+================================ */
+const ALL_STATIONS = [
+  "新宿",
+  "笹塚",
+  "代田橋",
+  "明大前",
+  "桜上水",
+  "上北沢",
+  "八幡山"
+];
+
+/* ===============================
    データ
 ================================ */
 let trains = {};
@@ -100,14 +113,9 @@ function openDetail(num) {
    各駅時刻表
 ================================ */
 function initStationSelect() {
-  const set = new Set();
-  Object.values(trains).forEach(t =>
-    t.timetable.forEach(s => set.add(s.station))
-  );
-
   const sel = document.getElementById("stationSelect");
   sel.innerHTML = "";
-  [...set].sort().forEach(st => {
+  ALL_STATIONS.forEach(st => {
     const opt = document.createElement("option");
     opt.value = opt.textContent = st;
     sel.appendChild(opt);
@@ -125,7 +133,7 @@ function renderStationTable() {
 
   Object.values(trains).forEach(t => {
     t.timetable.forEach(s => {
-      if (s.station === station && s.direction === currentDirection) {
+      if (s.station === station) {
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${t.trainNumber}</td>
@@ -142,22 +150,6 @@ function renderStationTable() {
 }
 
 /* ===============================
-   駅順（上り／下り）
-================================ */
-function getOrderedStations(direction) {
-  const set = new Set();
-  Object.values(trains).forEach(t =>
-    t.timetable.forEach(s => set.add(s.station))
-  );
-
-  const list = [...set];
-
-  return direction === "up"
-    ? list.sort((a, b) => a.localeCompare(b, "ja"))
-    : list.sort((a, b) => b.localeCompare(a, "ja"));
-}
-
-/* ===============================
    現在位置ロジック
 ================================ */
 function getCurrentPositions(nowMinutes) {
@@ -165,10 +157,6 @@ function getCurrentPositions(nowMinutes) {
 
   Object.values(trains).forEach(t => {
     const tt = t.timetable;
-    const dep0 = timeToMinutes(t.departure);
-    const arrLast = timeToMinutes(t.arrival);
-
-    if (nowMinutes < dep0 || nowMinutes > arrLast) return;
 
     for (let i = 0; i < tt.length; i++) {
       const s = tt[i];
@@ -182,7 +170,7 @@ function getCurrentPositions(nowMinutes) {
         return;
       }
 
-      if (dep !== null && i + 1 < tt.length) {
+      if (dep && i + 1 < tt.length) {
         const next = tt[i + 1];
         const nextArr = timeToMinutes(next.arr);
         if (nowMinutes > dep && nowMinutes < nextArr) {
@@ -214,89 +202,113 @@ function renderPosition() {
   left.innerHTML = "";
   right.innerHTML = "";
 
-  const orderedStations = getOrderedStations(currentDirection);
-  const orderedPositions = [];
+  const ordered = [...ALL_STATIONS];
 
-  for (let i = 0; i < orderedStations.length; i++) {
-    const st = orderedStations[i];
+  for (let i = 0; i < ordered.length; i++) {
+    const st = ordered[i];
 
-    const stationPos = pos.find(p => p.label === st);
-    if (stationPos) orderedPositions.push(stationPos);
-    else orderedPositions.push({ label: st, trains: [] });
-
-    if (i + 1 < orderedStations.length) {
-      const next = orderedStations[i + 1];
-      const segLabel = `${st}〜${next}`;
-      const segPos = pos.find(p => p.label === segLabel);
-      if (segPos) orderedPositions.push(segPos);
-      else orderedPositions.push({ label: segLabel, trains: [] });
-    }
-  }
-
-  orderedPositions.forEach(p => {
-    const st = document.createElement("div");
-    st.className = "station-node";
-    st.textContent = p.label;
-    left.appendChild(st);
+    const stDiv = document.createElement("div");
+    stDiv.className = "station-node";
+    stDiv.textContent = st;
+    left.appendChild(stDiv);
 
     const line = document.createElement("div");
     line.className = "line";
     left.appendChild(line);
 
-    const tr = document.createElement("div");
-    tr.className = "train-node";
+    const trDiv = document.createElement("div");
+    trDiv.className = "train-node";
 
-    p.trains.forEach(num => {
+    const stationPos = pos.find(p => p.label === st);
+    const segPos = (i + 1 < ordered.length)
+      ? pos.find(p => p.label === `${st}〜${ordered[i + 1]}`)
+      : null;
+
+    const trainsHere = [
+      ...(stationPos ? stationPos.trains : []),
+      ...(segPos ? segPos.trains : [])
+    ];
+
+    trainsHere.forEach(num => {
       const t = trains[num];
       const car = document.createElement("div");
       car.className = "train-car";
 
-      if (t.type.includes("普通")) car.classList.add("train-local");
+      if (t.type.includes("各停")) car.classList.add("train-local");
       if (t.type.includes("快速")) car.classList.add("train-rapid");
       if (t.type.includes("急行")) car.classList.add("train-express");
       if (t.type.includes("特急")) car.classList.add("train-limited");
 
-      if (p.label.includes("〜")) car.classList.add("segment");
-      else car.classList.add("station");
-
-      let status = "";
-      const tt = t.timetable;
-      for (let i = 0; i < tt.length; i++) {
-        const s = tt[i];
-        const arr = timeToMinutes(s.arr);
-        const dep = timeToMinutes(s.dep);
-
-        if (arr === nowMin) status = "停車中";
-        else if (dep === nowMin) status = "発車";
-        else if (arr < nowMin && dep > nowMin) status = "停車中";
-        else if (arr < nowMin && i + 1 < tt.length && nowMin < timeToMinutes(tt[i + 1].arr))
-          status = "走行中";
-      }
-      if (status === "") status = "通過中";
-
       car.innerHTML = `
         <div class="train-num">${t.trainNumber}</div>
         <div class="dest">${t.destination} 行</div>
-        <div class="status">${status}</div>
+        <div class="status">走行中</div>
       `;
 
-      car.onclick = () => openDetail(num);
-      tr.appendChild(car);
+      trDiv.appendChild(car);
     });
 
-    right.appendChild(tr);
+    right.appendChild(trDiv);
     right.appendChild(document.createElement("div"));
+  }
+}
+
+/* ===============================
+   時刻表編集 UI（駅一覧を自動生成）
+================================ */
+function buildTimetableEditor() {
+  const container = document.getElementById("timetableEditor");
+  container.innerHTML = "";
+
+  ALL_STATIONS.forEach(st => {
+    const row = document.createElement("div");
+    row.className = "tt-row";
+
+    row.innerHTML = `
+      <span class="tt-station">${st}</span>
+      <input class="tt-arr" type="time">
+      <input class="tt-dep" type="time">
+      <select class="tt-track">
+        <option value="">-</option>
+        <option value="1">1番線</option>
+        <option value="2">2番線</option>
+        <option value="3">3番線</option>
+      </select>
+      <label><input type="checkbox" class="tt-pass"> 通過</label>
+    `;
+
+    container.appendChild(row);
   });
 }
 
 /* ===============================
-   駅タップ → 時刻表
+   時刻表保存
 ================================ */
-function openStationTimetable(station) {
-  showPage("page-stations");
-  document.getElementById("stationSelect").value = station;
-  renderStationTable();
-}
+document.getElementById("btnSaveTimetable").onclick = () => {
+  const rows = document.querySelectorAll(".tt-row");
+  const timetable = [];
+
+  rows.forEach(row => {
+    const station = row.querySelector(".tt-station").textContent;
+    const arr = row.querySelector(".tt-arr").value;
+    const dep = row.querySelector(".tt-dep").value;
+    const track = row.querySelector(".tt-track").value;
+    const pass = row.querySelector(".tt-pass").checked;
+
+    timetable.push({
+      station,
+      arr: pass ? null : arr,
+      dep: pass ? null : dep,
+      track: pass ? null : track,
+      pass
+    });
+  });
+
+  const num = document.getElementById("admTrainNumber").value;
+  trains[num].timetable = timetable;
+
+  alert("時刻表を保存しました");
+};
 
 /* ===============================
    管理者モード
@@ -309,6 +321,7 @@ function loginAdmin() {
   if (pw === ADMIN_PASSWORD) {
     area.classList.remove("hidden");
     status.textContent = "ログイン成功";
+    buildTimetableEditor();
   } else {
     area.classList.add("hidden");
     status.textContent = "パスワードが違います";
@@ -334,7 +347,6 @@ function addTrain() {
   const t = getAdminForm();
   trains[t.trainNumber] = t;
   renderTrainList();
-  initStationSelect();
 }
 
 function updateTrain() {
@@ -343,7 +355,6 @@ function updateTrain() {
     t.timetable = trains[t.trainNumber].timetable;
     trains[t.trainNumber] = t;
     renderTrainList();
-    initStationSelect();
   }
 }
 
@@ -351,7 +362,6 @@ function deleteTrain() {
   const num = document.getElementById("admTrainNumber").value;
   delete trains[num];
   renderTrainList();
-  initStationSelect();
 }
 
 /* ===============================
