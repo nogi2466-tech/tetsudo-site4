@@ -3,22 +3,24 @@
    =============================== */
 
 /* -------------------------------
-   Firebase 初期化（あなたのキーを入れる）
+   Firebase 初期化
 -------------------------------- */
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_DOMAIN",
-  databaseURL: "YOUR_DB_URL",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_BUCKET",
-  messagingSenderId: "YOUR_SENDER",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAxJVAx7CIK4U21Qxl20n4yxagcl9dfItE",
+  authDomain: "train-system-9622f.firebaseapp.com",
+  databaseURL: "https://train-system-9622f-default-rtdb.firebaseio.com",
+  projectId: "train-system-9622f",
+  storageBucket: "train-system-9622f.firebasestorage.app",
+  messagingSenderId: "1066598708695",
+  appId: "1:1066598708695:web:e682df702e58caaaedc792",
+  measurementId: "G-CKP4Z2F65W"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 /* -------------------------------
-   データ（初期値）
+   データ
 -------------------------------- */
 let trains = {};
 const ADMIN_PASSWORD = "0829";
@@ -41,7 +43,7 @@ function showPage(id) {
 }
 
 /* -------------------------------
-   列車一覧を描画
+   列車一覧
 -------------------------------- */
 function renderTrainList() {
   const body = document.getElementById("trainListBody");
@@ -161,7 +163,6 @@ function getCurrentPositions(nowMinutes) {
       const arr = timeToMinutes(s.arr);
       const dep = timeToMinutes(s.dep);
 
-      // 駅にいる
       if (arr === nowMinutes || dep === nowMinutes) {
         const key = `station:${s.station}`;
         if (!map.has(key)) map.set(key, { label: s.station, trains: [] });
@@ -169,7 +170,6 @@ function getCurrentPositions(nowMinutes) {
         return;
       }
 
-      // 区間にいる
       if (dep !== null && i + 1 < tt.length) {
         const next = tt[i + 1];
         const nextArr = timeToMinutes(next.arr);
@@ -188,7 +188,7 @@ function getCurrentPositions(nowMinutes) {
 }
 
 /* -------------------------------
-   現在位置ページ描画
+   現在位置描画
 -------------------------------- */
 function renderPosition() {
   const val = document.getElementById("nowTimeInput").value;
@@ -205,7 +205,6 @@ function renderPosition() {
   pos.sort((a, b) => a.label.localeCompare(b.label, "ja"));
 
   pos.forEach(p => {
-    // 左（駅 or 区間）
     const st = document.createElement("div");
     st.className = "station-node";
     st.textContent = `● ${p.label}`;
@@ -216,7 +215,6 @@ function renderPosition() {
     line.className = "line";
     left.appendChild(line);
 
-    // 右（列車）
     const tr = document.createElement("div");
     tr.className = "train-node";
     p.trains.forEach(num => {
@@ -268,7 +266,7 @@ function getAdminForm() {
     departure: document.getElementById("admDeparture").value,
     destination: document.getElementById("admDestination").value,
     arrival: document.getElementById("admArrival").value,
-    timetable: [] // UI編集は後で追加可能
+    timetable: []
   };
 }
 
@@ -300,8 +298,8 @@ function deleteTrain() {
    Firebase 保存・受信
 -------------------------------- */
 function saveCloud() {
-  db.ref("trains").set(trains);
-  alert("クラウドに保存しました");
+  db.ref("trains").set(trains)
+    .then(() => alert("クラウドに保存しました"));
 }
 
 function loadCloud() {
@@ -317,8 +315,8 @@ function loadCloud() {
    初期化
 -------------------------------- */
 window.onload = () => {
-  // イベント設定
   document.getElementById("searchInput").oninput = renderTrainList;
+
   document.getElementById("dirUp").onclick = () => {
     currentDirection = "up";
     renderStationTable();
@@ -327,6 +325,7 @@ window.onload = () => {
     currentDirection = "down";
     renderStationTable();
   };
+
   document.getElementById("nowTimeSetBtn").onclick = () => {
     const now = new Date();
     document.getElementById("nowTimeInput").value =
@@ -343,7 +342,6 @@ window.onload = () => {
   document.getElementById("btnSaveCloud").onclick = saveCloud;
   document.getElementById("btnLoadCloud").onclick = loadCloud;
 
-  // 初期データ読み込み
   loadCloud();
 };
 
