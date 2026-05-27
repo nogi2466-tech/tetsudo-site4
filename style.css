@@ -183,65 +183,100 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
   #positionLayout{grid-template-columns:1fr;}
 }
 
+/* 駅アイコン（路線図風） */
 .station-node{
-  font-size:14px;
-  padding:6px 0;
+  font-size:15px;
+  padding:10px 0;
   font-weight:600;
   cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:8px;
 }
-.line{
-  width:2px;
-  height:20px;
-  background:var(--blue-main);
-  margin:0 auto;
-}
-.train-node{
-  padding:6px 0;
-}
-.train-chip{
+.station-node::before{
+  content:"";
+  width:14px;
+  height:14px;
+  border:3px solid var(--blue-dark);
+  background:white;
+  border-radius:50%;
   display:inline-block;
-  padding:3px 8px;
-  background:var(--blue-light);
-  color:var(--blue-dark);
-  border-radius:999px;
-  margin:2px;
-  cursor:pointer;
+}
+
+/* 駅間の線（路線） */
+.line{
+  width:4px;
+  height:80px;
+  background:linear-gradient(to bottom,var(--blue-dark),#4fa3ff,var(--blue-dark));
+  background-size:100% 200%;
+  animation:lineFlow 3s infinite linear;
+  margin:0 auto;
+  border-radius:2px;
+}
+@keyframes lineFlow{
+  0%{background-position:0 0;}
+  100%{background-position:0 200%;}
 }
 
 /* -------------------------------
-   設定
+   列車アイコン（車両風）
 -------------------------------- */
-#adminPassword{
-  padding:6px;
-  border-radius:6px;
-  border:1px solid var(--border);
-}
-#btnLogin,#btnSaveCloud,#btnLoadCloud{
+.train-car{
+  display:inline-block;
   padding:6px 10px;
-  border:none;
   border-radius:6px;
-  background:var(--blue-main);
-  color:#fff;
+  background:#e3f2fd;
+  color:#0d47a1;
+  margin:4px 0;
   cursor:pointer;
-  margin-left:4px;
+  width:120px;
+  box-shadow:0 2px 4px rgba(0,0,0,0.15);
+  position:relative;
 }
 
-#adminArea input{
-  width:100%;
-  padding:6px;
-  border-radius:6px;
-  border:1px solid var(--border);
-  margin-bottom:6px;
+/* 列車番号（上） */
+.train-car .train-num{
+  font-size:12px;
+  font-weight:bold;
+  text-align:center;
 }
 
-#btnAddTrain,#btnUpdateTrain,#btnDeleteTrain{
-  padding:6px 10px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  margin-right:4px;
+/* 行き先（中央） */
+.train-car .dest{
+  font-size:11px;
+  text-align:center;
+  margin-top:2px;
 }
-#btnAddTrain{background:var(--green-main);color:#fff;}
-#btnUpdateTrain{background:var(--orange-main);color:#fff;}
-#btnDeleteTrain{background:#b91c1c;color:#fff;}
 
+/* 状態（下） */
+.train-car .status{
+  font-size:10px;
+  text-align:center;
+  margin-top:3px;
+}
+
+/* 区間の列車 → 左右に動く */
+.train-car.segment{
+  animation:segmentMove 2.5s infinite ease-in-out;
+}
+@keyframes segmentMove{
+  0%{transform:translateX(-6px);}
+  50%{transform:translateX(6px);}
+  100%{transform:translateX(-6px);}
+}
+
+/* 駅にいる列車 → 軽く揺れる */
+.train-car.station{
+  animation:stationPulse 1.8s infinite ease-in-out;
+}
+@keyframes stationPulse{
+  0%{transform:scale(1);}
+  50%{transform:scale(1.08);}
+  100%{transform:scale(1);}
+}
+
+/* 種別ごとの色分け */
+.train-local{background:#e3f2fd;color:#0d47a1;}     /* 普通 */
+.train-rapid{background:#ffe082;color:#e65100;}     /* 快速 */
+.train-express{background:#c8e6c9;color:#1b5e20;}   /* 急行 */
+.train-limited{background:#ffccbc;color:#bf360c;}  /* 特急 */
