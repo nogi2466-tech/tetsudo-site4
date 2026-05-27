@@ -1,10 +1,6 @@
 /* ===============================
-   列車管理システム app.js 完全版
-   =============================== */
-
-/* -------------------------------
    Firebase 初期化
--------------------------------- */
+================================ */
 const firebaseConfig = {
   apiKey: "AIzaSyAxJVAx7CIK4U21Qxl20n4yxagcl9dfItE",
   authDomain: "train-system-9622f.firebaseapp.com",
@@ -19,32 +15,32 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* -------------------------------
+/* ===============================
    データ
--------------------------------- */
+================================ */
 let trains = {};
 const ADMIN_PASSWORD = "0829";
 
-/* -------------------------------
+/* ===============================
    時刻 → 分
--------------------------------- */
+================================ */
 function timeToMinutes(t) {
   if (!t) return null;
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
 }
 
-/* -------------------------------
+/* ===============================
    ページ切り替え
--------------------------------- */
+================================ */
 function showPage(id) {
   document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
 }
 
-/* -------------------------------
+/* ===============================
    列車一覧
--------------------------------- */
+================================ */
 function renderTrainList() {
   const body = document.getElementById("trainListBody");
   const keyword = document.getElementById("searchInput").value.toLowerCase();
@@ -71,9 +67,9 @@ function renderTrainList() {
     });
 }
 
-/* -------------------------------
+/* ===============================
    列車詳細
--------------------------------- */
+================================ */
 function openDetail(num) {
   const t = trains[num];
   if (!t) return;
@@ -100,9 +96,9 @@ function openDetail(num) {
   });
 }
 
-/* -------------------------------
+/* ===============================
    各駅時刻表
--------------------------------- */
+================================ */
 function initStationSelect() {
   const set = new Set();
   Object.values(trains).forEach(t =>
@@ -145,9 +141,25 @@ function renderStationTable() {
   });
 }
 
-/* -------------------------------
+/* ===============================
+   駅順（上り／下り）
+================================ */
+function getOrderedStations(direction) {
+  const set = new Set();
+  Object.values(trains).forEach(t =>
+    t.timetable.forEach(s => set.add(s.station))
+  );
+
+  const list = [...set];
+
+  return direction === "up"
+    ? list.sort((a, b) => a.localeCompare(b, "ja"))
+    : list.sort((a, b) => b.localeCompare(a, "ja"));
+}
+
+/* ===============================
    現在位置ロジック
--------------------------------- */
+================================ */
 function getCurrentPositions(nowMinutes) {
   const map = new Map();
 
@@ -187,9 +199,9 @@ function getCurrentPositions(nowMinutes) {
   return [...map.values()];
 }
 
-/* -------------------------------
-   現在位置描画
--------------------------------- */
+/* ===============================
+   現在位置描画（路線図＋車両アイコン）
+================================ */
 function renderPosition() {
   const val = document.getElementById("nowTimeInput").value;
   if (!val) return;
@@ -202,12 +214,29 @@ function renderPosition() {
   left.innerHTML = "";
   right.innerHTML = "";
 
-  pos.sort((a, b) => a.label.localeCompare(b.label, "ja"));
+  const orderedStations = getOrderedStations(currentDirection);
+  const orderedPositions = [];
 
-  pos.forEach(p => {
+  for (let i = 0; i < orderedStations.length; i++) {
+    const st = orderedStations[i];
+
+    const stationPos = pos.find(p => p.label === st);
+    if (stationPos) orderedPositions.push(stationPos);
+    else orderedPositions.push({ label: st, trains: [] });
+
+    if (i + 1 < orderedStations.length) {
+      const next = orderedStations[i + 1];
+      const segLabel = `${st}〜${next}`;
+      const segPos = pos.find(p => p.label === segLabel);
+      if (segPos) orderedPositions.push(segPos);
+      else orderedPositions.push({ label: segLabel, trains: [] });
+    }
+  }
+
+  orderedPositions.forEach(p => {
     const st = document.createElement("div");
     st.className = "station-node";
-    st.textContent = `● ${p.label}`;
+    st.textContent = p.label;
     st.onclick = () => openStationTimetable(p.label);
     left.appendChild(st);
 
@@ -217,30 +246,62 @@ function renderPosition() {
 
     const tr = document.createElement("div");
     tr.className = "train-node";
+
     p.trains.forEach(num => {
-      const chip = document.createElement("span");
-      chip.className = "train-chip";
-      chip.textContent = num;
-      chip.onclick = () => openDetail(num);
-      tr.appendChild(chip);
+      const t = trains[num];
+      const car = document.createElement("div");
+      car.className = "train-car";
+
+      if (t.type.includes("普通")) car.classList.add("train-local");
+      if (t.type.includes("快速")) car.classList.add("train-rapid");
+      if (t.type.includes("急行")) car.classList.add("train-express");
+      if (t.type.includes("特急")) car.classList.add("train-limited");
+
+      if (p.label.includes("〜")) car.classList.add("segment");
+      else car.classList.add("station");
+
+      let status = "";
+      const tt = t.timetable;
+      for (let i = 0; i < tt.length; i++) {
+        const s = tt[i];
+        const arr = timeToMinutes(s.arr);
+        const dep = timeToMinutes(s.dep);
+
+        if (arr === nowMin) status = "停車中";
+        else if (dep === nowMin) status = "発車";
+        else if (arr < nowMin && dep > nowMin) status = "停車中";
+        else if (arr < nowMin && i + 1 < tt.length && nowMin < timeToMinutes(tt[i + 1].arr))
+          status = "走行中";
+      }
+      if (status === "") status = "通過中";
+
+      car.innerHTML = `
+        <div class="train-num">${t.trainNumber}</div>
+        <div class="dest">${t.destination} 行</div>
+        <div class="status">${status}</div>
+      `;
+
+      car.onclick = () => openDetail(num);
+      tr.appendChild(car);
     });
+
     right.appendChild(tr);
     right.appendChild(document.createElement("div"));
   });
 }
 
-/* -------------------------------
+/* ===============================
    駅タップ → 時刻表
--------------------------------- */
+================================ */
 function openStationTimetable(station) {
   showPage("page-stations");
   document.getElementById("stationSelect").value = station;
   renderStationTable();
 }
 
-/* -------------------------------
+/* ===============================
    管理者モード
--------------------------------- */
+================================ */
 function loginAdmin() {
   const pw = document.getElementById("adminPassword").value;
   const area = document.getElementById("adminArea");
@@ -255,9 +316,9 @@ function loginAdmin() {
   }
 }
 
-/* -------------------------------
+/* ===============================
    列車追加・編集・削除
--------------------------------- */
+================================ */
 function getAdminForm() {
   return {
     trainNumber: document.getElementById("admTrainNumber").value,
@@ -294,9 +355,9 @@ function deleteTrain() {
   initStationSelect();
 }
 
-/* -------------------------------
+/* ===============================
    Firebase 保存・受信
--------------------------------- */
+================================ */
 function saveCloud() {
   db.ref("trains").set(trains)
     .then(() => alert("クラウドに保存しました"));
@@ -311,19 +372,19 @@ function loadCloud() {
   });
 }
 
-/* -------------------------------
+/* ===============================
    初期化
--------------------------------- */
+================================ */
 window.onload = () => {
   document.getElementById("searchInput").oninput = renderTrainList;
 
   document.getElementById("dirUp").onclick = () => {
     currentDirection = "up";
-    renderStationTable();
+    renderPosition();
   };
   document.getElementById("dirDown").onclick = () => {
     currentDirection = "down";
-    renderStationTable();
+    renderPosition();
   };
 
   document.getElementById("nowTimeSetBtn").onclick = () => {
@@ -344,4 +405,3 @@ window.onload = () => {
 
   loadCloud();
 };
-
