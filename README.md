@@ -9,7 +9,6 @@
 
 <body>
 
-  <!-- 上部メニューバー -->
   <header class="top-bar">
     <div class="top-bar-inner">
 
@@ -19,9 +18,10 @@
       </div>
 
       <nav class="top-nav" id="top-nav">
-        <button class="nav-item active" data-view="view-train-list">列車番号一覧</button>
+        <button class="nav-item active" data-view="view-train-list">列車一覧</button>
         <button class="nav-item" data-view="view-current">現在位置</button>
-        <button class="nav-item" data-view="view-timetable">各駅時刻表</button>
+        <button class="nav-item" data-view="view-timetable">時刻表</button>
+        <button class="nav-item need-auth" data-view="view-add-train" disabled>列車追加</button>
         <button class="nav-item" data-view="view-settings">設定</button>
       </nav>
 
@@ -35,153 +35,118 @@
 
   <main>
 
-    <!-- ① 列車番号一覧 -->
+    <!-- ① 列車一覧 -->
     <section id="view-train-list" class="view active">
-      <h2>列車番号一覧</h2>
-
-      <div class="panel">
-        <div class="field-row">
-          <label>列車番号検索：</label>
-          <input type="text" id="train-search" placeholder="例：101">
-          <button id="btn-train-search">検索</button>
-          <button id="btn-train-search-clear">クリア</button>
-        </div>
-      </div>
-
-      <div class="panel">
-        <table>
-          <thead>
-            <tr>
-              <th>列車番号</th>
-              <th>種別</th>
-              <th>行き先</th>
-              <th>始発駅</th>
-              <th>発車時間</th>
-              <th>終着駅</th>
-              <th>到着時間</th>
-            </tr>
-          </thead>
-          <tbody id="train-list-body"></tbody>
-        </table>
-      </div>
-
-      <!-- 列車詳細モーダル -->
-      <div id="train-detail-modal" class="modal" aria-hidden="true">
-        <div class="modal-content">
-          <button id="train-detail-close" class="modal-close">×</button>
-          <h3>列車詳細</h3>
-          <div id="train-detail-body"></div>
-        </div>
-      </div>
+      <h2>列車一覧</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>番号</th>
+            <th>種別</th>
+            <th>行き先</th>
+            <th>発車</th>
+            <th>到着</th>
+            <th>番線</th>
+          </tr>
+        </thead>
+        <tbody id="train-list-body"></tbody>
+      </table>
     </section>
 
     <!-- ② 現在位置 -->
     <section id="view-current" class="view">
       <h2>現在位置</h2>
-
-      <div class="panel">
-        <div class="field-row">
-          <label>方向：</label>
-          <button id="dir-down" class="dir-btn active" data-direction="down">下り</button>
-          <button id="dir-up" class="dir-btn" data-direction="up">上り</button>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div id="station-list"></div>
-      </div>
+      <div id="station-list"></div>
     </section>
 
-    <!-- ③ 各駅時刻表 -->
+    <!-- ③ 時刻表 -->
     <section id="view-timetable" class="view">
-      <h2>各駅時刻表</h2>
+      <h2>時刻表</h2>
+      <select id="timetable-station-select"></select>
+      <table>
+        <thead>
+          <tr>
+            <th>時刻</th>
+            <th>番号</th>
+            <th>種別</th>
+            <th>行き先</th>
+            <th>番線</th>
+          </tr>
+        </thead>
+        <tbody id="timetable-body"></tbody>
+      </table>
+    </section>
+
+    <!-- ④ 列車追加（パスワード認証後に解禁） -->
+    <section id="view-add-train" class="view">
+      <h2>列車追加</h2>
 
       <div class="panel">
         <div class="field-row">
-          <label>駅：</label>
-          <select id="timetable-station-select"></select>
+          <label>列車番号：</label>
+          <input type="text" id="add-number">
         </div>
-      </div>
 
-      <div class="panel">
-        <table>
-          <thead>
-            <tr>
-              <th>時刻</th>
-              <th>列車番号</th>
-              <th>種別</th>
-              <th>行き先</th>
-              <th>番線</th>
-              <th>色</th>
-              <th>停車/通過</th>
-            </tr>
-          </thead>
-          <tbody id="timetable-body"></tbody>
-        </table>
+        <div class="field-row">
+          <label>種別：</label>
+          <select id="add-type">
+            <option>各停</option>
+            <option>快速</option>
+            <option>区急</option>
+            <option>急行</option>
+            <option>特急</option>
+          </select>
+        </div>
+
+        <div class="field-row">
+          <label>行き先：</label>
+          <input type="text" id="add-dest">
+        </div>
+
+        <div class="field-row">
+          <label>発車時刻：</label>
+          <input type="time" id="add-startTime">
+        </div>
+
+        <div class="field-row">
+          <label>到着時刻：</label>
+          <input type="time" id="add-endTime">
+        </div>
+
+        <div class="field-row">
+          <label>番線：</label>
+          <select id="add-platform">
+            <option value="1">1番線</option>
+            <option value="2">2番線</option>
+            <option value="3">3番線</option>
+            <option value="4">4番線</option>
+          </select>
+        </div>
+
+        <button id="btn-add-train">追加</button>
       </div>
     </section>
 
-    <!-- ④ 設定 -->
+    <!-- ⑤ 設定 -->
     <section id="view-settings" class="view">
       <h2>設定</h2>
 
       <div class="panel">
-        <h3>パスワード認証</h3>
-        <div class="field-row">
-          <label>パスワード：</label>
-          <input type="password" id="admin-password">
-          <button id="btn-auth">認証</button>
-        </div>
-        <p id="auth-status" class="auth-status">編集機能は認証後に有効になります。</p>
+        <label>パスワード：</label>
+        <input type="password" id="admin-password">
+        <button id="btn-auth">認証</button>
+        <p id="auth-status">列車追加は認証後に有効になります。</p>
       </div>
 
       <div class="panel">
-        <h3>スプレッドシート読み込み</h3>
-        <div class="field-row">
-          <label>シートID：</label>
-          <input type="text" id="sheet-id">
-        </div>
-        <div class="field-row">
-          <label>APIキー：</label>
-          <input type="text" id="api-key">
-        </div>
-        <button id="btn-load-sheet" class="need-auth" disabled>読み込む</button>
-      </div>
-
-      <div class="panel">
-        <h3>ローカル保存</h3>
-        <button id="btn-save-local">保存</button>
-        <button id="btn-load-local">読み込み</button>
-        <button id="btn-clear-local">削除</button>
-      </div>
-
-      <div class="panel">
-        <h3>JSON入出力</h3>
-        <input type="file" id="json-input" accept=".json">
-        <button id="btn-load-json">読み込み</button>
-        <button id="btn-export-json">エクスポート</button>
-      </div>
-
-      <div class="panel">
-        <h3>クラウド</h3>
-        <button id="btn-cloud-save" class="need-auth" disabled>クラウド保存</button>
-        <button id="btn-cloud-load">クラウド受信</button>
-      </div>
-
-      <div class="panel">
-        <h3>デバッグ</h3>
-        <button id="btn-log-trains">trains を表示</button>
+        <button id="btn-save-local">保存（ローカル）</button>
+        <button id="btn-load-local">読み込み（ローカル）</button>
       </div>
 
     </section>
 
   </main>
 
-  <!-- Firebase（Realtime Database 用） -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-  <!-- アプリ本体 -->
   <script src="app.js"></script>
 </body>
 </html>
