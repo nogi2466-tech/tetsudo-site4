@@ -1,5 +1,6 @@
 //------------------------------------------------------
-// app.js（完全版・Firebase対応）
+// app.js（完全版・Aブロック）
+// Firebase設定 / 初期設定 / 画面切替
 //------------------------------------------------------
 
 //==============================
@@ -8,27 +9,19 @@
 
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY_HERE",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:xxxxxx"
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "1234567890",
+  appId: "1:1234567890:web:xxxxxxxxxxxxxx"
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 //==============================
-// 1. APIキーを自動入力
-//==============================
-
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("api-key").value = firebaseConfig.apiKey;
-});
-
-//==============================
-// 2. データ構造
+// 1. 初期処理
 //==============================
 
 let trains = [];
@@ -41,10 +34,6 @@ const stations = [
   "長沼","北野","京王八王子"
 ];
 
-//==============================
-// 3. 種別色
-//==============================
-
 const typeColors = {
   "各停": "#888888",
   "快速": "#007bff",
@@ -52,10 +41,6 @@ const typeColors = {
   "急行": "#00aa44",
   "特急": "#ff0000"
 };
-
-//==============================
-// 4. 番線ルール
-//==============================
 
 const platformRules = {
   "笹塚": { down: [1,2], up: [3,4] },
@@ -75,8 +60,21 @@ function getPlatforms(station, direction) {
   return direction === "down" ? [1] : [2];
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  const apiKeyInput = document.getElementById("api-key");
+  if (apiKeyInput) apiKeyInput.value = firebaseConfig.apiKey;
+
+  fillStationSelect();
+  renderTrainList();
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  const btnNow = document.getElementById("btn-now");
+  if (btnNow) btnNow.addEventListener("click", updateClock);
+});
+
 //==============================
-// 5. パスワード認証
+// 2. パスワード認証
 //==============================
 
 let isAdmin = false;
@@ -96,7 +94,7 @@ document.getElementById("btn-auth").addEventListener("click", () => {
 });
 
 //==============================
-// 6. 画面切り替え
+// 3. 画面切り替え（完全版）
 //==============================
 
 document.querySelectorAll(".nav-item").forEach(btn => {
@@ -116,7 +114,24 @@ document.querySelectorAll(".nav-item").forEach(btn => {
 });
 
 //==============================
-// 7. 現在位置：方向
+// 4. 時計
+//==============================
+
+function updateClock() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
+  const clock = document.getElementById("clock");
+  if (clock) clock.textContent = `${hh}:${mm}:${ss}`;
+}
+//------------------------------------------------------
+// app.js（完全版・Bブロック）
+// 現在位置 / 駅リスト / 列車描画 / 時刻表
+//------------------------------------------------------
+
+//==============================
+// 5. 現在位置：方向
 //==============================
 
 let currentDirection = "down";
@@ -139,11 +154,12 @@ function updateDirectionButtons() {
 }
 
 //==============================
-// 8. 駅リスト描画
+// 6. 駅リスト描画
 //==============================
 
 function renderStationList() {
   const container = document.getElementById("station-list");
+  if (!container) return;
   container.innerHTML = "";
 
   const list = currentDirection === "down" ? stations : [...stations].reverse();
@@ -189,7 +205,7 @@ function renderStationList() {
 }
 
 //==============================
-// 9. 現在位置描画
+// 7. 現在位置描画
 //==============================
 
 function renderCurrentPosition() {
@@ -203,7 +219,7 @@ function renderCurrentPosition() {
 }
 
 //==============================
-// 10. 列車描画（駅）
+// 8. 列車描画（駅）
 //==============================
 
 function drawTrain(train) {
@@ -222,7 +238,7 @@ function drawTrainAtStation(train) {
 }
 
 //==============================
-// 11. 列車描画（駅間）
+// 9. 列車描画（駅間）
 //==============================
 
 function drawTrainBetween(train) {
@@ -239,7 +255,7 @@ function drawTrainBetween(train) {
 }
 
 //==============================
-// 12. 列車ボックス生成
+// 10. 列車ボックス生成
 //==============================
 
 function createTrainElement(train) {
@@ -263,18 +279,58 @@ function createTrainElement(train) {
 
   return wrap;
 }
+
 //==============================
-// 13. 駅時刻表
+// 11. 列車詳細モーダル
+//==============================
+
+function openTrainDetail(num) {
+  const train = trains.find(t => t.number == num);
+  if (!train) return;
+
+  const modal = document.getElementById("train-detail-modal");
+  const body = document.getElementById("train-detail-body");
+  if (!modal || !body) return;
+
+  body.innerHTML = `
+    <p><b>列車番号：</b> ${train.number}</p>
+    <p><b>種別：</b> ${train.type}</p>
+    <p><b>行き先：</b> ${train.destination}</p>
+    <p><b>始発駅：</b> ${train.start}</p>
+    <p><b>発車時刻：</b> ${train.startTime}</p>
+    <p><b>終着駅：</b> ${train.end}</p>
+    <p><b>到着時刻：</b> ${train.endTime}</p>
+    <p><b>現在位置：</b> ${
+      train.currentStation
+        ? train.currentStation + "（駅）"
+        : (train.between ? `${train.between.from} → ${train.between.to}（駅間）` : "不明")
+    }</p>
+    <p><b>状態：</b> ${train.status}</p>
+  `;
+
+  modal.style.display = "block";
+}
+
+document.getElementById("train-detail-close").addEventListener("click", () => {
+  const modal = document.getElementById("train-detail-modal");
+  if (modal) modal.style.display = "none";
+});
+
+//==============================
+// 12. 駅時刻表
 //==============================
 
 function openStationTimetable(station) {
-  document.querySelector('[data-view="view-timetable"]').click();
-  document.getElementById("timetable-station-select").value = station;
+  const btn = document.querySelector('[data-view="view-timetable"]');
+  if (btn) btn.click();
+  const sel = document.getElementById("timetable-station-select");
+  if (sel) sel.value = station;
   renderStationTimetable(station);
 }
 
 function renderStationTimetable(station) {
   const tbody = document.getElementById("timetable-body");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
   const list = trains.filter(t => t.stops && t.stops[station]);
@@ -305,11 +361,32 @@ document.getElementById("timetable-station-select").addEventListener("change", e
 });
 
 //==============================
-// 14. 列車番号一覧
+// 13. 駅選択プルダウン
+//==============================
+
+function fillStationSelect() {
+  const sel = document.getElementById("timetable-station-select");
+  if (!sel) return;
+  sel.innerHTML = "";
+  stations.forEach(st => {
+    const op = document.createElement("option");
+    op.value = st;
+    op.textContent = st;
+    sel.appendChild(op);
+  });
+}
+//------------------------------------------------------
+// app.js（完全版・Cブロック）
+// 検索 / JSON入出力 / ローカル保存 / クラウド保存
+//------------------------------------------------------
+
+//==============================
+// 14. 列車番号一覧（検索）
 //==============================
 
 function renderTrainList() {
   const tbody = document.getElementById("train-list-body");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
   trains.forEach(train => {
@@ -333,10 +410,11 @@ function renderTrainList() {
 document.getElementById("btn-train-search").addEventListener("click", () => {
   const word = document.getElementById("train-search").value;
   const tbody = document.getElementById("train-list-body");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
   trains
-    .filter(t => t.number.includes(word))
+    .filter(t => t.number && t.number.includes(word))
     .forEach(train => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -402,6 +480,8 @@ document.getElementById("btn-load-local").addEventListener("click", () => {
     trains = JSON.parse(data);
     renderCurrentPosition();
     alert("読み込みました");
+  } else {
+    alert("保存されたデータがありません");
   }
 });
 
@@ -411,14 +491,7 @@ document.getElementById("btn-clear-local").addEventListener("click", () => {
 });
 
 //==============================
-// 17. デバッグ
-//==============================
-
-document.getElementById("btn-log-trains").addEventListener("click", () => {
-  console.log(trains);
-});
-//==============================
-// 18. クラウド保存（Firebase Realtime Database）
+// 17. クラウド保存（Firebase）
 //==============================
 
 document.getElementById("btn-cloud-save").addEventListener("click", () => {
@@ -438,7 +511,7 @@ document.getElementById("btn-cloud-save").addEventListener("click", () => {
 });
 
 //==============================
-// 19. クラウド受信（Firebase Realtime Database）
+// 18. クラウド受信（Firebase）
 //==============================
 
 document.getElementById("btn-cloud-load").addEventListener("click", () => {
@@ -461,7 +534,7 @@ document.getElementById("btn-cloud-load").addEventListener("click", () => {
 });
 
 //==============================
-// 20. スプレッドシート読み込み
+// 19. スプレッドシート読み込み
 //==============================
 
 document.getElementById("btn-load-sheet").addEventListener("click", async () => {
@@ -478,7 +551,7 @@ document.getElementById("btn-load-sheet").addEventListener("click", async () => 
     const res = await fetch(url);
     const json = await res.json();
 
-    trains = convertSheetToTrains(json.values);
+    trains = convertSheetToTrains(json.values || []);
     renderCurrentPosition();
     alert("スプレッドシートを読み込みました");
 
@@ -487,10 +560,6 @@ document.getElementById("btn-load-sheet").addEventListener("click", async () => 
     alert("読み込みに失敗しました");
   }
 });
-
-//==============================
-// 21. スプレッドシート → trains 変換
-//==============================
 
 function convertSheetToTrains(values) {
   const list = [];
@@ -516,3 +585,11 @@ function convertSheetToTrains(values) {
 
   return list;
 }
+
+//==============================
+// 20. デバッグ
+//==============================
+
+document.getElementById("btn-log-trains").addEventListener("click", () => {
+  console.log(trains);
+});
