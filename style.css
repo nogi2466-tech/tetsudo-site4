@@ -28,8 +28,8 @@ body{
 -------------------------------- */
 header{
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  gap:16px;
   padding:10px 16px;
   background:var(--blue-main);
   color:#fff;
@@ -38,6 +38,12 @@ header{
   z-index:10;
 }
 header h1{margin:0;font-size:18px;}
+
+#clock{
+  margin-left:auto;
+  font-size:14px;
+  font-weight:bold;
+}
 
 #hamburger{
   display:none;
@@ -134,19 +140,6 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
   padding:8px;
   border-radius:6px;
   border:1px solid var(--border);
-  margin-bottom:8px;
-}
-
-/* -------------------------------
-   詳細ページ
--------------------------------- */
-#detailCard h3{
-  margin:0;
-  font-size:20px;
-}
-#backToList{
-  color:var(--blue-main);
-  cursor:pointer;
   margin-bottom:8px;
 }
 
@@ -280,3 +273,40 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
 .train-rapid{background:#ffe082;color:#e65100;}     /* 快速 */
 .train-express{background:#c8e6c9;color:#1b5e20;}   /* 急行 */
 .train-limited{background:#ffccbc;color:#bf360c;}  /* 特急 */
+
+/* -------------------------------
+   設定
+-------------------------------- */
+#adminPassword{
+  padding:6px;
+  border-radius:6px;
+  border:1px solid var(--border);
+}
+#btnLogin,#btnSaveCloud,#btnLoadCloud{
+  padding:6px 10px;
+  border:none;
+  border-radius:6px;
+  background:var(--blue-main);
+  color:#fff;
+  cursor:pointer;
+  margin-left:4px;
+}
+
+#adminArea input{
+  width:100%;
+  padding:6px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  margin-bottom:6px;
+}
+
+#btnAddTrain,#btnUpdateTrain,#btnDeleteTrain{
+  padding:6px 10px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  margin-right:4px;
+}
+#btnAddTrain{background:var(--green-main);color:#fff;}
+#btnUpdateTrain{background:var(--orange-main);color:#fff;}
+#btnDeleteTrain{background:#b91c1c;color:#fff;}
