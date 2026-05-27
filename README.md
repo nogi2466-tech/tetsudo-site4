@@ -2,13 +2,13 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>列車管理システム</title>
+  <title>列車運行システム</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- CSS -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- Firebase CDN（v8：ブラウザ用） -->
+  <!-- Firebase CDN（Realtime Database が動く唯一の方法） -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
@@ -16,15 +16,19 @@
 <body>
 
 <header>
-  <h1>列車管理</h1>
+  <h1>列車運行システム</h1>
+
+  <!-- 右上の時計 -->
+  <div id="clock" style="margin-left:auto; font-size:14px;"></div>
+
   <nav>
     <div id="hamburger">
       <span></span><span></span><span></span>
     </div>
     <div id="navLinks">
       <a href="javascript:void(0)" data-page="page-list" class="active">列車番号一覧</a>
-      <a href="javascript:void(0)" data-page="page-stations">各駅時刻表</a>
       <a href="javascript:void(0)" data-page="page-position">現在位置</a>
+      <a href="javascript:void(0)" data-page="page-stations">各駅時刻表</a>
       <a href="javascript:void(0)" data-page="page-settings">設定</a>
     </div>
   </nav>
@@ -56,25 +60,25 @@
     </div>
   </section>
 
-  <!-- 列車詳細 -->
-  <section id="page-detail" class="hidden">
-    <div id="backToList">← 列車番号一覧に戻る</div>
-    <div class="card" id="detailCard"></div>
-    <div class="card">
-      <h3 style="margin-top:0;font-size:15px;">各駅時刻</h3>
-      <div style="overflow-x:auto;">
-        <table>
-          <thead>
-          <tr>
-            <th>駅</th>
-            <th>到着</th>
-            <th>発車</th>
-            <th>番線</th>
-          </tr>
-          </thead>
-          <tbody id="detailTimetableBody"></tbody>
-        </table>
-      </div>
+  <!-- 現在位置 -->
+  <section id="page-position" class="hidden">
+    <h2>現在位置</h2>
+
+    <!-- 上り下り切替 -->
+    <div style="margin-bottom:10px;">
+      <button id="posUp" class="active">上り</button>
+      <button id="posDown">下り</button>
+    </div>
+
+    <!-- 時刻入力 -->
+    <div style="margin-bottom:8px;">
+      <input type="time" id="nowTimeInput">
+      <button id="nowTimeSetBtn">現在時刻を反映</button>
+    </div>
+
+    <div id="positionLayout">
+      <div id="positionStationList"></div>
+      <div id="positionTrainList"></div>
     </div>
   </section>
 
@@ -106,22 +110,6 @@
     </div>
   </section>
 
-  <!-- 現在位置 -->
-  <section id="page-position" class="hidden">
-    <h2>現在位置</h2>
-    <div class="card">
-      <div style="margin-bottom:8px;">
-        <input type="time" id="nowTimeInput">
-        <button id="nowTimeSetBtn">現在時刻を反映</button>
-      </div>
-      <div id="nowTimeLabel" style="font-size:13px;color:#6b7280;margin-bottom:8px;"></div>
-      <div id="positionLayout">
-        <div id="positionStationList"></div>
-        <div id="positionTrainList"></div>
-      </div>
-    </div>
-  </section>
-
   <!-- 設定 -->
   <section id="page-settings" class="hidden">
     <h2>設定</h2>
@@ -131,7 +119,7 @@
       <button id="btnSaveCloud">保存</button>
       <button id="btnLoadCloud">受信</button>
       <p style="font-size:12px;color:#6b7280;">
-        ※Firebase Realtime Database を使って、別デバイスでも同じ内容を共有できます。
+        Firebase Realtime Database を使用します。
       </p>
     </div>
 
@@ -160,7 +148,7 @@
 
 </main>
 
-<!-- ナビゲーションの基本動作 -->
+<!-- ナビゲーション -->
 <script>
   const hamburger = document.getElementById("hamburger");
   const navLinks = document.getElementById("navLinks");
@@ -179,18 +167,19 @@
     e.target.classList.add("active");
     navLinks.classList.remove("show");
   });
+</script>
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const back = document.getElementById("backToList");
-    if (back) {
-      back.addEventListener("click", () => {
-        document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
-        document.getElementById("page-list").classList.remove("hidden");
-        navLinks.querySelectorAll("a").forEach(a => a.classList.remove("active"));
-        navLinks.querySelector('a[data-page="page-list"]').classList.add("active");
-      });
-    }
-  });
+<!-- 時計 -->
+<script>
+  function updateClock() {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,"0");
+    const mm = String(now.getMinutes()).padStart(2,"0");
+    const ss = String(now.getSeconds()).padStart(2,"0");
+    document.getElementById("clock").textContent = `${hh}:${mm}:${ss}`;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
 </script>
 
 <!-- メインロジック -->
