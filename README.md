@@ -8,7 +8,7 @@
   <!-- CSS -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- Firebase CDN（Realtime Database が動く唯一の方法） -->
+  <!-- Firebase v8（Realtime Database 用） -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
@@ -18,8 +18,8 @@
 <header>
   <h1>列車運行システム</h1>
 
-  <!-- 右上の時計 -->
-  <div id="clock" style="margin-left:auto; font-size:14px;"></div>
+  <!-- 右上の現在時刻（ここだけに表示） -->
+  <div id="clock"></div>
 
   <nav>
     <div id="hamburger">
@@ -60,6 +60,29 @@
     </div>
   </section>
 
+  <!-- 列車詳細 -->
+  <section id="page-detail" class="hidden">
+    <h2>列車詳細</h2>
+    <div id="backToList" onclick="showPage('page-list')">← 一覧に戻る</div>
+    <div class="card" id="detailCard"></div>
+    <div class="card">
+      <h3>停車駅時刻表</h3>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+          <tr>
+            <th>駅名</th>
+            <th>到着</th>
+            <th>発車</th>
+            <th>番線</th>
+          </tr>
+          </thead>
+          <tbody id="detailTimetableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- 現在位置 -->
   <section id="page-position" class="hidden">
     <h2>現在位置</h2>
@@ -70,12 +93,13 @@
       <button id="posDown">下り</button>
     </div>
 
-    <!-- 時刻入力 -->
+    <!-- ここには時刻は表示せず、入力だけ（現在時刻はヘッダーに表示） -->
     <div style="margin-bottom:8px;">
       <input type="time" id="nowTimeInput">
       <button id="nowTimeSetBtn">現在時刻を反映</button>
     </div>
 
+    <!-- 左：駅名／右：列車 -->
     <div id="positionLayout">
       <div id="positionStationList"></div>
       <div id="positionTrainList"></div>
@@ -114,8 +138,9 @@
   <section id="page-settings" class="hidden">
     <h2>設定</h2>
 
+    <!-- クラウド保存／受信 -->
     <div class="card">
-      <h3>クラウド保存 / 受信</h3>
+      <h3>クラウド保存／受信</h3>
       <button id="btnSaveCloud">保存</button>
       <button id="btnLoadCloud">受信</button>
       <p style="font-size:12px;color:#6b7280;">
@@ -123,6 +148,7 @@
       </p>
     </div>
 
+    <!-- 管理者モード -->
     <div class="card">
       <h3>管理者モード</h3>
       <input type="password" id="adminPassword" placeholder="パスワード">
@@ -130,25 +156,33 @@
       <div id="loginStatus" style="font-size:12px;margin-top:4px;"></div>
 
       <div id="adminArea" class="hidden" style="margin-top:10px;">
-        <h3>列車追加 / 編集 / 削除</h3>
+        <h3>列車追加／編集／削除</h3>
         <input id="admTrainNumber" placeholder="列車番号">
-        <input id="admType" placeholder="種別">
+        <input id="admType" placeholder="種別（各停・快速など）">
         <input id="admOrigin" placeholder="始発駅">
-        <input id="admDeparture" placeholder="発車 (HH:MM)">
+        <input id="admDeparture" placeholder="始発発車 (HH:MM)">
         <input id="admDestination" placeholder="終着駅">
-        <input id="admArrival" placeholder="到着 (HH:MM)">
+        <input id="admArrival" placeholder="終着到着 (HH:MM)">
         <div style="margin-top:6px;">
           <button id="btnAddTrain">追加</button>
           <button id="btnUpdateTrain">編集</button>
           <button id="btnDeleteTrain">削除</button>
         </div>
+
+        <!-- 駅ごとの時刻表編集エリア -->
+        <h3 style="margin-top:14px;">駅ごとの時刻表</h3>
+        <p style="font-size:12px;color:#6b7280;">
+          駅名ごとに到着・発車・番線・通過を設定できます。
+        </p>
+        <div id="timetableEditor"></div>
+        <button id="btnSaveTimetable" style="margin-top:8px;">時刻表を保存</button>
       </div>
     </div>
   </section>
 
 </main>
 
-<!-- ナビゲーション -->
+<!-- ナビゲーション制御 -->
 <script>
   const hamburger = document.getElementById("hamburger");
   const navLinks = document.getElementById("navLinks");
@@ -169,7 +203,7 @@
   });
 </script>
 
-<!-- 時計 -->
+<!-- ヘッダーの現在時刻表示 -->
 <script>
   function updateClock() {
     const now = new Date();
