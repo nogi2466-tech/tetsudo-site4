@@ -214,6 +214,10 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
 /* -------------------------------
    列車アイコン（車両風）
 -------------------------------- */
+.train-node{
+  margin-bottom:20px;
+}
+
 .train-car{
   display:inline-block;
   padding:6px 10px;
@@ -269,13 +273,13 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
 }
 
 /* 種別ごとの色分け */
-.train-local{background:#e3f2fd;color:#0d47a1;}     /* 普通 */
+.train-local{background:#e3f2fd;color:#0d47a1;}     /* 各停 */
 .train-rapid{background:#ffe082;color:#e65100;}     /* 快速 */
 .train-express{background:#c8e6c9;color:#1b5e20;}   /* 急行 */
 .train-limited{background:#ffccbc;color:#bf360c;}  /* 特急 */
 
 /* -------------------------------
-   設定
+   設定（管理者モード）
 -------------------------------- */
 #adminPassword{
   padding:6px;
@@ -310,3 +314,25 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
 #btnAddTrain{background:var(--green-main);color:#fff;}
 #btnUpdateTrain{background:var(--orange-main);color:#fff;}
 #btnDeleteTrain{background:#b91c1c;color:#fff;}
+
+/* -------------------------------
+   時刻表編集 UI
+-------------------------------- */
+.tt-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 0;
+  border-bottom:1px solid #e5e7eb;
+}
+.tt-station{
+  width:100px;
+  font-weight:600;
+}
+.tt-arr,.tt-dep{
+  width:90px;
+  padding:4px;
+}
+.tt-track{
+  padding:4px;
+}
