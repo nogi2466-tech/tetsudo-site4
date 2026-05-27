@@ -4,8 +4,11 @@
   <meta charset="UTF-8">
   <title>列車管理システム</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
-  <!-- Firebase CDN（Realtime Database 用）-->
+
+  <!-- Firebase CDN（v8：ブラウザ用） -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
@@ -122,6 +125,7 @@
   <!-- 設定 -->
   <section id="page-settings" class="hidden">
     <h2>設定</h2>
+
     <div class="card">
       <h3>クラウド保存 / 受信</h3>
       <button id="btnSaveCloud">保存</button>
@@ -150,17 +154,14 @@
           <button id="btnUpdateTrain">編集</button>
           <button id="btnDeleteTrain">削除</button>
         </div>
-        <p style="font-size:12px;color:#6b7280;margin-top:4px;">
-          ※各駅の時刻表（timetable）は今はコード内で編集。あとでUI化もできる。
-        </p>
       </div>
     </div>
   </section>
 
 </main>
 
+<!-- ナビゲーションの基本動作 -->
 <script>
-  // ハンバーガーメニューとナビの基本動作だけ HTML 側で定義
   const hamburger = document.getElementById("hamburger");
   const navLinks = document.getElementById("navLinks");
 
@@ -179,7 +180,6 @@
     navLinks.classList.remove("show");
   });
 
-  // 戻るリンク（詳細 → 一覧）
   document.addEventListener("DOMContentLoaded", () => {
     const back = document.getElementById("backToList");
     if (back) {
@@ -193,7 +193,9 @@
   });
 </script>
 
+<!-- メインロジック -->
 <script src="app.js"></script>
+
 </body>
 </html>
 
