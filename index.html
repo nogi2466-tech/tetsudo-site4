@@ -1,188 +1,365 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>列車運行シミュレータ</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-</head>
+/* =========================================
+   全体
+========================================= */
 
-<body>
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Yu Gothic", sans-serif;
+  background: #f5f5f5;
+  color: #222;
+}
 
-  <!-- 上部メニューバー -->
-  <header class="top-bar">
-    <div class="top-bar-inner">
+h2, h3 {
+  margin: 10px 0;
+}
 
-      <div class="top-bar-left">
-        <button id="menu-toggle" class="menu-toggle">&#9776;</button>
-        <span class="app-title">列車運行シミュレータ</span>
-      </div>
+.view {
+  display: none;
+}
 
-      <nav class="top-nav" id="top-nav">
-        <button class="nav-item active" data-view="view-train-list">列車番号一覧</button>
-        <button class="nav-item" data-view="view-current">現在位置</button>
-        <button class="nav-item" data-view="view-timetable">各駅時刻表</button>
-        <button class="nav-item" data-view="view-settings">設定</button>
-      </nav>
+.view.active {
+  display: block;
+}
 
-      <div class="top-bar-right">
-        <button id="btn-now" class="btn-now">現在時刻</button>
-        <span id="clock" class="clock"></span>
-      </div>
+/* パネル */
+.panel {
+  background: #fff;
+  padding: 12px;
+  margin: 10px;
+  border-radius: 8px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.1);
+}
 
-    </div>
-  </header>
+.field-row {
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-  <main>
+/* =========================================
+   上部メニューバー（青）
+========================================= */
 
-    <!-- ① 列車番号一覧 -->
-    <section id="view-train-list" class="view active">
-      <h2>列車番号一覧</h2>
+.top-bar {
+  background: #007bff;
+  color: #fff;
+  padding: 8px 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
 
-      <div class="panel">
-        <div class="field-row">
-          <label>列車番号検索：</label>
-          <input type="text" id="train-search" placeholder="例：101">
-          <button id="btn-train-search">検索</button>
-          <button id="btn-train-search-clear">クリア</button>
-        </div>
-      </div>
+.top-bar-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px;
+}
 
-      <div class="panel">
-        <table>
-          <thead>
-            <tr>
-              <th>列車番号</th>
-              <th>種別</th>
-              <th>行き先</th>
-              <th>始発駅</th>
-              <th>発車時間</th>
-              <th>終着駅</th>
-              <th>到着時間</th>
-            </tr>
-          </thead>
-          <tbody id="train-list-body"></tbody>
-        </table>
-      </div>
+.app-title {
+  font-size: 18px;
+  font-weight: bold;
+}
 
-      <!-- 列車詳細モーダル -->
-      <div id="train-detail-modal" class="modal" aria-hidden="true">
-        <div class="modal-content">
-          <button id="train-detail-close" class="modal-close">×</button>
-          <h3>列車詳細</h3>
-          <div id="train-detail-body"></div>
-        </div>
-      </div>
-    </section>
+.top-nav {
+  display: flex;
+  gap: 10px;
+}
 
-    <!-- ② 現在位置 -->
-    <section id="view-current" class="view">
-      <h2>現在位置</h2>
+.nav-item {
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+}
 
-      <div class="panel">
-        <div class="field-row">
-          <label>方向：</label>
-          <button id="dir-down" class="dir-btn active" data-direction="down">下り</button>
-          <button id="dir-up" class="dir-btn" data-direction="up">上り</button>
-        </div>
-      </div>
+.nav-item:hover {
+  background: rgba(255,255,255,0.2);
+}
 
-      <div class="panel">
-        <div id="station-list"></div>
-      </div>
-    </section>
+.nav-item.active {
+  background: #fff;
+  color: #007bff;
+}
 
-    <!-- ③ 各駅時刻表 -->
-    <section id="view-timetable" class="view">
-      <h2>各駅時刻表</h2>
+.clock {
+  font-size: 14px;
+  margin-left: 10px;
+}
 
-      <div class="panel">
-        <div class="field-row">
-          <label>駅：</label>
-          <select id="timetable-station-select"></select>
-        </div>
-      </div>
+.btn-now {
+  background: #fff;
+  color: #007bff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-now:hover {
+  background: #e6e6e6;
+}
 
-      <div class="panel">
-        <table>
-          <thead>
-            <tr>
-              <th>時刻</th>
-              <th>列車番号</th>
-              <th>種別</th>
-              <th>行き先</th>
-              <th>番線</th>
-              <th>色</th>
-              <th>停車/通過</th>
-            </tr>
-          </thead>
-          <tbody id="timetable-body"></tbody>
-        </table>
-      </div>
-    </section>
+/* =========================================
+   スマホ用ハンバーガー
+========================================= */
 
-    <!-- ④ 設定 -->
-    <section id="view-settings" class="view">
-      <h2>設定</h2>
+.menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
 
-      <div class="panel">
-        <h3>パスワード認証</h3>
-        <div class="field-row">
-          <label>パスワード：</label>
-          <input type="password" id="admin-password">
-          <button id="btn-auth">認証</button>
-        </div>
-        <p id="auth-status" class="auth-status">編集機能は認証後に有効になります。</p>
-      </div>
+@media (max-width: 700px) {
+  .menu-toggle {
+    display: block;
+  }
 
-      <div class="panel">
-        <h3>スプレッドシート読み込み</h3>
-        <div class="field-row">
-          <label>シートID：</label>
-          <input type="text" id="sheet-id">
-        </div>
-        <div class="field-row">
-          <label>APIキー：</label>
-          <input type="text" id="api-key">
-        </div>
-        <button id="btn-load-sheet" class="need-auth" disabled>読み込む</button>
-      </div>
+  .top-nav {
+    display: none;
+    flex-direction: column;
+    background: #007bff;
+    padding: 10px;
+  }
 
-      <div class="panel">
-        <h3>ローカル保存</h3>
-        <button id="btn-save-local">保存</button>
-        <button id="btn-load-local">読み込み</button>
-        <button id="btn-clear-local">削除</button>
-      </div>
+  .top-nav.open {
+    display: flex;
+  }
+}
 
-      <div class="panel">
-        <h3>JSON入出力</h3>
-        <input type="file" id="json-input" accept=".json">
-        <button id="btn-load-json">読み込み</button>
-        <button id="btn-export-json">エクスポート</button>
-      </div>
+/* =========================================
+   現在位置：駅縦並び
+========================================= */
 
-      <div class="panel">
-        <h3>クラウド</h3>
-        <button id="btn-cloud-save" class="need-auth" disabled>クラウド保存</button>
-        <button id="btn-cloud-load">クラウド受信</button>
-      </div>
+#station-list {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
 
-      <div class="panel">
-        <h3>デバッグ</h3>
-        <button id="btn-log-trains">trains を表示</button>
-      </div>
+.station-block {
+  margin-bottom: 20px;
+  position: relative;
+}
 
-    </section>
+.station-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
-  </main>
+.station-dot {
+  font-size: 20px;
+}
 
-  <!-- Firebase（Realtime Database 用） -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+.station-name {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
 
-  <!-- アプリ本体 -->
-  <script src="app.js"></script>
-</body>
-</html>
+.station-name:hover {
+  background: #e0e0e0;
+}
+
+.station-line {
+  font-size: 22px;
+  text-align: center;
+  margin: 4px 0;
+  position: relative;
+}
+
+/* =========================================
+   番線枠
+========================================= */
+
+.platform-row {
+  display: flex;
+  gap: 10px;
+  margin: 6px 0;
+}
+
+.platform {
+  width: 120px;
+  min-height: 70px;
+  background: #fafafa;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  padding: 4px;
+  position: relative;
+}
+
+.platform-label {
+  font-size: 12px;
+  color: #555;
+  position: absolute;
+  top: 2px;
+  left: 4px;
+}
+
+.train-slot {
+  margin-top: 18px;
+}
+
+/* =========================================
+   列車ボックス
+========================================= */
+
+.train-box {
+  width: 100%;
+  margin: 2px 0;
+  cursor: pointer;
+}
+
+.train-box-top {
+  background: #fff;
+  border: 1px solid #aaa;
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 4px 4px 0 0;
+}
+
+.train-box-bottom {
+  border: 1px solid #aaa;
+  padding: 4px;
+  text-align: center;
+  border-radius: 0 0 4px 4px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.train-between {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+}
+
+/* =========================================
+   テーブル
+========================================= */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+
+th {
+  background: #e9e9e9;
+  font-weight: bold;
+}
+
+tr:hover {
+  background: #f0f8ff;
+  cursor: pointer;
+}
+
+/* =========================================
+   モーダル
+========================================= */
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background: #fff;
+  width: 90%;
+  max-width: 450px;
+  margin: 80px auto;
+  padding: 20px;
+  border-radius: 10px;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* =========================================
+   設定画面
+========================================= */
+
+.auth-status {
+  margin-top: 6px;
+  font-size: 14px;
+  color: #444;
+}
+
+.need-auth:disabled {
+  background: #ccc !important;
+  cursor: not-allowed;
+}
+
+.need-auth {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.need-auth:hover:not(:disabled) {
+  background: #0066d6;
+}
+
+input[type="text"],
+input[type="password"],
+select {
+  padding: 6px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* =========================================
+   スマホ調整
+========================================= */
+
+@media (max-width: 700px) {
+  .platform {
+    width: 100px;
+  }
+
+  .train-box-top,
+  .train-box-bottom {
+    font-size: 12px;
+  }
+
+  table {
+    font-size: 12px;
+  }
+}
 
