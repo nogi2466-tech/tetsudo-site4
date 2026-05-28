@@ -170,15 +170,13 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
 }
 
 /* ===============================
-   現在位置（駅＋番線枠）
+   現在位置（駅＋番線＋駅間レーン）
 ================================ */
-#positionLayout{
-  display:grid;
-  grid-template-columns:1fr 1fr;
+.position-row{
+  display:flex;
+  align-items:center;
   gap:12px;
-}
-@media(max-width:768px){
-  #positionLayout{grid-template-columns:1fr;}
+  margin-bottom:20px;
 }
 
 /* 駅名 */
@@ -200,14 +198,13 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
   display:inline-block;
 }
 
-/* 駅間の線 */
+/* 縦線 */
 .line{
   width:4px;
   height:80px;
   background:linear-gradient(to bottom,var(--blue-dark),#4fa3ff,var(--blue-dark));
   background-size:100% 200%;
   animation:lineFlow 3s infinite linear;
-  margin:0 auto;
   border-radius:2px;
 }
 @keyframes lineFlow{
@@ -215,15 +212,12 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
   100%{background-position:0 200%;}
 }
 
-/* 番線枠コンテナ */
+/* 番線枠 */
 .platform-container{
   display:flex;
   gap:8px;
   flex-wrap:wrap;
-  margin-bottom:20px;
 }
-
-/* 番線枠 */
 .platform-box{
   border:2px solid #333;
   background:#fafafa;
@@ -239,6 +233,38 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
   margin-bottom:4px;
 }
 
+/* 駅間レーン */
+.between-lane{
+  width:200px;
+  height:6px;
+  background:#ddd;
+  border-radius:3px;
+  position:relative;
+}
+
+/* 分岐線（調布・北野） */
+.branch-right{
+  width:40px;
+  height:4px;
+  background:var(--blue-dark);
+  border-radius:2px;
+  margin-left:10px;
+}
+.branch-left{
+  width:40px;
+  height:4px;
+  background:var(--blue-dark);
+  border-radius:2px;
+  margin-right:10px;
+}
+
+/* PC のときは縦レイアウト */
+@media(min-width:900px){
+  #positionLayout{
+    display:block;
+  }
+}
+
 /* ===============================
    列車アイコン（種別色）
 ================================ */
@@ -250,36 +276,11 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
   text-align:center;
   box-shadow:0 2px 4px rgba(0,0,0,0.15);
 }
-
-/* 各停（グレー） */
-.train-local{
-  background:var(--local-gray);
-  color:#111;
-}
-
-/* 快速（青） */
-.train-rapid{
-  background:var(--rapid-blue);
-  color:#0d47a1;
-}
-
-/* 区急（黄色） */
-.train-semi-express{
-  background:var(--semi-yellow);
-  color:#8d6e00;
-}
-
-/* 急行（緑） */
-.train-express{
-  background:var(--express-green);
-  color:#1b5e20;
-}
-
-/* 特急（赤） */
-.train-limited{
-  background:var(--limited-red);
-  color:#b71c1c;
-}
+.train-local{background:var(--local-gray);color:#111;}
+.train-rapid{background:var(--rapid-blue);color:#0d47a1;}
+.train-semi-express{background:var(--semi-yellow);color:#8d6e00;}
+.train-express{background:var(--express-green);color:#1b5e20;}
+.train-limited{background:var(--limited-red);color:#b71c1c;}
 
 /* ===============================
    管理者モード
