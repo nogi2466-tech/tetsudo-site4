@@ -78,7 +78,7 @@
     </div>
   </section>
 
-  <!-- 現在位置 -->
+  <!-- 現在位置（3レーン構成） -->
   <section id="page-position" class="hidden">
     <h2>現在位置</h2>
 
@@ -87,8 +87,12 @@
       <button id="posDown">下り</button>
     </div>
 
-    <!-- 駅・番線枠を JS で生成 -->
-    <div id="positionLayout"></div>
+    <!-- ★ 3レーン構成（高尾線・本線・相模原線） -->
+    <div id="positionLayout">
+      <div id="lane-left"  class="lane"></div>   <!-- 高尾線 -->
+      <div id="lane-main"  class="lane"></div>   <!-- 本線 -->
+      <div id="lane-right" class="lane"></div>   <!-- 相模原線 -->
+    </div>
   </section>
 
   <!-- 各駅時刻表 -->
