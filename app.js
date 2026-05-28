@@ -19,21 +19,28 @@ const db = firebase.database();
 ================================ */
 const ADMIN_PASSWORD = "0829";
 
-/* 京王線（本線＋相模原線＋高尾線） */
-const ALL_STATIONS = [
-  // 本線
+/* レーン別駅リスト */
+const MAIN_STATIONS = [
   "新宿","笹塚","代田橋","明大前","下高井戸","桜上水","上北沢","八幡山",
   "芦花公園","千歳烏山","仙川","つつじヶ丘","柴崎","国領","布田","調布",
   "西調布","飛田給","武蔵野台","多磨霊園","東府中","府中","分倍河原",
   "中河原","聖蹟桜ヶ丘","百草園","高幡不動","南平","平山城址公園",
-  "長沼","北野","京王八王子",
+  "長沼","北野","京王八王子"
+];
 
-  // 相模原線
-  "京王多摩川","京王稲田堤","京王よみうりランド","稲城","若葉台",
-  "京王永山","京王多摩センター","京王堀之内","南大沢","多摩境","橋本",
+const SAGAMI_STATIONS = [
+  "調布","京王多摩川","京王稲田堤","京王よみうりランド","稲城","若葉台",
+  "京王永山","京王多摩センター","京王堀之内","南大沢","多摩境","橋本"
+];
 
-  // 高尾線
-  "京王片倉","山田","めじろ台","狭間","高尾","高尾山口"
+const TAKAO_STATIONS = [
+  "北野","京王片倉","山田","めじろ台","狭間","高尾","高尾山口"
+];
+
+const ALL_STATIONS = [
+  ...MAIN_STATIONS,
+  ...SAGAMI_STATIONS.filter(s => !MAIN_STATIONS.includes(s)),
+  ...TAKAO_STATIONS.filter(s => !MAIN_STATIONS.includes(s))
 ];
 
 let trains = {};
@@ -78,7 +85,7 @@ function getPlatforms(station, direction) {
 ================================ */
 function renderTrainList() {
   const body = document.getElementById("trainListBody");
-  const keyword = document.getElementById("searchInput").value.toLowerCase();
+  const keyword = (document.getElementById("searchInput").value || "").toLowerCase();
   body.innerHTML = "";
 
   Object.values(trains)
@@ -169,7 +176,7 @@ function renderStationTable() {
 }
 
 /* ===============================
-   現在位置：位置計算（秒単位）
+   現在位置：位置計算
 ================================ */
 function getCurrentPositions(nowMs) {
   const result = [];
@@ -249,7 +256,7 @@ function getCurrentPositions(nowMs) {
 }
 
 /* ===============================
-   列車アイコン（種別色）
+   列車アイコン
 ================================ */
 function makeTrainIcon(info) {
   const div = document.createElement("div");
@@ -266,7 +273,6 @@ function makeTrainIcon(info) {
     <div class="dest">${info.destination} 行</div>
   `;
 
-  // 列車タップ → 詳細
   div.onclick = (e) => {
     e.stopPropagation();
     openDetail(info.trainNumber);
@@ -276,23 +282,19 @@ function makeTrainIcon(info) {
 }
 
 /* ===============================
-   現在位置：駅＋番線枠のみ（駅間レーンなし）
+   現在位置：3レーン描画
 ================================ */
-function renderPosition() {
-  const nowMs = Date.now();
-  const pos = getCurrentPositions(nowMs);
+function renderLane(containerId, stationList, pos) {
+  const lane = document.getElementById(containerId);
+  lane.innerHTML = "";
 
-  const layout = document.getElementById("positionLayout");
-  layout.innerHTML = "";
+  let list = [...stationList];
+  if (currentDirection === "down") list = [...list].reverse();
 
-  let stationList = [...ALL_STATIONS];
-  if (currentDirection === "down") stationList.reverse();
-
-  stationList.forEach(st => {
+  list.forEach(st => {
     const row = document.createElement("div");
     row.className = "position-row";
 
-    // 駅名（タップで駅の時刻表へ）
     const stDiv = document.createElement("div");
     stDiv.className = "station-node";
     stDiv.textContent = st;
@@ -302,11 +304,9 @@ function renderPosition() {
       renderStationTable();
     };
 
-    // 青い縦線
     const line = document.createElement("div");
     line.className = "line";
 
-    // 番線枠
     const platformsDiv = document.createElement("div");
     platformsDiv.className = "platform-container";
 
@@ -323,27 +323,20 @@ function renderPosition() {
       platformsDiv.appendChild(box);
     });
 
-    // 調布：相模原線分岐
-    if (st === "調布") {
-      const branch = document.createElement("div");
-      branch.className = "branch-right";
-      if (currentDirection === "down") branch.style.transform = "scaleX(-1)";
-      row.appendChild(branch);
-    }
-
-    // 北野：高尾線分岐
-    if (st === "北野") {
-      const branch = document.createElement("div");
-      branch.className = "branch-left";
-      if (currentDirection === "down") branch.style.transform = "scaleX(-1)";
-      row.insertBefore(branch, stDiv);
-    }
-
     row.appendChild(stDiv);
     row.appendChild(line);
     row.appendChild(platformsDiv);
-    layout.appendChild(row);
+    lane.appendChild(row);
   });
+}
+
+function renderPosition() {
+  const nowMs = Date.now();
+  const pos = getCurrentPositions(nowMs);
+
+  renderLane("lane-main", MAIN_STATIONS, pos);
+  renderLane("lane-right", SAGAMI_STATIONS, pos);
+  renderLane("lane-left", TAKAO_STATIONS, pos);
 }
 
 /* ===============================
@@ -443,7 +436,10 @@ function addTrain() {
 
 function updateTrain() {
   const t = getAdminForm();
-  if (!trains[t.trainNumber]) return;
+  if (!trains[t.trainNumber]) {
+    alert("その列車番号は存在しません");
+    return;
+  }
   t.timetable = readTimetableFromEditor();
   trains[t.trainNumber] = t;
   renderTrainList();
@@ -453,6 +449,10 @@ function updateTrain() {
 function deleteTrain() {
   const num = document.getElementById("admTrainNumber").value;
   if (!num) return;
+  if (!trains[num]) {
+    alert("その列車番号は存在しません");
+    return;
+  }
   delete trains[num];
   renderTrainList();
   alert("列車を削除しました");
@@ -465,7 +465,7 @@ document.getElementById("btnSaveTimetable").onclick = () => {
     return;
   }
   trains[num].timetable = readTimetableFromEditor();
-  alert("時刻表を保存しました");
+  alert("時刻表を保存しました（ローカル）");
 };
 
 /* ===============================
@@ -473,18 +473,85 @@ document.getElementById("btnSaveTimetable").onclick = () => {
 ================================ */
 function saveCloud() {
   db.ref("trains").set(trains)
-    .then(() => alert("クラウドに保存しました"));
+    .then(() => alert("クラウドに保存しました"))
+    .catch(err => {
+      console.error("保存エラー:", err);
+      alert("保存時にエラーが発生しました");
+    });
 }
 
 function loadCloud() {
-  db.ref("trains").get()
+  db.ref("trains").once("value")
     .then(snap => {
-      if (!snap.exists()) {
+      const data = snap.val();
+      if (!data) {
         alert("クラウドにデータがありません");
         return;
       }
-      trains = snap.val();
+      trains = data;
       renderTrainList();
       initStationSelect();
       renderPosition();
+      alert("クラウドから受信しました");
+    })
+    .catch(err => {
+      console.error("受信エラー:", err);
+      alert("受信時にエラーが発生しました");
+    });
+}
+
+/* ===============================
+   ページ切り替え
+================================ */
+function showPage(id) {
+  document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
+
+/* ===============================
+   初期化
+================================ */
+window.onload = () => {
+  document.getElementById("searchInput").oninput = renderTrainList;
+
+  document.getElementById("dirUp").onclick = () => {
+    currentDirection = "up";
+    document.getElementById("dirUp").classList.add("active");
+    document.getElementById("dirDown").classList.remove("active");
+    renderStationTable();
+  };
+  document.getElementById("dirDown").onclick = () => {
+    currentDirection = "down";
+    document.getElementById("dirDown").classList.add("active");
+    document.getElementById("dirUp").classList.remove("active");
+    renderStationTable();
+  };
+
+  document.getElementById("posUp").onclick = () => {
+    currentDirection = "up";
+    document.getElementById("posUp").classList.add("active");
+    document.getElementById("posDown").classList.remove("active");
+    renderPosition();
+  };
+  document.getElementById("posDown").onclick = () => {
+    currentDirection = "down";
+    document.getElementById("posDown").classList.add("active");
+    document.getElementById("posUp").classList.remove("active");
+    renderPosition();
+  };
+
+  document.getElementById("stationSelect").onchange = renderStationTable;
+
+  document.getElementById("btnLogin").onclick = loginAdmin;
+  document.getElementById("btnAddTrain").onclick = addTrain;
+  document.getElementById("btnUpdateTrain").onclick = updateTrain;
+  document.getElementById("btnDeleteTrain").onclick = deleteTrain;
+
+  document.getElementById("btnSaveCloud").onclick = saveCloud;
+  document.getElementById("btnLoadCloud").onclick = loadCloud;
+
+  initStationSelect();
+  renderTrainList();
+  renderPosition();
+};
 
