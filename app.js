@@ -1,5 +1,5 @@
 /* ===============================
-   Firebase 初期化（v8 CDN）
+   Firebase 初期化
 ================================ */
 const firebaseConfig = {
   apiKey: "AIzaSyAxJVAx7CIK4U21Qxl20n4yxagcl9dfItE",
@@ -19,6 +19,7 @@ const db = firebase.database();
 ================================ */
 const ADMIN_PASSWORD = "0829";
 
+/* 京王線（本線＋相模原線＋高尾線） */
 const ALL_STATIONS = [
   // 本線
   "新宿","笹塚","代田橋","明大前","下高井戸","桜上水","上北沢","八幡山",
@@ -26,13 +27,16 @@ const ALL_STATIONS = [
   "西調布","飛田給","武蔵野台","多磨霊園","東府中","府中","分倍河原",
   "中河原","聖蹟桜ヶ丘","百草園","高幡不動","南平","平山城址公園",
   "長沼","北野","京王八王子",
+
   // 相模原線
   "京王多摩川","京王稲田堤","京王よみうりランド","稲城","若葉台",
   "京王永山","京王多摩センター","京王堀之内","南大沢","多摩境","橋本",
+
   // 高尾線
   "京王片倉","山田","めじろ台","狭間","高尾","高尾山口"
 ];
 
+/* 行き先（上り／下り） */
 const DEST_UP = [
   "高幡不動","北野","調布","つつじヶ丘",
   "桜上水","新宿","本八幡","若葉台"
@@ -46,7 +50,7 @@ let trains = {};
 let currentDirection = "up";
 
 /* ===============================
-   共通関数
+   時刻 → 分
 ================================ */
 function timeToMinutes(t) {
   if (!t) return null;
@@ -54,7 +58,12 @@ function timeToMinutes(t) {
   return h * 60 + m;
 }
 
+/* ===============================
+   駅ごとの番線ルール
+================================ */
 function getPlatforms(station, direction) {
+
+  // 特別駅（上り3・4 / 下り1・2）
   const specialA = [
     "笹塚","桜上水","つつじヶ丘","調布",
     "府中","北野","若葉台","京王多摩センター"
@@ -62,18 +71,28 @@ function getPlatforms(station, direction) {
   if (specialA.includes(station)) {
     return direction === "up" ? [3,4] : [1,2];
   }
+
+  // 高幡不動
   if (station === "高幡不動") {
     return direction === "up" ? [4,5] : [2,3];
   }
+
+  // 東府中
   if (station === "東府中") {
     return direction === "up" ? [4] : [2,3];
   }
+
+  // 新宿
   if (station === "新宿") {
     return [1,2,3,4];
   }
+
+  // 京王八王子・高尾山口・橋本
   if (["京王八王子","高尾山口","橋本"].includes(station)) {
     return [1,2];
   }
+
+  // その他
   return direction === "up" ? [2] : [1];
 }
 
@@ -171,25 +190,25 @@ function renderStationTable() {
     });
   });
 }
-
 /* ===============================
-   現在位置ロジック
+   現在位置：列車の位置計算
 ================================ */
 function getCurrentPositions(nowMinutes) {
   const result = [];
 
   Object.values(trains).forEach(t => {
     const tt = t.timetable || [];
+
     for (let i = 0; i < tt.length; i++) {
       const s = tt[i];
       const arr = timeToMinutes(s.arr);
       const dep = timeToMinutes(s.dep);
 
-      if (arr === null && dep === null) continue;
-
-      // 駅にいる
-      if ((arr && nowMinutes === arr) || (dep && nowMinutes === dep) ||
+      // 駅に停車中
+      if ((arr && nowMinutes === arr) ||
+          (dep && nowMinutes === dep) ||
           (arr && dep && nowMinutes > arr && nowMinutes < dep)) {
+
         result.push({
           station: s.station,
           platform: s.platform,
@@ -200,13 +219,14 @@ function getCurrentPositions(nowMinutes) {
         return;
       }
 
-      // 区間走行（今回は番線なし・無視してもOK）
+      // 区間走行中（手前駅として扱う）
       if (dep && i + 1 < tt.length) {
         const next = tt[i + 1];
         const nextArr = timeToMinutes(next.arr);
+
         if (nextArr && nowMinutes > dep && nowMinutes < nextArr) {
           result.push({
-            station: s.station, // 手前駅として扱う
+            station: s.station,
             platform: s.platform,
             trainNumber: t.trainNumber,
             type: t.type,
@@ -222,7 +242,7 @@ function getCurrentPositions(nowMinutes) {
 }
 
 /* ===============================
-   現在位置描画（駅＋番線枠）
+   列車アイコン（種別色）
 ================================ */
 function makeTrainIcon(info) {
   const div = document.createElement("div");
@@ -241,30 +261,36 @@ function makeTrainIcon(info) {
   return div;
 }
 
+/* ===============================
+   現在位置：駅の横に番線枠を表示
+================================ */
 function renderPosition() {
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const pos = getCurrentPositions(nowMin);
 
-  const left = document.getElementById("positionStationList");
-  const right = document.getElementById("positionTrainList");
-  left.innerHTML = "";
-  right.innerHTML = "";
+  const layout = document.getElementById("positionLayout");
+  layout.innerHTML = "";
 
   ALL_STATIONS.forEach(st => {
-    // 左：駅名
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.gap = "12px";
+    row.style.marginBottom = "12px";
+
+    // 駅名
     const stDiv = document.createElement("div");
     stDiv.className = "station-node";
     stDiv.textContent = st;
-    left.appendChild(stDiv);
 
+    // 線
     const line = document.createElement("div");
     line.className = "line";
-    left.appendChild(line);
 
-    // 右：番線枠
-    const container = document.createElement("div");
-    container.className = "platform-container";
+    // 番線枠
+    const platformsDiv = document.createElement("div");
+    platformsDiv.className = "platform-container";
 
     const platforms = getPlatforms(st, currentDirection);
     platforms.forEach(p => {
@@ -278,16 +304,17 @@ function renderPosition() {
           box.appendChild(makeTrainIcon(info));
         });
 
-      container.appendChild(box);
+      platformsDiv.appendChild(box);
     });
 
-    right.appendChild(container);
-    right.appendChild(document.createElement("div"));
+    row.appendChild(stDiv);
+    row.appendChild(line);
+    row.appendChild(platformsDiv);
+    layout.appendChild(row);
   });
 }
-
 /* ===============================
-   時刻表編集 UI
+   時刻表編集 UI（管理者）
 ================================ */
 function buildTimetableEditor() {
   const container = document.getElementById("timetableEditor");
@@ -297,7 +324,8 @@ function buildTimetableEditor() {
     const row = document.createElement("div");
     row.className = "tt-row";
 
-    const platforms = getPlatforms(st, "up"); // 編集時は上り基準で候補表示
+    // 上り基準で番線候補を表示（編集時は方向なし）
+    const platforms = getPlatforms(st, "up");
 
     row.innerHTML = `
       <span class="tt-station">${st}</span>
@@ -411,12 +439,25 @@ function saveCloud() {
 }
 
 function loadCloud() {
-  db.ref("trains").once("value").then(snap => {
-    trains = snap.val() || {};
-    renderTrainList();
-    initStationSelect();
-    renderPosition();
-  });
+  db.ref("trains").once("value")
+    .then(snap => {
+      const data = snap.val();
+      if (!data) {
+        alert("クラウドにデータがありません");
+        return;
+      }
+      trains = data;
+
+      renderTrainList();
+      initStationSelect();
+      renderPosition();
+
+      alert("クラウドから受信しました");
+    })
+    .catch(err => {
+      console.error(err);
+      alert("受信時にエラーが発生しました");
+    });
 }
 
 /* ===============================
@@ -431,23 +472,24 @@ function showPage(id) {
    初期化
 ================================ */
 window.onload = () => {
+
   document.getElementById("searchInput").oninput = renderTrainList;
 
+  /* 各駅時刻表の方向切替 */
   document.getElementById("dirUp").onclick = () => {
     currentDirection = "up";
     document.getElementById("dirUp").classList.add("active");
     document.getElementById("dirDown").classList.remove("active");
     renderStationTable();
-    renderPosition();
   };
   document.getElementById("dirDown").onclick = () => {
     currentDirection = "down";
     document.getElementById("dirDown").classList.add("active");
     document.getElementById("dirUp").classList.remove("active");
     renderStationTable();
-    renderPosition();
   };
 
+  /* 現在位置の方向切替 */
   document.getElementById("posUp").onclick = () => {
     currentDirection = "up";
     document.getElementById("posUp").classList.add("active");
@@ -471,6 +513,6 @@ window.onload = () => {
   document.getElementById("btnSaveCloud").onclick = saveCloud;
   document.getElementById("btnLoadCloud").onclick = loadCloud;
 
+  /* 初回ロード */
   loadCloud();
 };
-
