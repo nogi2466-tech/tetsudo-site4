@@ -2,25 +2,20 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>列車運行システム</title>
+  <title>列車運行システム（京王線）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- Firebase v8（Realtime Database 用） -->
+  <!-- Firebase v8 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
-
 <body>
 
 <header>
   <h1>列車運行システム</h1>
-
-  <!-- 右上の現在時刻（ここだけに表示） -->
   <div id="clock"></div>
-
   <nav>
     <div id="hamburger">
       <span></span><span></span><span></span>
@@ -63,7 +58,7 @@
   <!-- 列車詳細 -->
   <section id="page-detail" class="hidden">
     <h2>列車詳細</h2>
-    <div id="backToList" onclick="showPage('page-list')">← 一覧に戻る</div>
+    <div id="backToList" onclick="showPage('page-list')" style="cursor:pointer;margin-bottom:8px;">← 一覧に戻る</div>
     <div class="card" id="detailCard"></div>
     <div class="card">
       <h3>停車駅時刻表</h3>
@@ -87,19 +82,11 @@
   <section id="page-position" class="hidden">
     <h2>現在位置</h2>
 
-    <!-- 上り下り切替 -->
     <div style="margin-bottom:10px;">
       <button id="posUp" class="active">上り</button>
       <button id="posDown">下り</button>
     </div>
 
-    <!-- ここには時刻は表示せず、入力だけ（現在時刻はヘッダーに表示） -->
-    <div style="margin-bottom:8px;">
-      <input type="time" id="nowTimeInput">
-      <button id="nowTimeSetBtn">現在時刻を反映</button>
-    </div>
-
-    <!-- 左：駅名／右：列車 -->
     <div id="positionLayout">
       <div id="positionStationList"></div>
       <div id="positionTrainList"></div>
@@ -110,12 +97,12 @@
   <section id="page-stations" class="hidden">
     <h2>各駅時刻表</h2>
     <div class="card">
-      <div style="margin-bottom:8px;">
+      <div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;">
         <select id="stationSelect"></select>
-        <span id="directionToggle">
+        <div id="directionToggle">
           <button id="dirUp" class="active">上り</button>
           <button id="dirDown">下り</button>
-        </span>
+        </div>
       </div>
       <div style="overflow-x:auto;">
         <table>
@@ -138,17 +125,15 @@
   <section id="page-settings" class="hidden">
     <h2>設定</h2>
 
-    <!-- クラウド保存／受信 -->
     <div class="card">
       <h3>クラウド保存／受信</h3>
       <button id="btnSaveCloud">保存</button>
       <button id="btnLoadCloud">受信</button>
       <p style="font-size:12px;color:#6b7280;">
-        Firebase Realtime Database を使用します。
+        Firebase Realtime Database に保存／読み込みします。
       </p>
     </div>
 
-    <!-- 管理者モード -->
     <div class="card">
       <h3>管理者モード</h3>
       <input type="password" id="adminPassword" placeholder="パスワード">
@@ -158,10 +143,10 @@
       <div id="adminArea" class="hidden" style="margin-top:10px;">
         <h3>列車追加／編集／削除</h3>
         <input id="admTrainNumber" placeholder="列車番号">
-        <input id="admType" placeholder="種別（各停・快速など）">
+        <input id="admType" placeholder="種別（各停・快速・区急・急行・特急）">
         <input id="admOrigin" placeholder="始発駅">
         <input id="admDeparture" placeholder="始発発車 (HH:MM)">
-        <input id="admDestination" placeholder="終着駅">
+        <input id="admDestination" placeholder="行き先">
         <input id="admArrival" placeholder="終着到着 (HH:MM)">
         <div style="margin-top:6px;">
           <button id="btnAddTrain">追加</button>
@@ -169,10 +154,9 @@
           <button id="btnDeleteTrain">削除</button>
         </div>
 
-        <!-- 駅ごとの時刻表編集エリア -->
         <h3 style="margin-top:14px;">駅ごとの時刻表</h3>
         <p style="font-size:12px;color:#6b7280;">
-          駅名ごとに到着・発車・番線・通過を設定できます。
+          各駅の到着・発車・番線・通過を設定してください。
         </p>
         <div id="timetableEditor"></div>
         <button id="btnSaveTimetable" style="margin-top:8px;">時刻表を保存</button>
@@ -182,7 +166,6 @@
 
 </main>
 
-<!-- ナビゲーション制御 -->
 <script>
   const hamburger = document.getElementById("hamburger");
   const navLinks = document.getElementById("navLinks");
@@ -201,10 +184,7 @@
     e.target.classList.add("active");
     navLinks.classList.remove("show");
   });
-</script>
 
-<!-- ヘッダーの現在時刻表示 -->
-<script>
   function updateClock() {
     const now = new Date();
     const hh = String(now.getHours()).padStart(2,"0");
@@ -216,8 +196,8 @@
   updateClock();
 </script>
 
-<!-- メインロジック -->
 <script src="app.js"></script>
 
 </body>
 </html>
+
