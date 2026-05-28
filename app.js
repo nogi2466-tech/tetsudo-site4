@@ -40,13 +40,8 @@ let trains = {};
 let currentDirection = "up";
 
 /* ===============================
-   時刻 → 分・ミリ秒
+   時刻 → ミリ秒
 ================================ */
-function timeToMinutes(t) {
-  if (!t) return null;
-  const [h, m] = t.split(":").map(Number);
-  return h * 60 + m;
-}
 function timeToMs(t) {
   if (!t) return null;
   return new Date(`2000-01-01T${t}:00`).getTime();
@@ -157,7 +152,7 @@ function renderStationTable() {
 
   Object.values(trains).forEach(t => {
     (t.timetable || []).forEach(s => {
-      if (s.station === station) {
+      if (s.station === station && !s.pass) {
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${t.trainNumber}</td>
@@ -174,7 +169,7 @@ function renderStationTable() {
 }
 
 /* ===============================
-   現在位置：位置計算（秒単位＋駅間）
+   現在位置：位置計算（秒単位）
 ================================ */
 function getCurrentPositions(nowMs) {
   const result = [];
@@ -187,7 +182,7 @@ function getCurrentPositions(nowMs) {
       const arrMs = timeToMs(s.arr);
       const depMs = timeToMs(s.dep);
 
-      // 通過駅（pass=true）→ 10秒後に駅間へ
+      // 通過駅 → 10秒後に駅間扱い
       if (s.pass) {
         const base = arrMs || depMs || (i > 0 ? timeToMs(tt[i - 1].dep) : null);
         if (base && nowMs > base + 10000 && tt[i + 1]) {
@@ -204,7 +199,7 @@ function getCurrentPositions(nowMs) {
         continue;
       }
 
-      // 到着＝発車 → 30秒後に駅間へ
+      // 到着＝発車 → 30秒後に駅間扱い
       if (arrMs && depMs && arrMs === depMs && tt[i + 1]) {
         if (nowMs > arrMs + 30000) {
           result.push({
@@ -232,7 +227,7 @@ function getCurrentPositions(nowMs) {
         return;
       }
 
-      // 区間走行（通常）
+      // 区間走行
       if (depMs && i + 1 < tt.length) {
         const nextArrMs = timeToMs(tt[i + 1].arr);
         if (nextArrMs && nowMs > depMs && nowMs < nextArrMs) {
@@ -270,11 +265,18 @@ function makeTrainIcon(info) {
     <div class="train-num">${info.trainNumber}</div>
     <div class="dest">${info.destination} 行</div>
   `;
+
+  // 列車タップ → 詳細
+  div.onclick = (e) => {
+    e.stopPropagation();
+    openDetail(info.trainNumber);
+  };
+
   return div;
 }
 
 /* ===============================
-   現在位置：駅＋番線＋駅間レーン
+   現在位置：駅＋番線枠のみ（駅間レーンなし）
 ================================ */
 function renderPosition() {
   const nowMs = Date.now();
@@ -286,16 +288,21 @@ function renderPosition() {
   let stationList = [...ALL_STATIONS];
   if (currentDirection === "down") stationList.reverse();
 
-  stationList.forEach((st, i) => {
+  stationList.forEach(st => {
     const row = document.createElement("div");
     row.className = "position-row";
 
-    // 駅名
+    // 駅名（タップで駅の時刻表へ）
     const stDiv = document.createElement("div");
     stDiv.className = "station-node";
     stDiv.textContent = st;
+    stDiv.onclick = () => {
+      document.getElementById("stationSelect").value = st;
+      showPage("page-stations");
+      renderStationTable();
+    };
 
-    // 縦線
+    // 青い縦線
     const line = document.createElement("div");
     line.className = "line";
 
@@ -316,18 +323,7 @@ function renderPosition() {
       platformsDiv.appendChild(box);
     });
 
-    // 駅間レーン
-    const betweenDiv = document.createElement("div");
-    betweenDiv.className = "between-lane";
-
-    const nextStation = stationList[i + 1];
-    if (nextStation) {
-      pos
-        .filter(x => x.between && x.station === st && x.nextStation === nextStation)
-        .forEach(info => betweenDiv.appendChild(makeTrainIcon(info)));
-    }
-
-    // 調布：相模原線分岐（右）
+    // 調布：相模原線分岐
     if (st === "調布") {
       const branch = document.createElement("div");
       branch.className = "branch-right";
@@ -335,7 +331,7 @@ function renderPosition() {
       row.appendChild(branch);
     }
 
-    // 北野：高尾線分岐（左）
+    // 北野：高尾線分岐
     if (st === "北野") {
       const branch = document.createElement("div");
       branch.className = "branch-left";
@@ -346,14 +342,12 @@ function renderPosition() {
     row.appendChild(stDiv);
     row.appendChild(line);
     row.appendChild(platformsDiv);
-    row.appendChild(betweenDiv);
-
     layout.appendChild(row);
   });
 }
 
 /* ===============================
-   時刻表編集 UI（管理者）
+   時刻表編集 UI
 ================================ */
 function buildTimetableEditor() {
   const container = document.getElementById("timetableEditor");
@@ -436,6 +430,12 @@ function addTrain() {
   const t = getAdminForm();
   const timetable = readTimetableFromEditor();
   t.timetable = timetable;
+
+  if (!t.trainNumber) {
+    alert("列車番号を入力してください");
+    return;
+  }
+
   trains[t.trainNumber] = t;
   renderTrainList();
   alert("列車を追加しました");
@@ -487,66 +487,4 @@ function loadCloud() {
       renderTrainList();
       initStationSelect();
       renderPosition();
-      alert("クラウドから受信しました");
-    })
-    .catch(err => {
-      console.error("受信エラー:", err);
-      alert("受信時にエラーが発生しました");
-    });
-}
-
-/* ===============================
-   ページ切り替え
-================================ */
-function showPage(id) {
-  document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-}
-
-/* ===============================
-   初期化
-================================ */
-window.onload = () => {
-  document.getElementById("searchInput").oninput = renderTrainList;
-
-  // 各駅時刻表の方向（駅順は ALL_STATIONS そのままなのでここでは方向のみ）
-  document.getElementById("dirUp").onclick = () => {
-    currentDirection = "up";
-    document.getElementById("dirUp").classList.add("active");
-    document.getElementById("dirDown").classList.remove("active");
-    renderStationTable();
-  };
-  document.getElementById("dirDown").onclick = () => {
-    currentDirection = "down";
-    document.getElementById("dirDown").classList.add("active");
-    document.getElementById("dirUp").classList.remove("active");
-    renderStationTable();
-  };
-
-  // 現在位置の方向
-  document.getElementById("posUp").onclick = () => {
-    currentDirection = "up";
-    document.getElementById("posUp").classList.add("active");
-    document.getElementById("posDown").classList.remove("active");
-    renderPosition();
-  };
-  document.getElementById("posDown").onclick = () => {
-    currentDirection = "down";
-    document.getElementById("posDown").classList.add("active");
-    document.getElementById("posUp").classList.remove("active");
-    renderPosition();
-  };
-
-  document.getElementById("stationSelect").onchange = renderStationTable;
-
-  document.getElementById("btnLogin").onclick = loginAdmin;
-  document.getElementById("btnAddTrain").onclick = addTrain;
-  document.getElementById("btnUpdateTrain").onclick = updateTrain;
-  document.getElementById("btnDeleteTrain").onclick = deleteTrain;
-
-  document.getElementById("btnSaveCloud").onclick = saveCloud;
-  document.getElementById("btnLoadCloud").onclick = loadCloud;
-
-  loadCloud();
-};
 
