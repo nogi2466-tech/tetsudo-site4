@@ -87,7 +87,7 @@
       <button id="posDown">下り</button>
     </div>
 
-    <!-- 駅・番線・駅間レーンを JS で生成 -->
+    <!-- 駅・番線枠を JS で生成 -->
     <div id="positionLayout"></div>
   </section>
 
