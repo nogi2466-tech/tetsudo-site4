@@ -99,7 +99,7 @@ header h1{margin:0;font-size:18px;}
 ================================ */
 main{
   padding:12px 16px 24px;
-  max-width:1100px;
+  max-width:1300px;
   margin:0 auto;
 }
 .hidden{display:none;}
@@ -170,19 +170,32 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
 }
 
 /* ===============================
-   現在位置（駅＋番線枠のみ）
+   現在位置（3レーン構成）
 ================================ */
 #page-position{
-  overflow:auto; /* ← 縦横スクロール可能 */
+  overflow:auto;
 }
 
 #positionLayout{
-  overflow:auto; /* ← 横スクロール可能 */
+  display:flex;
+  gap:20px;
+  overflow:auto;
+  padding-bottom:20px;
 }
 
+/* レーン共通 */
+.lane{
+  min-width:350px;
+  padding:10px;
+  background:#fff;
+  border-radius:8px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* 駅行 */
 .position-row{
   display:flex;
-  align-items:stretch; /* ← 青線を下まで伸ばす */
+  align-items:stretch;
   gap:12px;
   margin-bottom:20px;
 }
@@ -207,7 +220,7 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
   display:inline-block;
 }
 
-/* 青い縦線（駅間レーンは廃止） */
+/* 青い縦線 */
 .line{
   width:4px;
   background:linear-gradient(to bottom,var(--blue-dark),#4fa3ff,var(--blue-dark));
@@ -239,29 +252,6 @@ tr:hover{background:#f1f7ff;cursor:pointer;}
   font-size:12px;
   font-weight:bold;
   margin-bottom:4px;
-}
-
-/* 分岐線（調布・北野） */
-.branch-right{
-  width:40px;
-  height:4px;
-  background:var(--blue-dark);
-  border-radius:2px;
-  margin-left:10px;
-}
-.branch-left{
-  width:40px;
-  height:4px;
-  background:var(--blue-dark);
-  border-radius:2px;
-  margin-right:10px;
-}
-
-/* PC のときは縦レイアウト */
-@media(min-width:900px){
-  #positionLayout{
-    display:block;
-  }
 }
 
 /* ===============================
