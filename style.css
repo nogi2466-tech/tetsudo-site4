@@ -18,106 +18,289 @@
   --limited-red:#e57373;
 }
 
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  background:var(--bg);
-  color:var(--text-main);
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text-main);
+}
+
+/* ===============================
+   ヘッダー
+================================ */
+header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: var(--blue-main);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+header h1 {
+  margin: 0;
+  font-size: 18px;
+}
+
+#clock {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* ===============================
+   ナビゲーション
+================================ */
+#hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+#hamburger span {
+  width: 22px;
+  height: 2px;
+  background: #fff;
+}
+
+#navLinks {
+  display: flex;
+  gap: 12px;
+}
+#navLinks a {
+  color: #fff;
+  text-decoration: none;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+#navLinks a.active {
+  background: rgba(255,255,255,0.25);
+}
+
+@media(max-width:768px){
+  #hamburger { display: flex; }
+  #navLinks {
+    display: none;
+    position: absolute;
+    top: 52px;
+    left: 0;
+    right: 0;
+    background: var(--blue-dark);
+    flex-direction: column;
+    padding: 8px 16px;
+  }
+  #navLinks.show { display: flex; }
+  #navLinks a { padding: 8px 0; }
+}
+
+/* ===============================
+   メイン
+================================ */
+main {
+  padding: 12px 16px 24px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+.hidden { display: none; }
+h2 { margin-top: 0; font-size: 18px; }
+
+/* ===============================
+   カード
+================================ */
+.card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 12px;
+}
+
+/* ===============================
+   テーブル
+================================ */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th, td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 6px 4px;
+  white-space: nowrap;
+}
+th {
+  background: #e5edf7;
+  font-weight: 600;
+  position: sticky;
+  top: 52px;
+  z-index: 5;
+}
+tr:hover {
+  background: #f1f7ff;
+  cursor: pointer;
+}
+
+/* ===============================
+   列車一覧
+================================ */
+#searchInput {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+/* ===============================
+   各駅時刻表
+================================ */
+#stationSelect {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
 }
 
 /* ===============================
    現在位置（3レーン構成）
 ================================ */
-#positionLayout{
-  display:flex;
-  gap:40px; /* レーン間を広くして路線図っぽく */
-  overflow:auto;
-  padding:20px;
+#positionLayout {
+  display: flex;
+  gap: 40px;
+  overflow: auto;
+  padding: 20px;
 }
 
 /* レーン */
-.lane{
-  min-width:360px;
-  padding:16px;
-  background:#fff;
-  border-radius:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+.lane {
+  min-width: 360px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
 /* 駅行 */
-.position-row{
-  display:flex;
-  align-items:center;
-  gap:20px;
-  margin-bottom:28px;
+.position-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px;
 }
 
-/* 駅ノード（えれサイト風に大きく） */
-.station-node{
-  font-size:16px;
-  font-weight:700;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  cursor:pointer;
+/* 駅ノード（えれサイト風） */
+.station-node {
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
 }
-.station-node::before{
-  content:"";
-  width:18px;
-  height:18px;
-  border:4px solid var(--blue-dark);
-  background:white;
-  border-radius:50%;
-  display:inline-block;
-}
-
-/* 青い縦線（太くして路線図っぽく） */
-.line{
-  width:6px;
-  background:var(--blue-dark);
-  border-radius:3px;
-  flex:0 0 6px;
+.station-node::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border: 4px solid var(--blue-dark);
+  background: white;
+  border-radius: 50%;
+  display: inline-block;
 }
 
-/* 番線枠（えれサイト風に角丸＋影） */
-.platform-container{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
+/* 青い縦線 */
+.line {
+  width: 6px;
+  background: var(--blue-dark);
+  border-radius: 3px;
+  flex: 0 0 6px;
 }
-.platform-box{
-  border:2px solid #333;
-  background:#fafafa;
-  padding:8px;
-  border-radius:10px;
-  min-width:110px;
-  min-height:60px;
-  position:relative;
-  box-shadow:0 2px 4px rgba(0,0,0,0.15);
+
+/* 番線枠 */
+.platform-container {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
-.platform-label{
-  font-size:12px;
-  font-weight:bold;
-  margin-bottom:4px;
+.platform-box {
+  border: 2px solid #333;
+  background: #fafafa;
+  padding: 8px;
+  border-radius: 10px;
+  min-width: 110px;
+  min-height: 60px;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+.platform-label {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 4px;
 }
 
 /* ===============================
    列車アイコン（えれサイト風）
 ================================ */
-.train-car{
-  padding:6px 8px;
-  border-radius:10px;
-  margin:4px 0;
-  font-size:12px;
-  text-align:center;
-  box-shadow:0 3px 6px rgba(0,0,0,0.25);
-  cursor:pointer;
-  font-weight:600;
+.train-car {
+  padding: 6px 8px;
+  border-radius: 10px;
+  margin: 4px 0;
+  font-size: 12px;
+  text-align: center;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+  cursor: pointer;
+  font-weight: 600;
 }
 
-/* 種別色（えれサイト風に強め） */
-.train-local{background:var(--local-gray);color:#111;}
-.train-rapid{background:var(--rapid-blue);color:#0d47a1;}
-.train-semi-express{background:var(--semi-yellow);color:#8d6e00;}
-.train-express{background:var(--express-green);color:#1b5e20;}
-.train-limited{background:var(--limited-red);color:#b71c1c;}
+.train-local { background: var(--local-gray); color:#111; }
+.train-rapid { background: var(--rapid-blue); color:#0d47a1; }
+.train-semi-express { background: var(--semi-yellow); color:#8d6e00; }
+.train-express { background: var(--express-green); color:#1b5e20; }
+.train-limited { background: var(--limited-red); color:#b71c1c; }
+
+/* ===============================
+   管理者モード
+================================ */
+#adminPassword {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+#btnLogin, #btnSaveCloud, #btnLoadCloud {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: var(--blue-main);
+  color: #fff;
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+#adminArea input {
+  width: 100%;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
+#btnAddTrain { background:#2e7d32; color:#fff; }
+#btnUpdateTrain { background:#ef6c00; color:#fff; }
+#btnDeleteTrain { background:#b91c1c; color:#fff; }
+
+/* ===============================
+   時刻表編集 UI
+================================ */
+.tt-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+.tt-station { width: 120px; font-weight: 600; }
+.tt-arr, .tt-dep { width: 90px; padding: 4px; }
+.tt-platform { padding: 4px; }
