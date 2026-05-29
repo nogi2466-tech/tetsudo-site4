@@ -1,5 +1,5 @@
 // ===============================
-// ① Firebase 初期化
+// Firebase 初期化
 // ===============================
 import {
   initializeApp
@@ -30,13 +30,13 @@ const db = getDatabase(app);
 const trainsRef = ref(db, "trains");
 
 // ===============================
-// ② グローバル変数
+// グローバル変数・駅データ
 // ===============================
 let trains = [];
 let selectedTrainNo = null;
-let currentDirection = "down"; // 時刻表の上下線
+let currentDirection = "down"; // 下り/上り（時刻表・現在位置共通）
 
-// 固定駅（京王線 下り）
+// 京王線（本線）下り
 const DOWN_STATIONS = [
   "新宿", "笹塚", "代田橋", "明大前", "下高井戸", "桜上水",
   "上北沢", "八幡山", "芦花公園", "千歳烏山", "仙川", "つつじヶ丘",
@@ -44,12 +44,27 @@ const DOWN_STATIONS = [
   "多磨霊園", "東府中", "府中", "分倍河原", "中河原", "聖蹟桜ヶ丘",
   "百草園", "高幡不動", "南平", "平山城址公園", "長沼", "北野", "京王八王子"
 ];
-
-// 上りは逆順
 const UP_STATIONS = [...DOWN_STATIONS].reverse();
 
+// 相模原線 下り（調布から右）
+const SAGAMI_DOWN = [
+  "調布", "京王多摩川", "京王稲田堤", "京王よみうりランド",
+  "稲城", "若葉台", "京王永山", "京王多摩センター",
+  "京王堀之内", "南大沢", "多摩境", "橋本"
+];
+const SAGAMI_UP = [...SAGAMI_DOWN].reverse();
+
+// 種別ごとの色
+const TYPE_COLOR = {
+  "各停": "#9e9e9e", // グレー
+  "快速": "#2196f3", // 青
+  "区急": "#ffeb3b", // 黄
+  "急行": "#4caf50", // 緑
+  "特急": "#f44336"  // 赤
+};
+
 // ===============================
-// ③ ページ切り替え
+// ページ切り替え
 // ===============================
 function showPage(page) {
   document.querySelectorAll(".page").forEach(p => p.style.display = "none");
@@ -68,18 +83,17 @@ function showPage(page) {
 }
 window.showPage = showPage;
 
-// ===============================
-// ④ スマホのメニュー開閉
-// ===============================
 function toggleMenu() {
   document.getElementById("mainNav").classList.toggle("show");
 }
 window.toggleMenu = toggleMenu;
+
 // ===============================
-// ⑤ 列車番号一覧（検索対応）
+// 列車一覧
 // ===============================
 function renderTable() {
   const tbody = document.querySelector("#trainTable tbody");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
   const search = document.getElementById("trainSearch").value.trim();
@@ -113,12 +127,15 @@ function getSelectedTrain() {
   if (!selectedTrainNo) return null;
   return trains.find(t => t.no === selectedTrainNo) || null;
 }
+
 // ===============================
-// ⑥ 列車詳細（中央＋右寄せ）
+// 列車詳細（縦の路線図風）
 // ===============================
 function renderDetail() {
   const train = getSelectedTrain();
   const div = document.getElementById("detailContent");
+
+  if (!div) return;
 
   if (!train) {
     div.innerText = "列車を選択してください";
@@ -127,7 +144,6 @@ function renderDetail() {
 
   let html = `
     <div class="detail-layout">
-
       <div class="detail-center">
         <h2>${train.no}</h2>
         <h3>${train.type}</h3>
@@ -138,75 +154,47 @@ function renderDetail() {
       </div>
 
       <div class="detail-right">
-        <h3>停車駅と時刻</h3>
-        <table>
-          <tr><th>駅名</th><th>時刻</th><th>番線</th></tr>
+        <h3>各駅時刻</h3>
   `;
 
-  train.stations.forEach(s => {
-    let timeCell = "";
+  (train.stations || []).forEach((s, idx) => {
+    let timeText = "";
     if (s.pass) {
-      timeCell = `通過 ${s.passTime}`;
-    } else if (s.arr === s.dep) {
-      timeCell = `停車なし（${s.arr}）`;
+      timeText = s.passTime || "";
+    } else if (s.arr && s.dep && s.arr === s.dep) {
+      timeText = s.arr;
+    } else if (s.arr && s.dep) {
+      timeText = `${s.arr} / ${s.dep}`;
     } else {
-      timeCell = `到着 ${s.arr} / 発車 ${s.dep}`;
+      timeText = s.arr || s.dep || "";
     }
 
     html += `
-      <tr>
-        <td>${s.name}</td>
-        <td>${timeCell}</td>
-        <td>${s.track}</td>
-      </tr>
-    `;
-  });
-
-  html += `
-        </table>
-      </div>
-
-    </div>
-  `;
-
-  div.innerHTML = html;
-}
-// ===============================
-// ⑦ 現在位置（路線図スタイル）
-// ===============================
-function renderLocation() {
-  const train = getSelectedTrain();
-  const div = document.getElementById("locationContent");
-
-  if (!train) {
-    div.innerText = "列車を選択してください";
-    return;
-  }
-
-  let html = `<h3>${train.no} の現在位置</h3>`;
-
-  train.stations.forEach((s, i) => {
-    const isHere = train.currentIndex === i && !train.moving;
-
-    html += `
-      <div class="location-row ${isHere ? "active" : ""}">
-        <div class="time">
-          ${s.pass ? s.passTime : (s.arr || s.dep || "")}
+      <div style="display:grid;grid-template-columns:80px 1fr 60px;align-items:center;margin:4px 0;">
+        <div style="text-align:right;padding-right:8px;">${timeText}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:10px;height:10px;border-radius:2px;background:#000;"></div>
+          <div>${s.name}</div>
         </div>
-        <div class="station">${s.name}</div>
-        <div class="track">${s.track ? s.track + "番線" : ""}</div>
+        <div style="text-align:left;padding-left:8px;">
+          ${s.track ? s.track + "番線" : ""}
+        </div>
       </div>
     `;
 
-    if (i < train.stations.length - 1) {
-      html += `<div class="location-line"></div>`;
+    if (idx < train.stations.length - 1) {
+      html += `
+        <div style="margin-left:90px;height:16px;border-left:2px solid #000;"></div>
+      `;
     }
   });
 
+  html += `</div></div>`;
   div.innerHTML = html;
 }
+
 // ===============================
-// ⑧ 自動進行（本物のダイヤ進行）
+// 時刻・自動進行
 // ===============================
 function nowTime() {
   const d = new Date();
@@ -221,7 +209,7 @@ function updateTrainStatus(train) {
   const st = train.stations[train.currentIndex];
   const time = nowTime();
 
-  // --- 通過駅 ---
+  // 通過駅
   if (st.pass === true) {
     if (time === st.passTime && train.status !== "通過中") {
       train.status = "通過中";
@@ -234,7 +222,7 @@ function updateTrainStatus(train) {
     return;
   }
 
-  // --- 停車なし ---
+  // 停車なし（到着＝発車）
   if (st.arr && st.dep && st.arr === st.dep) {
     if (train.status !== "停車中") {
       train.status = "停車中";
@@ -247,14 +235,14 @@ function updateTrainStatus(train) {
     return;
   }
 
-  // --- 到着 ---
+  // 到着
   if (st.arr && time === st.arr && train.status !== "停車中") {
     train.status = "停車中";
     update(ref(db, "trains/" + train.no), { status: train.status });
     return;
   }
 
-  // --- 発車 ---
+  // 発車
   if (st.dep && time === st.dep && train.status !== "走行中") {
     train.status = "走行中";
     update(ref(db, "trains/" + train.no), { status: train.status });
@@ -287,9 +275,7 @@ function startMoving(train) {
   });
 }
 
-// ===============================
-// ⑨ 1秒ごとの進行
-// ===============================
+// 1秒ごとの進行
 setInterval(() => {
   trains.forEach(train => {
     updateTrainStatus(train);
@@ -322,13 +308,191 @@ setInterval(() => {
 
   renderLocation();
 }, 1000);
+
 // ===============================
-// ⑩ 各駅時刻表（4〜25時）
+// 現在位置（本線＋相模原線・アニメーション）
+// ===============================
+function openTrainDetail(no) {
+  selectedTrainNo = no;
+  showPage("detail");
+}
+window.openTrainDetail = openTrainDetail;
+
+function openStationTimetable(name) {
+  showPage("timetable");
+  const sel = document.getElementById("stationSelect");
+  if (sel) {
+    sel.value = name;
+  }
+  renderStationTimetable();
+}
+window.openStationTimetable = openStationTimetable;
+
+function renderLocation() {
+  const mainDiv = document.getElementById("mainLine");
+  const sagamiDiv = document.getElementById("sagamiLine");
+  if (!mainDiv || !sagamiDiv) return;
+
+  mainDiv.innerHTML = "";
+  sagamiDiv.innerHTML = "";
+
+  // 本線（方向に応じて配列を選択）
+  const mainStations = currentDirection === "down" ? DOWN_STATIONS : UP_STATIONS;
+  const sagamiStations = currentDirection === "down" ? SAGAMI_DOWN : SAGAMI_UP;
+
+  // 本線の描画
+  mainStations.forEach((name, i) => {
+    // その駅にいる列車（本線）
+    const trainsHere = trains.filter(t => {
+      if (!t.stations) return false;
+      if (t.direction !== currentDirection) return false;
+      if (t.line === "sagami") return false;
+      return t.currentIndex === i && !t.moving;
+    });
+
+    // 駅間を走行中の列車（本線）
+    const trainsBetween = trains.filter(t => {
+      if (!t.stations) return false;
+      if (t.direction !== currentDirection) return false;
+      if (t.line === "sagami") return false;
+      return t.moving && t.currentIndex === i;
+    });
+
+    mainDiv.innerHTML += `
+      <div class="location-row">
+        <div class="station"
+             onclick="openStationTimetable('${name}')"
+             style="cursor:pointer; text-decoration:underline;">
+          ${name}
+        </div>
+        <div class="track">
+    `;
+
+    trainsHere.forEach(t => {
+      const color = TYPE_COLOR[t.type] || "#000";
+      mainDiv.innerHTML += `
+        <div onclick="openTrainDetail('${t.no}')"
+             style="display:inline-block;padding:4px 8px;margin:2px;
+                    background:${color};color:white;border-radius:4px;cursor:pointer;">
+          ${t.no}
+        </div>
+      `;
+    });
+
+    mainDiv.innerHTML += `</div></div>`;
+
+    // 駅間＋アニメーション
+    if (i < mainStations.length - 1) {
+      mainDiv.innerHTML += `<div class="location-line" style="position:relative;">`;
+
+      trainsBetween.forEach(t => {
+        const left = t.progress * 100;
+        const color = TYPE_COLOR[t.type] || "#000";
+        mainDiv.innerHTML += `
+          <div onclick="openTrainDetail('${t.no}')"
+               title="${t.no}"
+               style="
+                 position:absolute;
+                 left:${left}%;
+                 top:-6px;
+                 width:14px;
+                 height:14px;
+                 border-radius:50%;
+                 background:${color};
+                 cursor:pointer;
+                 transform:translateX(-50%);
+               ">
+          </div>
+        `;
+      });
+
+      mainDiv.innerHTML += `</div>`;
+    }
+
+    // 調布なら分岐線
+    if (name === "調布") {
+      mainDiv.innerHTML += `<div class="branch-line"></div>`;
+    }
+  });
+
+  // 相模原線の描画
+  sagamiStations.forEach((name, i) => {
+    // その駅にいる列車（相模原線）
+    const trainsHere = trains.filter(t => {
+      if (!t.stations) return false;
+      if (t.direction !== currentDirection) return false;
+      if (t.line !== "sagami") return false;
+      return t.currentIndex === i && !t.moving;
+    });
+
+    // 駅間を走行中の列車（相模原線）
+    const trainsBetween = trains.filter(t => {
+      if (!t.stations) return false;
+      if (t.direction !== currentDirection) return false;
+      if (t.line !== "sagami") return false;
+      return t.moving && t.currentIndex === i;
+    });
+
+    sagamiDiv.innerHTML += `
+      <div class="location-row">
+        <div class="station"
+             onclick="openStationTimetable('${name}')"
+             style="cursor:pointer; text-decoration:underline;">
+          ${name}
+        </div>
+        <div class="track">
+    `;
+
+    trainsHere.forEach(t => {
+      const color = TYPE_COLOR[t.type] || "#000";
+      sagamiDiv.innerHTML += `
+        <div onclick="openTrainDetail('${t.no}')"
+             style="display:inline-block;padding:4px 8px;margin:2px;
+                    background:${color};color:white;border-radius:4px;cursor:pointer;">
+          ${t.no}
+        </div>
+      `;
+    });
+
+    sagamiDiv.innerHTML += `</div></div>`;
+
+    if (i < sagamiStations.length - 1) {
+      sagamiDiv.innerHTML += `<div class="location-line" style="position:relative;">`;
+
+      trainsBetween.forEach(t => {
+        const left = t.progress * 100;
+        const color = TYPE_COLOR[t.type] || "#000";
+        sagamiDiv.innerHTML += `
+          <div onclick="openTrainDetail('${t.no}')"
+               title="${t.no}"
+               style="
+                 position:absolute;
+                 left:${left}%;
+                 top:-6px;
+                 width:14px;
+                 height:14px;
+                 border-radius:50%;
+                 background:${color};
+                 cursor:pointer;
+                 transform:translateX(-50%);
+               ">
+          </div>
+        `;
+      });
+
+      sagamiDiv.innerHTML += `</div>`;
+    }
+  });
+}
+
+// ===============================
+// 各駅時刻表（4〜25時）
 // ===============================
 function initStationSelect() {
   const sel = document.getElementById("stationSelect");
   if (!sel) return;
 
+  // とりあえず本線の駅だけ（必要なら相模原線も追加可能）
   sel.innerHTML = "";
   DOWN_STATIONS.forEach(name => {
     const opt = document.createElement("option");
@@ -341,10 +505,11 @@ function initStationSelect() {
 function setDirection(dir) {
   currentDirection = dir;
   const label = document.getElementById("directionLabel");
-  label.textContent = dir === "down"
-    ? "下り（新宿 → 京王八王子）"
-    : "上り（京王八王子 → 新宿）";
-
+  if (label) {
+    label.textContent = dir === "down"
+      ? "下り（新宿 → 京王八王子）"
+      : "上り（京王八王子 → 新宿）";
+  }
   renderStationTimetable();
 }
 window.setDirection = setDirection;
@@ -359,15 +524,12 @@ function renderStationTimetable() {
     return;
   }
 
-  // 4〜25時の枠を作る
   const hours = {};
   for (let h = 4; h <= 25; h++) hours[h] = [];
 
-  // 列車データから抽出
   trains.forEach(train => {
     if (!train.stations) return;
 
-    // 上下線フィルタ
     if (currentDirection === "down" && train.direction === "up") return;
     if (currentDirection === "up" && train.direction === "down") return;
 
@@ -396,7 +558,6 @@ function renderStationTimetable() {
     });
   });
 
-  // HTML生成
   let html = `<h3>${station} 各駅時刻表（${currentDirection === "down" ? "下り" : "上り"}）</h3>`;
   html += `<table><tr><th>時</th><th>列車・分</th></tr>`;
 
@@ -418,8 +579,9 @@ function renderStationTimetable() {
   html += `</table>`;
   div.innerHTML = html;
 }
+
 // ===============================
-// ⑪ 列車追加（固定駅）
+// 設定：列車追加（固定駅）
 // ===============================
 function checkPassword() {
   const pw = document.getElementById("passwordInput").value;
@@ -438,7 +600,6 @@ function checkPassword() {
 
   stations.forEach(name => addStationBox(name));
 
-  // 始発・終着駅を自動補完
   document.getElementById("startStation").value = stations[0];
   document.getElementById("endStation").value = stations[stations.length - 1];
 }
@@ -489,9 +650,7 @@ function togglePass(checkbox) {
   }
 }
 window.togglePass = togglePass;
-// ===============================
-// ⑫ 列車追加 → Firebase 保存
-// ===============================
+
 function addTrain() {
   const train = {
     no: document.getElementById("trainNo").value.trim(),
@@ -506,7 +665,8 @@ function addTrain() {
     currentIndex: 0,
     progress: 0,
     moving: false,
-    status: "未出発"
+    status: "未出発",
+    line: "keio" // デフォルトは本線
   };
 
   if (!train.no) {
@@ -527,14 +687,21 @@ function addTrain() {
     });
   });
 
+  // 相模原線の駅が含まれていたら line を sagami にする
+  const names = train.stations.map(s => s.name);
+  if (names.some(n => SAGAMI_DOWN.includes(n))) {
+    train.line = "sagami";
+  }
+
   set(ref(db, "trains/" + train.no), train).then(() => {
     alert("列車を追加しました");
     showPage("list");
   });
 }
 window.addTrain = addTrain;
+
 // ===============================
-// ⑬ Firebase リアルタイム同期
+// Firebase 同期
 // ===============================
 function saveData() {
   const obj = {};
@@ -561,7 +728,6 @@ function loadData() {
 }
 window.loadData = loadData;
 
-// リアルタイム反映
 onValue(trainsRef, snap => {
   const val = snap.val();
   trains = val ? Object.values(val) : [];
@@ -571,3 +737,37 @@ onValue(trainsRef, snap => {
   renderLocation();
   renderStationTimetable();
 });
+
+// ===============================
+// Google スプレッドシート読み込み（Apps Script 経由想定）
+// ===============================
+async function loadFromSheet() {
+  const url = document.getElementById("sheetUrl").value.trim();
+  if (!url) {
+    alert("スクリプトURLを入力してください");
+    return;
+  }
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    // ここで data の形式に合わせて trains 配列を組み立てる
+    // 例：
+    // data = [{ no, type, dest, direction, start, startTime, end, endTime, stations:[{name,arr,dep,track,pass,passTime}], line }, ...]
+    if (Array.isArray(data)) {
+      const obj = {};
+      data.forEach(t => {
+        if (t.no) obj[t.no] = t;
+      });
+      await set(trainsRef, obj);
+      alert("スプレッドシートから読み込みました");
+    } else {
+      alert("データ形式が想定と違います");
+    }
+  } catch (e) {
+    console.error(e);
+    alert("読み込みに失敗しました");
+  }
+}
+window.loadFromSheet = loadFromSheet;
