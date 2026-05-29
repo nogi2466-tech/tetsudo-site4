@@ -2,10 +2,10 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>京王線 列車運行管理</title>
+<title>京王線 運行管理システム</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- CSS -->
+<!-- CSS 読み込み（最重要） -->
 <link rel="stylesheet" href="style.css">
 
 <!-- Firebase -->
@@ -33,7 +33,7 @@
 <main>
 
 <!-- ===============================
-     現在位置ページ
+     現在位置
 ================================ -->
 <section id="page-position">
   <h2>現在位置</h2>
