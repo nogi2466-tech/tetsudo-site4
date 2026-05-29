@@ -7,13 +7,38 @@
     body { font-family: sans-serif; margin: 0; background: #f4f4f4; }
     header {
       background: #005bac;
-      padding: 10px;
+      padding: 10px 16px;
       color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    nav {
       display: flex;
       gap: 20px;
     }
-    header div { cursor: pointer; }
+    nav div { cursor: pointer; }
     .active { font-weight: bold; text-decoration: underline; }
+    .menu-toggle {
+      position: absolute;
+      left: 10px;
+      top: 8px;
+      width: 32px;
+      height: 32px;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .menu-toggle span {
+      width: 24px;
+      height: 3px;
+      background: white;
+      border-radius: 2px;
+    }
     .page { display: none; padding: 20px; }
     .container {
       background: white;
@@ -28,7 +53,6 @@
     input, select, button {
       padding: 8px;
       margin: 5px 0;
-      width: 100%;
       box-sizing: border-box;
     }
     button { background: #0078d7; color: white; border: none; cursor: pointer; }
@@ -39,22 +63,52 @@
       margin-top: 10px;
       border-radius: 5px;
     }
+    .flex-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .flex-row > * { flex: 1; min-width: 140px; }
+
+    @media (max-width: 768px) {
+      nav {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        position: absolute;
+        top: 48px;
+        left: 0;
+        right: 0;
+        background: #005bac;
+        padding: 10px 16px 16px;
+      }
+      nav.show {
+        display: flex;
+      }
+      .menu-toggle {
+        display: flex;
+      }
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <div onclick="showPage('list')" id="menu-list" class="active">列車番号一覧</div>
-  <div onclick="showPage('detail')" id="menu-detail">列車詳細</div>
-  <div onclick="showPage('location')" id="menu-location">現在位置</div>
-  <div onclick="showPage('timetable')" id="menu-timetable">各駅時刻表</div>
-  <div onclick="showPage('settings')" id="menu-settings">設定</div>
+  <div class="menu-toggle" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+  <nav id="mainNav">
+    <div onclick="showPage('list')" id="menu-list" class="active">列車番号一覧</div>
+    <div onclick="showPage('detail')" id="menu-detail">列車詳細</div>
+    <div onclick="showPage('location')" id="menu-location">現在位置</div>
+    <div onclick="showPage('timetable')" id="menu-timetable">各駅時刻表</div>
+    <div onclick="showPage('settings')" id="menu-settings">設定</div>
+  </nav>
 </header>
 
 <!-- 列車番号一覧 -->
 <div id="page-list" class="page" style="display:block;">
   <div class="container">
     <h2>列車番号一覧</h2>
+    <div class="flex-row">
+      <input id="trainSearch" placeholder="列車番号で検索（例：2000）" oninput="renderTable()">
+    </div>
     <table id="trainTable">
       <thead>
       <tr>
@@ -92,7 +146,17 @@
 <div id="page-timetable" class="page">
   <div class="container">
     <h2>各駅時刻表</h2>
-    <div id="timetableContent">列車を選択してください</div>
+
+    <div class="flex-row">
+      <select id="stationSelect" onchange="renderStationTimetable()"></select>
+      <div>
+        <button onclick="setDirection('down')">下り</button>
+        <button onclick="setDirection('up')">上り</button>
+        <span id="directionLabel" style="margin-left:8px;">下り（新宿 → 京王八王子）</span>
+      </div>
+    </div>
+
+    <div id="stationTimetableContent" style="margin-top:15px;"></div>
   </div>
 </div>
 
@@ -112,17 +176,28 @@
     <div id="addTrainArea" style="display:none; margin-top:20px;">
       <h3>列車追加フォーム</h3>
 
-      <input id="trainNo" placeholder="列車番号">
-      <input id="trainType" placeholder="種別（例：快速）">
-      <input id="destination" placeholder="行き先">
-      <input id="startStation" placeholder="始発駅">
-      <input id="startTime" placeholder="発車時間（例：10:30）">
-      <input id="endStation" placeholder="終着駅">
-      <input id="endTime" placeholder="到着時間（例：12:05）">
+      <div class="flex-row">
+        <input id="trainNo" placeholder="列車番号">
+        <input id="trainType" placeholder="種別（例：各停・快速）">
+      </div>
+      <div class="flex-row">
+        <select id="direction">
+          <option value="down">下り（新宿 → 京王八王子）</option>
+          <option value="up">上り（京王八王子 → 新宿）</option>
+        </select>
+        <input id="destination" placeholder="行き先（例：桜上水）">
+      </div>
+      <div class="flex-row">
+        <input id="startStation" placeholder="始発駅（自動で補完されてもOK）">
+        <input id="startTime" placeholder="始発発車時間（例：11:00）">
+      </div>
+      <div class="flex-row">
+        <input id="endStation" placeholder="終着駅（自動で補完されてもOK）">
+        <input id="endTime" placeholder="終着到着時間（例：11:30）">
+      </div>
 
-      <h3>各駅時刻・番線・通過設定</h3>
+      <h3>各駅時刻・番線・通過設定（固定駅）</h3>
       <div id="stationList"></div>
-      <button onclick="addStation()">駅を追加</button>
 
       <button onclick="addTrain()">列車を追加</button>
     </div>
@@ -157,18 +232,65 @@
   const db = getDatabase(app);
   const trainsRef = ref(db, "trains");
 
+  const DOWN_STATIONS = [
+    "新宿",
+    "笹塚",
+    "代田橋",
+    "明大前",
+    "下高井戸",
+    "桜上水",
+    "上北沢",
+    "八幡山",
+    "芦花公園",
+    "千歳烏山",
+    "仙川",
+    "つつじヶ丘",
+    "柴崎",
+    "国領",
+    "布田",
+    "調布",
+    "西調布",
+    "飛田給",
+    "武蔵野台",
+    "多磨霊園",
+    "東府中",
+    "府中",
+    "分倍河原",
+    "中河原",
+    "聖蹟桜ヶ丘",
+    "百草園",
+    "高幡不動",
+    "南平",
+    "平山城址公園",
+    "長沼",
+    "北野",
+    "京王八王子"
+  ];
+  const UP_STATIONS = [...DOWN_STATIONS].reverse();
+
   let trains = [];
   let selectedTrainNo = null;
+  let currentDirection = "down"; // for station timetable
+
+  function toggleMenu() {
+    const nav = document.getElementById("mainNav");
+    nav.classList.toggle("show");
+  }
+  window.toggleMenu = toggleMenu;
 
   function showPage(page) {
     document.querySelectorAll(".page").forEach(p => p.style.display = "none");
-    document.querySelectorAll("header div").forEach(m => m.classList.remove("active"));
+    document.querySelectorAll("#mainNav div").forEach(m => m.classList.remove("active"));
     document.getElementById("page-" + page).style.display = "block";
     document.getElementById("menu-" + page).classList.add("active");
+
     if (page === "list") renderTable();
     if (page === "detail") renderDetail();
     if (page === "location") renderLocation();
-    if (page === "timetable") renderTimetable();
+    if (page === "timetable") {
+      initStationSelect();
+      renderStationTimetable();
+    }
   }
   window.showPage = showPage;
 
@@ -176,37 +298,55 @@
     const pw = document.getElementById("passwordInput").value;
     if (pw === "0829") {
       document.getElementById("addTrainArea").style.display = "block";
+
+      const list = document.getElementById("stationList");
+      list.innerHTML = "";
+      const dir = document.getElementById("direction").value;
+      const stations = dir === "down" ? DOWN_STATIONS : UP_STATIONS;
+      stations.forEach(name => addStationBox(name));
+
+      // 始発・終着駅を自動補完（任意）
+      if (dir === "down") {
+        document.getElementById("startStation").value = DOWN_STATIONS[0];
+        document.getElementById("endStation").value = DOWN_STATIONS[DOWN_STATIONS.length - 1];
+      } else {
+        document.getElementById("startStation").value = UP_STATIONS[0];
+        document.getElementById("endStation").value = UP_STATIONS[UP_STATIONS.length - 1];
+      }
     } else {
       alert("パスワードが違います");
     }
   }
   window.checkPassword = checkPassword;
 
-  function addStation() {
+  function addStationBox(name) {
     const box = document.createElement("div");
     box.className = "station-box";
     box.innerHTML = `
-      <input placeholder="駅名" class="st-name">
-
-      <label>
-        <input type="checkbox" class="st-pass" onchange="togglePass(this)">
-        通過駅
-      </label>
-
-      <div class="stop-fields">
-        <input placeholder="到着時刻（例：10:05）" class="st-arr">
-        <input placeholder="発車時刻（例：10:06）" class="st-dep">
+      <div class="flex-row">
+        <input value="${name}" class="st-name" readonly>
+        <label style="display:flex;align-items:center;gap:4px;">
+          <input type="checkbox" class="st-pass" onchange="togglePass(this)">
+          通過駅
+        </label>
       </div>
 
-      <div class="pass-fields" style="display:none;">
-        <input placeholder="通過時刻（例：10:09）" class="st-passTime">
+      <div class="stop-fields flex-row">
+        <input placeholder="到着時刻（例：11:05）" class="st-arr">
+        <input placeholder="発車時刻（例：11:06）" class="st-dep">
       </div>
 
-      <input placeholder="番線" class="st-track">
+      <div class="pass-fields flex-row" style="display:none;">
+        <input placeholder="通過時刻（例：11:09）" class="st-passTime">
+      </div>
+
+      <div class="flex-row">
+        <input placeholder="番線（例：1）" class="st-track">
+      </div>
     `;
     document.getElementById("stationList").appendChild(box);
   }
-  window.addStation = addStation;
+  window.addStationBox = addStationBox;
 
   function togglePass(checkbox) {
     const box = checkbox.closest(".station-box");
@@ -214,9 +354,9 @@
     const passFields = box.querySelector(".pass-fields");
     if (checkbox.checked) {
       stopFields.style.display = "none";
-      passFields.style.display = "block";
+      passFields.style.display = "flex";
     } else {
-      stopFields.style.display = "block";
+      stopFields.style.display = "flex";
       passFields.style.display = "none";
     }
   }
@@ -224,13 +364,14 @@
 
   function addTrain() {
     const train = {
-      no: document.getElementById("trainNo").value,
-      type: document.getElementById("trainType").value,
-      dest: document.getElementById("destination").value,
-      start: document.getElementById("startStation").value,
-      startTime: document.getElementById("startTime").value,
-      end: document.getElementById("endStation").value,
-      endTime: document.getElementById("endTime").value,
+      no: document.getElementById("trainNo").value.trim(),
+      type: document.getElementById("trainType").value.trim(),
+      dest: document.getElementById("destination").value.trim(),
+      start: document.getElementById("startStation").value.trim(),
+      startTime: document.getElementById("startTime").value.trim(),
+      end: document.getElementById("endStation").value.trim(),
+      endTime: document.getElementById("endTime").value.trim(),
+      direction: document.getElementById("direction").value,
       stations: [],
       currentIndex: 0,
       progress: 0,
@@ -265,20 +406,24 @@
   function renderTable() {
     const tbody = document.querySelector("#trainTable tbody");
     tbody.innerHTML = "";
+    const search = document.getElementById("trainSearch").value.trim();
+
     const sorted = [...trains].sort((a, b) => a.no.localeCompare(b.no, "ja"));
-    sorted.forEach(train => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><a href="#" onclick="selectTrain('${train.no}')">${train.no}</a></td>
-        <td>${train.type}</td>
-        <td>${train.dest}</td>
-        <td>${train.start}</td>
-        <td>${train.startTime}</td>
-        <td>${train.end}</td>
-        <td>${train.endTime}</td>
-      `;
-      tbody.appendChild(row);
-    });
+    sorted
+      .filter(t => !search || t.no.includes(search))
+      .forEach(train => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><a href="#" onclick="selectTrain('${train.no}')">${train.no}</a></td>
+          <td>${train.type || ""}</td>
+          <td>${train.dest || ""}</td>
+          <td>${train.start || ""}</td>
+          <td>${train.startTime || ""}</td>
+          <td>${train.end || ""}</td>
+          <td>${train.endTime || ""}</td>
+        `;
+        tbody.appendChild(row);
+      });
   }
 
   function selectTrain(no) {
@@ -301,17 +446,18 @@
     }
 
     let html = `
-      <h3>${train.no}（${train.type}）</h3>
-      <p>行き先：${train.dest}</p>
-      <p>始発駅：${train.start}（${train.startTime} 発）</p>
-      <p>終着駅：${train.end}（${train.endTime} 着）</p>
-      <p>現在ステータス：${train.status}</p>
+      <h3>${train.no}（${train.type || ""}）</h3>
+      <p>行き先：${train.dest || ""}</p>
+      <p>始発駅：${train.start || ""}（${train.startTime || ""} 発）</p>
+      <p>終着駅：${train.end || ""}（${train.endTime || ""} 着）</p>
+      <p>方向：${train.direction === "down" ? "下り" : "上り"}</p>
+      <p>現在ステータス：${train.status || ""}</p>
       <h3>各駅時刻</h3>
       <table>
         <tr><th>駅名</th><th>時刻</th><th>番線</th></tr>
     `;
 
-    train.stations.forEach(s => {
+    (train.stations || []).forEach(s => {
       let timeCell = "";
       if (s.pass === true) {
         timeCell = `通過 ${s.passTime}`;
@@ -329,45 +475,7 @@
       `;
     });
 
-    html += `</table>
-      <h3>自動走行</h3>
-      <button onclick="startAuto('${train.no}')">自動で動かす</button>
-      <button onclick="stopAuto('${train.no}')">停止</button>
-    `;
-
-    div.innerHTML = html;
-  }
-
-  function renderTimetable() {
-    const train = getSelectedTrain();
-    const div = document.getElementById("timetableContent");
-    if (!train) {
-      div.innerText = "列車を選択してください";
-      return;
-    }
-
-    let html = `<h3>${train.no} 各駅時刻表</h3><table>
-      <tr><th>駅名</th><th>時刻</th><th>番線</th></tr>`;
-
-    train.stations.forEach(s => {
-      let timeCell = "";
-      if (s.pass === true) {
-        timeCell = `通過 ${s.passTime}`;
-      } else if (s.arr && s.dep && s.arr === s.dep) {
-        timeCell = `停車なし（${s.arr}）`;
-      } else {
-        timeCell = `到着 ${s.arr} / 発車 ${s.dep}`;
-      }
-      html += `
-        <tr>
-          <td>${s.name}</td>
-          <td>${timeCell}</td>
-          <td>${s.track}</td>
-        </tr>
-      `;
-    });
-
-    html += "</table>";
+    html += `</table>`;
     div.innerHTML = html;
   }
 
@@ -379,8 +487,11 @@
       return;
     }
     if (!train.stations || train.stations.length === 0) {
-      div.innerText = "駅データがありません";
+      div.innerText = "駅データがありません（列車を作り直してください）";
       return;
+    }
+    if (train.currentIndex === undefined || train.currentIndex === null) {
+      train.currentIndex = 0;
     }
 
     let html = `<h3>${train.no} の現在位置</h3>
@@ -418,7 +529,7 @@
         const isHere =
           !train.moving &&
           train.currentIndex === i &&
-          String(train.stations[i].track) === String(n);
+          String(s.track) === String(n);
         html += `
           <div style="
             width:40px; height:40px; border:1px solid #333;
@@ -445,22 +556,6 @@
     div.innerHTML = html;
   }
 
-  function startAuto(no) {
-    update(ref(db, "trains/" + no), { moving: true }).then(() => {
-      const t = trains.find(tr => tr.no === no);
-      if (t && t.status === "未出発") {
-        t.status = "走行中";
-        update(ref(db, "trains/" + no), { status: t.status });
-      }
-    });
-  }
-  window.startAuto = startAuto;
-
-  function stopAuto(no) {
-    update(ref(db, "trains/" + no), { moving: false, progress: 0 });
-  }
-  window.stopAuto = stopAuto;
-
   function nowTime() {
     const d = new Date();
     const h = String(d.getHours()).padStart(2, "0");
@@ -470,7 +565,7 @@
 
   function updateTrainStatus(train) {
     if (!train.stations || train.stations.length === 0) return;
-    const st = train.stations[train.currentIndex];
+    const st = train.stations[train.currentIndex] || train.stations[0];
     const time = nowTime();
 
     if (st.pass === true) {
@@ -547,7 +642,7 @@
       renderTable();
       renderDetail();
       renderLocation();
-      renderTimetable();
+      renderStationTimetable();
     });
   }
   window.loadData = loadData;
@@ -558,7 +653,7 @@
     renderTable();
     renderDetail();
     renderLocation();
-    renderTimetable();
+    renderStationTimetable();
   });
 
   setInterval(() => {
@@ -587,6 +682,106 @@
     });
     renderLocation();
   }, 1000);
+
+  // 各駅時刻表（駅選択＋上下切替＋4〜25時表示）
+  function initStationSelect() {
+    const sel = document.getElementById("stationSelect");
+    if (sel.options.length > 0) return;
+    DOWN_STATIONS.forEach(name => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  }
+
+  function setDirection(dir) {
+    currentDirection = dir;
+    const label = document.getElementById("directionLabel");
+    label.textContent = dir === "down"
+      ? "下り（新宿 → 京王八王子）"
+      : "上り（京王八王子 → 新宿）";
+    renderStationTimetable();
+  }
+  window.setDirection = setDirection;
+
+  function renderStationTimetable() {
+    const div = document.getElementById("stationTimetableContent");
+    if (!div) return;
+
+    const station = document.getElementById("stationSelect").value;
+    if (!station) {
+      div.innerText = "駅が選択されていません";
+      return;
+    }
+
+    // 時刻表データ：4〜25時を必ず用意
+    const hours = {};
+    for (let h = 4; h <= 25; h++) {
+      hours[h] = [];
+    }
+
+    // 列車データから該当駅の時刻を集める
+    trains.forEach(train => {
+      if (!train.stations) return;
+
+      // 上り／下りで列車をざっくりフィルタ（始発駅で判定）
+      if (currentDirection === "down" && train.direction === "up") return;
+      if (currentDirection === "up" && train.direction === "down") return;
+
+      const st = train.stations.find(s => s.name === station);
+      if (!st) return;
+
+      let t = "";
+      if (st.pass === true) {
+        t = st.passTime;
+      } else if (st.arr && st.dep && st.arr === st.dep) {
+        t = st.arr;
+      } else if (st.dep) {
+        t = st.dep;
+      } else if (st.arr) {
+        t = st.arr;
+      }
+
+      if (!t) return;
+      const [hh, mm] = t.split(":");
+      let hNum = parseInt(hh, 10);
+      const mNum = parseInt(mm, 10);
+      if (isNaN(hNum) || isNaN(mNum)) return;
+
+      // 4〜25時にマッピング（25時＝翌1時）
+      if (hNum < 4) hNum += 24;
+      if (hNum < 4 || hNum > 25) return;
+
+      hours[hNum].push({ no: train.no, minute: mNum, raw: t, pass: st.pass === true });
+    });
+
+    // HTML生成
+    let html = `<h3>${station} 各駅時刻表（${currentDirection === "down" ? "下り" : "上り"}）</h3>`;
+    html += `<table><tr><th>時</th><th>列車・分</th></tr>`;
+
+    for (let h = 4; h <= 25; h++) {
+      const list = hours[h];
+      list.sort((a, b) => a.minute - b.minute);
+      const labelHour = h >= 24 ? h - 24 : h; // 24→0,25→1
+      const hourStr = String(labelHour).padStart(2, "0");
+
+      const cell = list.map(x => {
+        const mm = String(x.minute).padStart(2, "0");
+        const mark = x.pass ? "通" : "";
+        return `${x.no}：${mm}${mark}`;
+      }).join(" / ");
+
+      html += `<tr><td>${hourStr}</td><td>${cell}</td></tr>`;
+    }
+
+    html += `</table>`;
+    div.innerHTML = html;
+  }
+
+  // 初期化
+  initStationSelect();
+  renderTable();
 </script>
 
 </body>
