@@ -52,11 +52,19 @@
   </div>
 </div>
 
-<!-- 現在位置 -->
+<!-- 現在位置（本線＋相模原線） -->
 <div id="page-location" class="page">
   <div class="container">
     <h2>現在位置</h2>
-    <div id="locationContent">列車を選択してください</div>
+
+    <!-- 上下・路線切替ボタンは JS 側で使う想定ならここに置いてもOK -->
+
+    <div id="locationContent">
+      <div id="locationLines" style="display:flex; gap:40px;">
+        <div id="mainLine" class="location-column"></div>   <!-- 京王線本線 -->
+        <div id="sagamiLine" class="location-column"></div> <!-- 相模原線 -->
+      </div>
+    </div>
   </div>
 </div>
 
@@ -87,6 +95,10 @@
     <button onclick="saveData()">保存</button>
     <button onclick="loadData()">受信</button>
 
+    <h3>Googleスプレッドシートから読み込み</h3>
+    <input id="sheetUrl" placeholder="Apps Script のURL">
+    <button onclick="loadFromSheet()">読み込み</button>
+
     <h3>列車追加（パスワード必要）</h3>
     <input id="passwordInput" placeholder="パスワードを入力">
     <button onclick="checkPassword()">送信</button>
@@ -96,19 +108,22 @@
 
       <div class="flex-row">
         <input id="trainNo" placeholder="列車番号">
-        <input id="trainType" placeholder="種別（例：各停・快速）">
+        <input id="trainType" placeholder="種別（例：各停・快速・区急・急行・特急）">
       </div>
+
       <div class="flex-row">
         <select id="direction">
-          <option value="down">下り（新宿 → 京王八王子）</option>
-          <option value="up">上り（京王八王子 → 新宿）</option>
+          <option value="down">下り（新宿 → 京王八王子／橋本）</option>
+          <option value="up">上り（京王八王子／橋本 → 新宿）</option>
         </select>
         <input id="destination" placeholder="行き先（例：桜上水）">
       </div>
+
       <div class="flex-row">
         <input id="startStation" placeholder="始発駅">
         <input id="startTime" placeholder="始発発車時間（例：11:00）">
       </div>
+
       <div class="flex-row">
         <input id="endStation" placeholder="終着駅">
         <input id="endTime" placeholder="終着到着時間（例：11:30）">
