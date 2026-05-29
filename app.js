@@ -98,6 +98,7 @@ function getCurrentPositions(nowMs) {
 
   return result;
 }
+
 /* ===============================
    列車アイコン（えれサイト風）
 ================================ */
@@ -133,7 +134,6 @@ function renderLane(containerId, stationList, pos) {
 
   let list = [...stationList];
 
-  // 上り＝新宿方面、下り＝八王子方面
   if (currentDirection === "down") list.reverse();
 
   list.forEach(st => {
@@ -155,7 +155,6 @@ function renderLane(containerId, stationList, pos) {
     const platformsDiv = document.createElement("div");
     platformsDiv.className = "platform-container";
 
-    // えれサイト風 → 番線は 1〜4 を固定で表示
     const platforms = [1,2,3,4];
 
     platforms.forEach(p => {
@@ -163,7 +162,6 @@ function renderLane(containerId, stationList, pos) {
       box.className = "platform-box";
       box.innerHTML = `<div class="platform-label">${p}番線</div>`;
 
-      // 停車中の列車
       pos
         .filter(x => !x.between && x.station === st && String(x.platform) === String(p))
         .forEach(info => box.appendChild(makeTrainIcon(info)));
@@ -185,10 +183,11 @@ function renderPosition() {
   const nowMs = Date.now();
   const pos = getCurrentPositions(nowMs);
 
-  renderLane("lane-main", MAIN, pos);   // 本線
-  renderLane("lane-right", SAGAMI, pos); // 相模原線
-  renderLane("lane-left", TAKAO, pos);   // 高尾線
+  renderLane("lane-main", MAIN, pos);
+  renderLane("lane-right", SAGAMI, pos);
+  renderLane("lane-left", TAKAO, pos);
 }
+
 /* ===============================
    列車一覧
 ================================ */
