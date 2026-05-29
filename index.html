@@ -1,167 +1,146 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>京王線 運行管理システム</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- CSS -->
-<link rel="stylesheet" href="style.css">
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
+    <meta charset="UTF-8">
+    <title>列車管理システム</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f4f4f4;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #eee;
+        }
+        .form-area {
+            margin-top: 20px;
+        }
+        input, select, button {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+        }
+        button {
+            background: #0078d7;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #005fa3;
+        }
+    </style>
 </head>
 <body>
 
-<header>
-  <div id="hamburger">
-    <span></span><span></span><span></span>
-  </div>
-  <h1>京王線 運行管理</h1>
-  <div id="clock"></div>
-</header>
+<div class="container">
+    <h1>🚆 列車管理システム</h1>
 
-<nav id="navLinks">
-  <a onclick="showPage('page-position')" class="active">現在位置</a>
-  <a onclick="showPage('page-trains')">列車一覧</a>
-  <a onclick="showPage('page-stations')">駅時刻表</a>
-  <a onclick="showPage('page-admin')">管理者</a>
-</nav>
-
-<main>
-
-<!-- ===============================
-     現在位置
-================================ -->
-<section id="page-position">
-  <h2>現在位置</h2>
-
-  <div>
-    <button id="posUp">上り</button>
-    <button id="posDown">下り</button>
-  </div>
-
-  <div id="positionLayout">
-    <div id="lane-left" class="lane"></div>
-    <div id="lane-main" class="lane"></div>
-    <div id="lane-right" class="lane"></div>
-  </div>
-</section>
-
-<!-- ===============================
-     列車一覧
-================================ -->
-<section id="page-trains" class="hidden">
-  <h2>列車一覧</h2>
-
-  <input id="searchInput" placeholder="列車番号・行先で検索">
-
-  <div class="card">
-    <table>
-      <thead>
-        <tr>
-          <th>列車番号</th>
-          <th>種別</th>
-          <th>行き先</th>
-          <th>始発</th>
-          <th>発車</th>
-          <th>終着</th>
-          <th>到着</th>
-        </tr>
-      </thead>
-      <tbody id="trainListBody"></tbody>
+    <table id="trainTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>列車名</th>
+                <th>状態</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
     </table>
-  </div>
-</section>
 
-<!-- ===============================
-     駅時刻表
-================================ -->
-<section id="page-stations" class="hidden">
-  <h2>駅時刻表</h2>
+    <div class="form-area">
+        <h2>列車を追加</h2>
+        <input type="text" id="trainName" placeholder="列車名を入力">
+        <select id="trainStatus">
+            <option value="運行中">運行中</option>
+            <option value="遅延">遅延</option>
+            <option value="停止中">停止中</option>
+        </select>
+        <button onclick="addTrain()">追加</button>
+    </div>
+</div>
 
-  <select id="stationSelect"></select>
+<script>
+    let trains = [];
+    let idCounter = 1;
 
-  <div class="card">
-    <table>
-      <thead>
-        <tr>
-          <th>列車番号</th>
-          <th>種別</th>
-          <th>行き先</th>
-          <th>到着</th>
-          <th>発車</th>
-        </tr>
-      </thead>
-      <tbody id="stationTableBody"></tbody>
-    </table>
-  </div>
-</section>
+    function renderTable() {
+        const tbody = document.querySelector("#trainTable tbody");
+        tbody.innerHTML = "";
 
-<!-- ===============================
-     列車詳細
-================================ -->
-<section id="page-detail" class="hidden">
-  <h2>列車詳細</h2>
+        trains.forEach(train => {
+            const row = document.createElement("tr");
 
-  <div id="detailCard" class="card"></div>
+            row.innerHTML = `
+                <td>${train.id}</td>
+                <td>${train.name}</td>
+                <td>${train.status}</td>
+                <td>
+                    <select onchange="updateStatus(${train.id}, this.value)">
+                        <option value="運行中" ${train.status === "運行中" ? "selected" : ""}>運行中</option>
+                        <option value="遅延" ${train.status === "遅延" ? "selected" : ""}>遅延</option>
+                        <option value="停止中" ${train.status === "停止中" ? "selected" : ""}>停止中</option>
+                    </select>
+                    <button onclick="deleteTrain(${train.id})">削除</button>
+                </td>
+            `;
 
-  <div class="card">
-    <table>
-      <thead>
-        <tr>
-          <th>駅</th>
-          <th>到着</th>
-          <th>発車</th>
-          <th>番線</th>
-        </tr>
-      </thead>
-      <tbody id="detailTimetableBody"></tbody>
-    </table>
-  </div>
-</section>
+            tbody.appendChild(row);
+        });
+    }
 
-<!-- ===============================
-     管理者モード
-================================ -->
-<section id="page-admin" class="hidden">
-  <h2>管理者モード</h2>
+    function addTrain() {
+        const name = document.getElementById("trainName").value;
+        const status = document.getElementById("trainStatus").value;
 
-  <input id="adminPassword" placeholder="パスワード">
-  <button id="btnLogin">ログイン</button>
-  <span id="loginStatus"></span>
+        if (!name) {
+            alert("列車名を入力してください");
+            return;
+        }
 
-  <div id="adminArea" class="hidden">
+        trains.push({
+            id: idCounter++,
+            name,
+            status
+        });
 
-    <h3>列車情報</h3>
+        document.getElementById("trainName").value = "";
+        renderTable();
+    }
 
-    <input id="admTrainNumber" placeholder="列車番号">
-    <input id="admType" placeholder="種別">
-    <input id="admOrigin" placeholder="始発駅">
-    <input id="admDeparture" placeholder="始発発車">
-    <input id="admDestination" placeholder="終着駅">
-    <input id="admArrival" placeholder="終着到着">
+    function updateStatus(id, newStatus) {
+        const train = trains.find(t => t.id === id);
+        if (train) {
+            train.status = newStatus;
+            renderTable();
+        }
+    }
 
-    <h3>時刻表</h3>
-    <div id="timetableEditor"></div>
-
-    <button id="btnAddTrain">追加</button>
-    <button id="btnUpdateTrain">更新</button>
-    <button id="btnDeleteTrain">削除</button>
-
-    <h3>クラウド</h3>
-    <button id="btnSaveCloud">保存</button>
-    <button id="btnLoadCloud">受信</button>
-
-  </div>
-</section>
-
-</main>
-
-<!-- JS -->
-<script src="app.js"></script>
+    function deleteTrain(id) {
+        trains = trains.filter(t => t.id !== id);
+        renderTable();
+    }
+</script>
 
 </body>
 </html>
