@@ -5,10 +5,8 @@
 <title>京王線 運行管理システム</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- CSS 読み込み（最重要） -->
 <link rel="stylesheet" href="style.css">
 
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
@@ -160,7 +158,6 @@
 
 </main>
 
-<!-- JS -->
 <script src="app.js"></script>
 
 </body>
