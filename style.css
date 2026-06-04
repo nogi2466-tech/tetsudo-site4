@@ -1,218 +1,214 @@
-/* ===========================
-   全体
-=========================== */
+/* ==========================================================================
+   1. 全体のリセットと共通設定
+   ========================================================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
-  font-family: sans-serif;
-  margin: 0;
-  background: #f4f4f4;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f0f2f5; /* 落ち着いた薄いグレー */
+    color: #333333;
+    padding: 20px 10px;
+    line-height: 1.5;
 }
 
-/* ===========================
-   ヘッダー（中央寄せ＋スマホ対応）
-=========================== */
-header {
-  background: #005bac;
-  padding: 10px 16px;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+/* サイトのメインタイトル */
+h1 {
+    text-align: center;
+    font-size: 24px;
+    color: #1a1a1a;
+    margin-top: 10px;
+    margin-bottom: 25px;
+    font-weight: 700;
 }
 
-/* メニュー本体 */
-nav {
-  display: flex;
-  gap: 20px;
-}
-
-nav div {
-  cursor: pointer;
-}
-
-.active {
-  font-weight: bold;
-  text-decoration: underline;
-}
-
-/* スマホ用ハンバーガー */
-.menu-toggle {
-  position: absolute;
-  left: 10px;
-  top: 8px;
-  width: 32px;
-  height: 32px;
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-}
-
-.menu-toggle span {
-  width: 24px;
-  height: 3px;
-  background: white;
-  border-radius: 2px;
-}
-
-/* スマホ時のメニュー展開 */
-@media (max-width: 768px) {
-  nav {
-    display: none;
-    flex-direction: column;
+/* ==========================================================================
+   2. 管理・同期ボタンエリア (admin-actions)
+   ========================================================================== */
+.admin-actions {
+    display: flex;
+    justify-content: center;
     gap: 10px;
-    position: absolute;
-    top: 48px;
-    left: 0;
-    right: 0;
-    background: #005bac;
-    padding: 10px 16px 16px;
-  }
-  nav.show {
+    margin-bottom: 30px;
+    flex-wrap: wrap; /* 画面が狭いときは自動で折り返し */
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ボタンの基本スタイル */
+.btn {
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+    color: #333333;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* ボタンのホバー（マウスを載せたとき）効果 */
+.btn:hover {
+    background-color: #f7f7f7;
+    border-color: #b3b3b3;
+}
+
+/* アクティブ/強調ボタン（クラウドに保存など） */
+.btn-primary {
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+/* ==========================================================================
+   3. タブナビゲーション (tabs)
+   ========================================================================== */
+.tabs {
     display: flex;
-  }
-  .menu-toggle {
+    justify-content: flex-start; /* スマホでのスクロールを考慮 */
+    gap: 4px;
+    border-bottom: 2px solid #dddddd;
+    margin-bottom: 25px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-x: auto; /* はみ出たタブを横スクロール可能に */
+    white-space: nowrap; /* タブの文字を改行させない */
+    -webkit-overflow-scrolling: touch; /* iOSでのスクロールを滑らかに */
+}
+
+/* タブのスクロールバーを非表示にする（デザイン重視） */
+.tabs::-webkit-scrollbar {
+    display: none;
+}
+
+/* タブボタン単体のスタイル */
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #666666;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    color: #1a1a1a;
+}
+
+/* 現在選択されているアクティブなタブ */
+.tab-btn.active {
+    color: #007bff;
+    font-weight: 700;
+    border-bottom: 3px solid #007bff;
+}
+
+/* ==========================================================================
+   4. リンク表示エリア (link-container)
+   ========================================================================== */
+.link-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* タブコンテンツの初期状態（JavaScript制御用） */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* リスト全体の枠組み */
+.link-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* リンク1行ずつのカードデザイン */
+.link-item {
+    background-color: #ffffff;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
     display: flex;
-  }
+    justify-content: space-between; /* 文字と削除ボタンを左右に離す */
+    align-items: center;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* ===========================
-   ページ共通
-=========================== */
-.page {
-  display: none;
-  padding: 20px;
+/* カードを少し浮き上がらせるホバー効果 */
+.link-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
-.container {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 1000px;
-  margin: auto;
+/* リンク文字のスタイル */
+.link-item a {
+    color: #1a1a1a;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    flex-grow: 1; /* 文字エリアを広げてクリックしやすく */
+    display: block;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
+.link-item a:hover {
+    color: #007bff;
 }
 
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
+/* 削除ボタン（動的に追加されるボタン） */
+.btn-delete {
+    background-color: #ff4d4d;
+    color: #ffffff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    transition: background 0.2s;
+    white-space: nowrap;
 }
 
-th {
-  background: #eee;
+.btn-delete:hover {
+    background-color: #cc0000;
 }
 
-input, select, button {
-  padding: 8px;
-  margin: 5px 0;
-  box-sizing: border-box;
+/* データがない時のメッセージ */
+.no-data-msg {
+    text-align: center;
+    color: #999999;
+    padding: 30px 0;
+    font-size: 14px;
 }
 
-button {
-  background: #0078d7;
-  color: white;
-  border: none;
-  cursor: pointer;
+/* ==========================================================================
+   5. PC向けのレイアウト微調整 (メディアクエリ)
+   ========================================================================== */
+@media (min-width: 600px) {
+    body {
+        padding: 40px 20px;
+    }
+    
+    .tabs {
+        justify-content: center; /* PCではタブを中央に寄せる */
+    }
 }
 
-button:hover {
-  background: #005fa3;
-}
-
-.flex-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.flex-row > * {
-  flex: 1;
-  min-width: 140px;
-}
-
-/* ===========================
-   駅入力フォーム（固定駅）
-=========================== */
-.station-box {
-  border: 1px solid #ccc;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 5px;
-}
-
-/* ===========================
-   現在位置（路線図スタイル）
-=========================== */
-.location-row {
-  display: grid;
-  grid-template-columns: 80px 1fr 80px;
-  align-items: center;
-  padding: 6px 0;
-}
-
-.location-row .time {
-  text-align: right;
-  padding-right: 10px;
-  font-weight: bold;
-}
-
-.location-row .station {
-  text-align: center;
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.location-row .track {
-  text-align: left;
-  padding-left: 10px;
-}
-
-.location-row.active {
-  background: #ffeb3b;
-}
-
-.location-line {
-  height: 20px;
-  border-left: 2px solid black;
-  margin-left: calc(80px + 50%);
-}
-
-/* ===========================
-   列車詳細（中央＋右寄せ）
-=========================== */
-.detail-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.detail-center {
-  text-align: center;
-}
-
-.detail-right table {
-  width: 100%;
-}
-
-/* ===========================
-   各駅時刻表（4〜25時）
-=========================== */
-#stationTimetableContent table {
-  width: 100%;
-}
-
-#stationTimetableContent th {
-  background: #ddd;
-}
-
-#stationTimetableContent td {
-  padding: 6px;
-}
