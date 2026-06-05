@@ -2,7 +2,6 @@
 // 1. Firebase (クラウド) の初期設定
 // ==========================================
 const firebaseConfig = {
-    // あなたのFirebase専用URLを適用済みです
     databaseURL: "https://firebaseio.com" 
 };
 
@@ -93,37 +92,60 @@ function openTab(evt, categoryName) {
     }
     evt.currentTarget.classList.add('active');
 
-    document.getElementById('menu-tabs').classList.remove('open');
-    document.getElementById('hamburger-btn').classList.remove('open');
+    // 左サイドメニューを引っ込めて閉じる
+    closeMenu();
 
     renderLinks();
 }
 
-document.getElementById('hamburger-btn').addEventListener('click', function() {
-    this.classList.toggle('open');
-    document.getElementById('menu-tabs').classList.toggle('open');
+// 左サイドメニューを閉じる共通の関数
+function closeMenu() {
+    document.getElementById('menu-tabs').classList.remove('open');
+    document.getElementById('hamburger-btn').classList.remove('open');
+    const overlay = document.querySelector('.menu-overlay');
+    if (overlay) overlay.classList.remove('open');
+}
+
+// ==========================================
+// 4. スマホ用ハンバーガーメニューの開閉＆マスク生成
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    // 画面を暗くするレイヤーをHTMLの末尾に自動生成
+    const overlay = document.createElement('div');
+    overlay.className = 'menu-overlay';
+    document.body.appendChild(overlay);
+
+    // 3本線ボタンを押したときの動き
+    document.getElementById('hamburger-btn').addEventListener('click', function() {
+        this.classList.toggle('open');
+        document.getElementById('menu-tabs').classList.toggle('open');
+        overlay.classList.toggle('open');
+    });
+
+    // 暗い背景部分をタップしたときもメニューを閉じる
+    overlay.addEventListener('click', () => {
+        closeMenu();
+    });
 });
 
 // ==========================================
-// 4. 設定・編集機能（画面上入力対応版）
+// 5. 設定・編集機能
 // ==========================================
 
-// 画面上のPassword枠を使ったロック解除
+// ロック解除
 document.getElementById('auth-btn').addEventListener('click', function() {
     if (!isLocked) {
-        // 再ロック時の処理
         isLocked = true;
         this.textContent = "ロック解除";
         document.getElementById('lock-status').textContent = "ステータス: ロック中（閲覧専用）";
         document.getElementById('lock-status').style.color = "#ff4d4d";
         document.getElementById('add-form-wrapper').style.display = "none";
-        document.getElementById('password-wrapper').style.display = "block"; // 入力枠を再表示
-        document.getElementById('admin-password-input').value = ''; // 入力値をクリア
+        document.getElementById('password-wrapper').style.display = "block";
+        document.getElementById('admin-password-input').value = '';
         renderLinks();
         return;
     }
 
-    // 画面の入力欄からパスワードを取得
     const passwordInput = document.getElementById('admin-password-input').value;
 
     if (passwordInput === "0829") {
@@ -131,8 +153,8 @@ document.getElementById('auth-btn').addEventListener('click', function() {
         this.textContent = "再びロックする";
         document.getElementById('lock-status').textContent = "ステータス: 解除済み（編集可能）";
         document.getElementById('lock-status').style.color = "#009933";
-        document.getElementById('add-form-wrapper').style.display = "block"; // 追加フォームを表示
-        document.getElementById('password-wrapper').style.display = "none";  // パスワード入力欄を隠す
+        document.getElementById('add-form-wrapper').style.display = "block";
+        document.getElementById('password-wrapper').style.display = "none";
         alert("認証に成功しました！各メニュー画面から「編集・削除」が行えます。");
         renderLinks();
     } else {
@@ -164,7 +186,7 @@ function editLink(id) {
     renderLinks();
 }
 
-// フォームからURLを追加
+// URL追加
 document.getElementById('add-btn').addEventListener('click', () => {
     if (isLocked) return;
 
@@ -196,7 +218,7 @@ document.getElementById('add-btn').addEventListener('click', () => {
     alert("リストに追加しました。変更を確定させるには「クラウドに保存」を押してください。");
 });
 
-// 削除処理
+// 削除
 function deleteLink(id) {
     if (isLocked) return;
     if (confirm("このリンクを削除してもよろしいですか？")) {
@@ -206,10 +228,10 @@ function deleteLink(id) {
 }
 
 // ==========================================
-// 5. クラウド保存・読込処理
+// 6. クラウド保存・読込処理
 // ==========================================
 
-// クラウドに保存 (送信)
+// クラウドに保存
 document.querySelector('.btn-save').addEventListener('click', () => {
     database.ref('tetsudo_data').set(links)
     .then(() => {
@@ -221,7 +243,7 @@ document.querySelector('.btn-save').addEventListener('click', () => {
     });
 });
 
-// クラウドから読込 (受信)
+// クラウドから読込
 document.querySelector('.btn-load').addEventListener('click', () => {
     database.ref('tetsudo_data').once('value')
     .then((snapshot) => {
