@@ -1,6 +1,14 @@
 // ==========================================
-// 1. 初期データの設定
+// 1. Firebase (クラウド) の初期設定
 // ==========================================
+const firebaseConfig = {
+    // あなたのFirebase専用URLを適用済みです
+    databaseURL: "https://firebaseio.com" 
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
 const defaultData = [
     { id: 1, title: "京王電鉄 公式サイト", url: "https://keio.co.jp", category: "keio", detail: "運行情報や時刻表の確認はこちらから。" },
     { id: 2, title: "JR東日本 公式サイト", url: "https://jreast.co.jp", category: "jr", detail: "新幹線や在来線の予約・運行状況。" },
@@ -8,7 +16,7 @@ const defaultData = [
     { id: 4, title: "鉄道安全報告書 (資料)", url: "#", category: "documents", detail: "本年度の安全管理に関する資料PDFデータです。" }
 ];
 
-let links = JSON.parse(localStorage.getItem('tetsudo_links')) || defaultData;
+let links = defaultData;
 let isLocked = true;
 
 // ==========================================
@@ -27,7 +35,6 @@ function renderLinks() {
     Object.values(containers).forEach(el => { if(el) el.innerHTML = ''; });
 
     links.forEach(item => {
-        // パスワード解除時のみ、編集と削除のボタンを表示する
         let actionButtons = '';
         if (!isLocked) {
             actionButtons = `
@@ -48,12 +55,10 @@ function renderLinks() {
             ${detailHtml}
         </li>`;
 
-        // 「資料(documents)」以外のデータを「すべて」に表示する
         if (item.category !== 'documents') {
             if (containers.all) containers.all.insertAdjacentHTML('beforeend', html);
         }
 
-        // 各割り当てタブに表示
         if (containers[item.category]) {
             containers[item.category].insertAdjacentHTML('beforeend', html);
         }
@@ -100,46 +105,50 @@ document.getElementById('hamburger-btn').addEventListener('click', function() {
 });
 
 // ==========================================
-// 4. 設定・編集機能（直接編集ロジック追加）
+// 4. 設定・編集機能（画面上入力対応版）
 // ==========================================
 
-// パスワード入力によるロック解除
+// 画面上のPassword枠を使ったロック解除
 document.getElementById('auth-btn').addEventListener('click', function() {
     if (!isLocked) {
+        // 再ロック時の処理
         isLocked = true;
-        this.textContent = "パスワード入力で解除";
+        this.textContent = "ロック解除";
         document.getElementById('lock-status').textContent = "ステータス: ロック中（閲覧専用）";
         document.getElementById('lock-status').style.color = "#ff4d4d";
         document.getElementById('add-form-wrapper').style.display = "none";
+        document.getElementById('password-wrapper').style.display = "block"; // 入力枠を再表示
+        document.getElementById('admin-password-input').value = ''; // 入力値をクリア
         renderLinks();
         return;
     }
 
-    const password = prompt("管理用パスワードを入力してください:");
-    if (password === "0829") {
+    // 画面の入力欄からパスワードを取得
+    const passwordInput = document.getElementById('admin-password-input').value;
+
+    if (passwordInput === "0829") {
         isLocked = false;
         this.textContent = "再びロックする";
         document.getElementById('lock-status').textContent = "ステータス: 解除済み（編集可能）";
         document.getElementById('lock-status').style.color = "#009933";
-        document.getElementById('add-form-wrapper').style.display = "block";
-        alert("認証に成功しました。各メニュー画面から直接「編集・削除」が行えます。");
+        document.getElementById('add-form-wrapper').style.display = "block"; // 追加フォームを表示
+        document.getElementById('password-wrapper').style.display = "none";  // パスワード入力欄を隠す
+        alert("認証に成功しました！各メニュー画面から「編集・削除」が行えます。");
         renderLinks();
-    } else if (password !== null) {
+    } else {
         alert("パスワードが違います。");
     }
 });
 
-// メニュー画面から直接呼び出せる編集処理
+// 直接編集
 function editLink(id) {
     if (isLocked) return;
 
-    // 対象のデータをIDで探す
     const targetItem = links.find(item => item.id === id);
     if (!targetItem) return;
 
-    // 現在の値を初期値としてポップアップで入力を促す
     const newTitle = prompt("新しいタイトルを入力してください:", targetItem.title);
-    if (newTitle === null) return; // キャンセルされたら処理中断
+    if (newTitle === null) return;
     
     const newUrl = prompt("新しいURLを入力してください:", targetItem.url);
     if (newUrl === null) return;
@@ -147,16 +156,15 @@ function editLink(id) {
     const newDetail = prompt("新しい詳細（説明文）を入力してください:", targetItem.detail || "");
     if (newDetail === null) return;
 
-    // データの書き換え
     targetItem.title = newTitle.trim() || targetItem.title;
     targetItem.url = newUrl.trim() || targetItem.url;
     targetItem.detail = newDetail.trim();
 
-    alert("リンク情報を変更しました！設定から「クラウドに保存」を忘れずに行ってください。");
-    renderLinks(); // 画面を再描写して変更を反映
+    alert("リンク情報を変更しました。変更を確定させるには「クラウドに保存」を押してください。");
+    renderLinks();
 }
 
-// 入力フォームからURLリストへの追加
+// フォームからURLを追加
 document.getElementById('add-btn').addEventListener('click', () => {
     if (isLocked) return;
 
@@ -185,7 +193,7 @@ document.getElementById('add-btn').addEventListener('click', () => {
     document.getElementById('form-url').value = '';
     document.getElementById('form-detail').value = '';
 
-    alert("リストに追加しました！");
+    alert("リストに追加しました。変更を確定させるには「クラウドに保存」を押してください。");
 });
 
 // 削除処理
@@ -197,25 +205,51 @@ function deleteLink(id) {
     }
 }
 
-// 保存ボタン（送信）
+// ==========================================
+// 5. クラウド保存・読込処理
+// ==========================================
+
+// クラウドに保存 (送信)
 document.querySelector('.btn-save').addEventListener('click', () => {
-    localStorage.setItem('tetsudo_links', JSON.stringify(links));
-    alert("ローカルストレージにデータを保存しました！");
+    database.ref('tetsudo_data').set(links)
+    .then(() => {
+        alert("クラウドサーバーへデータを保存（送信）しました！");
+    })
+    .catch((error) => {
+        console.error(error);
+        alert("保存に失敗しました。");
+    });
 });
 
-// 読込ボタン（受信）
+// クラウドから読込 (受信)
 document.querySelector('.btn-load').addEventListener('click', () => {
-    const savedData = localStorage.getItem('tetsudo_links');
-    if (savedData) {
-        links = JSON.parse(savedData);
-        renderLinks();
-        alert("ローカルストレージからデータを読み込みました！");
-    } else {
-        alert("保存されたデータがありません。");
-    }
+    database.ref('tetsudo_data').once('value')
+    .then((snapshot) => {
+        const cloudData = snapshot.val();
+        if (cloudData) {
+            links = cloudData;
+            renderLinks();
+            alert("クラウドサーバーから最新データを読み込みました！");
+        } else {
+            alert("クラウド上にデータがありません。");
+        }
+    })
+    .catch((error) => {
+        console.error(error);
+        alert("読込に失敗しました。");
+    });
 });
 
+// 起動時に自動ロード
 window.onload = () => {
-    renderLinks();
+    database.ref('tetsudo_data').once('value').then((snapshot) => {
+        const cloudData = snapshot.val();
+        if (cloudData) {
+            links = cloudData;
+        }
+        renderLinks();
+    }).catch(() => {
+        renderLinks();
+    });
 };
 
