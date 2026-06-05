@@ -9,7 +9,9 @@
 <body>
 
     <!-- サイトのメインタイトル -->
-    <h1>tetsudo-site</h1>
+    <header class="site-header">
+        <h1>tetsudo-site</h1>
+    </header>
 
     <!-- スマホ用：3本線メニューボタン -->
     <button class="hamburger" id="hamburger-btn">
@@ -65,21 +67,27 @@
         <!-- 設定タブ -->
         <div id="settings" class="tab-content">
             <div class="settings-panel">
-                <h3>管理者・同期設定</h3>
+                <h3>同期と管理</h3>
                 
                 <div class="settings-section">
-                    <h4>データの同期</h4>
-                    <div class="admin-actions">
-                        <button class="btn btn-load">クラウドから読込 (受信)</button>
-                        <button class="btn btn-primary btn-save">クラウドに保存 (送信)</button>
+                    <div class="admin-actions-vertical">
+                        <!-- クラウドから読込ボタン -->
+                        <button class="btn btn-load btn-green-cloud">クラウドから読込 (受信)</button>
+                        
+                        <!-- 変更点：元サイトと同じスタイルのPassword入力欄 -->
+                        <div class="password-box-wrapper" id="password-wrapper">
+                            <input type="password" id="admin-password-input" placeholder="Password">
+                        </div>
+                        
+                        <!-- ロック解除ボタン -->
+                        <button class="btn btn-primary btn-blue-lock" id="auth-btn">ロック解除</button>
                     </div>
                 </div>
 
-                <div class="settings-section">
-                    <h4>管理者機能</h4>
-                    <p id="lock-status">ステータス: ロック中（閲覧専用）</p>
-                    <div class="admin-actions" style="margin-top: 10px;">
-                        <button class="btn btn-auth" id="auth-btn">パスワード入力で解除</button>
+                <div class="settings-section" style="border-top: none; padding-top: 0;">
+                    <p id="lock-status" style="text-align: center; margin-bottom: 10px;">ステータス: ロック中（閲覧専用）</p>
+                    <div class="admin-actions-vertical">
+                        <button class="btn btn-primary btn-save" style="background-color: #6c757d;">クラウドに保存 (送信)</button>
                     </div>
                 </div>
 
@@ -115,6 +123,11 @@
 
     </div>
 
+    <!-- Firebase SDK の読み込み -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+    <!-- メインプログラム -->
     <script src="app.js"></script>
 </body>
 </html>
+
