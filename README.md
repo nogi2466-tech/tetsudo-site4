@@ -8,17 +8,18 @@
 </head>
 <body>
 
-    <!-- サイトのメインタイトル -->
+    <!-- サイトのメインタイトル（青いヘッダーエリアの中に3本線ボタンを配置） -->
     <header class="site-header">
-        <h1>tetsudo-site</h1>
+        <div class="header-container">
+            <h1>tetsudo-site</h1>
+            <!-- スマホ用：3本線メニューボタン（タイトルの右隣に配置） -->
+            <button class="hamburger" id="hamburger-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
     </header>
-
-    <!-- スマホ用：3本線メニューボタン -->
-    <button class="hamburger" id="hamburger-btn">
-        <span></span>
-        <span></span>
-        <span></span>
-    </button>
 
     <!-- タブナビゲーション（メニューバー：個別色分け） -->
     <div class="tabs" id="menu-tabs">
@@ -71,15 +72,12 @@
                 
                 <div class="settings-section">
                     <div class="admin-actions-vertical">
-                        <!-- クラウドから読込ボタン -->
                         <button class="btn btn-load btn-green-cloud">クラウドから読込 (受信)</button>
                         
-                        <!-- 変更点：元サイトと同じスタイルのPassword入力欄 -->
                         <div class="password-box-wrapper" id="password-wrapper">
                             <input type="password" id="admin-password-input" placeholder="Password">
                         </div>
                         
-                        <!-- ロック解除ボタン -->
                         <button class="btn btn-primary btn-blue-lock" id="auth-btn">ロック解除</button>
                     </div>
                 </div>
@@ -123,10 +121,9 @@
 
     </div>
 
-    <!-- Firebase SDK の読み込み -->
+    <!-- Firebase SDK -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
-    <!-- メインプログラム -->
     <script src="app.js"></script>
 </body>
 </html>
