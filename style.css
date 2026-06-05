@@ -15,7 +15,6 @@ body {
     line-height: 1.5;
 }
 
-/* 変更：ヘッダーの中に横並び用の枠を設置 */
 .site-header {
     background-color: #007bff;
     padding: 20px 15px;
@@ -27,9 +26,9 @@ body {
     max-width: 650px;
     margin: 0 auto;
     display: flex;
-    justify-content: center; /* 通常は中央配置 */
+    justify-content: center;
     align-items: center;
-    position: relative; /* ボタンの絶対配置の基準にする */
+    position: relative;
 }
 
 .site-header h1 {
@@ -105,10 +104,10 @@ body {
 }
 
 /* ==========================================================================
-   3. スマホ用：3本線（ハンバーガー）ボタンをタイトルの右隣へ固定
+   3. スマホ用：3本線（ハンバーガー）ボタン
    ========================================================================== */
 .hamburger {
-    display: none; /* PCでは表示しない */
+    display: none;
     flex-direction: column;
     justify-content: space-between;
     width: 30px;
@@ -117,11 +116,10 @@ body {
     border: none;
     cursor: pointer;
     position: absolute;
-    right: 10px; /* ヘッダーの右端に固定 */
-    z-index: 9999; /* 他の要素より確実に手前に出す */
+    right: 10px;
+    z-index: 9999;
 }
 
-/* 青い背景で見えやすいよう、3本線の色を「白」に変更 */
 .hamburger span {
     width: 100%;
     height: 3px;
@@ -130,13 +128,12 @@ body {
     transition: all 0.3s ease;
 }
 
-/* ボタンを押したときの×印アニメーション */
 .hamburger.open span:nth-child(1) { transform: translateY(9px) rotate(45deg); }
 .hamburger.open span:nth-child(2) { opacity: 0; }
 .hamburger.open span:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
 
 /* ==========================================================================
-   4. タブナビゲーション (メニューバーの個別色分け)
+   4. タブナビゲーション (PC時：横並び)
    ========================================================================== */
 .tabs {
     display: flex;
@@ -254,37 +251,69 @@ body {
     color: #ff4d4d;
 }
 
+/* 背景を暗くするマスクレイヤー（JavaScriptで動的に追加） */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9997;
+    display: none;
+}
+.menu-overlay.open {
+    display: block;
+}
+
 /* ==========================================================================
-   6. スマートフォン向けレイアウト (画面幅767px以下)
+   6. スマートフォン向けレイアウト (変更点：画面の「左」から出てくる構造)
    ========================================================================== */
 @media (max-width: 767px) {
     .hamburger { 
-        display: flex; /* スマホのみヘッダー右側に表示 */
+        display: flex; 
     }
     
-    /* タイトルの配置をスマホ時は少し左に寄せてバランスを取る */
     .header-container {
         justify-content: flex-start;
         padding-left: 10px;
     }
 
+    /* メニューバーを左側の画面外に配置するドロワー型に変更 */
     .tabs {
-        display: none;
+        display: flex; /* 常時flexにしておく */
         flex-direction: column;
         background-color: #ffffff;
-        border: 1px solid #dddddd;
-        border-radius: 8px;
-        padding: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        border: none;
+        border-radius: 0;
+        box-shadow: 4px 0 12px rgba(0,0,0,0.15);
+        
+        position: fixed;
+        top: 0;
+        left: -280px; /* 普段は左側の画面外に隠す */
+        width: 260px; /* メニューの幅 */
+        height: 100vh; /* 縦いっぱいに広げる */
+        z-index: 9998; /* 最前面エリアに配置 */
+        padding: 60px 10px 20px 10px; /* 上部に少し余白 */
+        margin: 0;
+        
+        transition: left 0.3s ease; /* スッと左から出てくるアニメーション */
     }
-    .tabs.open { display: flex; }
+
+    /* 3本線ボタンが押されたら、左端を0にして画面内に出す */
+    .tabs.open {
+        left: 0;
+    }
+
     .tab-btn {
         width: 100%;
         text-align: left;
-        padding: 12px 16px;
+        padding: 14px 16px;
+        font-size: 16px;
         border-bottom: none;
-        border-left: 3px solid transparent;
+        border-left: 4px solid transparent;
     }
+
     .tab-all.active { border-left-color: #007bff; background-color: #f0f7ff; }
     .tab-keio.active { border-left-color: #dd0077; background-color: #fff0f5; }
     .tab-jr.active { border-left-color: #009933; background-color: #f0fdf4; }
