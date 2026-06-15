@@ -109,6 +109,14 @@
       color: #9ca3af;
       font-size: 11px;
     }
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -117,6 +125,18 @@
 
   <div class="layout">
     <div class="card">
+      <h2>検索・条件</h2>
+
+      <div class="toolbar">
+        <div>
+          <label for="directionSelect">方向</label>
+          <select id="directionSelect">
+            <option value="down">下り（土休日）</option>
+            <option value="up">上り（土休日）</option>
+          </select>
+        </div>
+      </div>
+
       <h2>列車番号で検索</h2>
       <div class="field-row">
         <div class="field">
@@ -158,7 +178,9 @@
       "京王片倉","山田","めじろ台","狭間","高尾","高尾山口"
     ];
 
-    let TRAINS = {};
+    // direction: "down" | "up"
+    let TRAINS = { down: {}, up: {} };
+    let currentDirection = "down";
 
     function typeClass(type) {
       if (!type) return "badge";
@@ -168,41 +190,59 @@
       return "badge";
     }
 
-    function parseCsv(text) {
+    // OuDia 対応パーサー（mode: "down" or "up"）
+    function parseCsv(text, mode) {
       const rows = text.split(/\r?\n/).map(r => r.split(","));
-      const headerIndex = rows.findIndex(r => r[0] === "線名" && r[1] === "列車番号");
-      if (headerIndex === -1) return {};
+
+      // 「線名,列車番号」を全部探す（下りと上りで2回出てくる）
+      const headerIndexes = [];
+      rows.forEach((r, i) => {
+        if (r[0] === "線名" && r[1] === "列車番号") headerIndexes.push(i);
+      });
+      if (headerIndexes.length === 0) return {};
+
+      const headerIndex = mode === "up"
+        ? (headerIndexes[1] ?? headerIndexes[0])
+        : headerIndexes[0];
 
       const trainNoRow = rows[headerIndex];
       const typeRow = rows[headerIndex + 1] || [];
-      const trains = {};
 
-      for (let c = 3; c < trainNoRow.length; c++) {
-        const no = trainNoRow[c].trim();
+      // 列車番号の列位置を取得
+      const trainCols = [];
+      for (let c = 0; c < trainNoRow.length; c++) {
+        const no = (trainNoRow[c] || "").trim();
         if (!no) continue;
-        trains[no] = {
-          type: (typeRow[c] || "").trim(),
-          stops: {}
-        };
+        // 数字だけの列車番号を対象
+        if (!/^\d+$/.test(no)) continue;
+        trainCols.push({ col: c, no });
       }
 
-      for (let r = headerIndex + 1; r < rows.length; r++) {
+      const trains = {};
+      trainCols.forEach(t => {
+        trains[t.no] = {
+          type: (typeRow[t.col] || "").trim(),
+          stops: {}
+        };
+      });
+
+      // 駅名行を STATIONS から判定して時刻を読む
+      for (let r = headerIndex + 2; r < rows.length; r++) {
         const row = rows[r];
         if (!row || row.length === 0) continue;
 
-        let station = null;
-        if (STATIONS.includes(row[0])) station = row[0];
-        else if (STATIONS.includes(row[1])) station = row[1];
-        if (!station) continue;
+        const station = row[1] && row[1].trim();
+        if (!STATIONS.includes(station)) continue;
 
-        for (let c = 3; c < row.length; c++) {
-          const no = trainNoRow[c] && trainNoRow[c].trim();
-          if (!no || !trains[no]) continue;
-          const v = (row[c] || "").trim();
-          if (!v) continue;
-          if (v === "ﾚ" || v === "||" || v.includes("以下")) continue;
-          trains[no].stops[station] = v;
-        }
+        trainCols.forEach(t => {
+          const raw = row[t.col] ? row[t.col].trim() : "";
+
+          if (!raw) return;
+          if (raw === "ﾚ" || raw === "||") return;
+          if (raw.includes("以下")) return;
+
+          trains[t.no].stops[station] = raw;
+        });
       }
 
       return trains;
@@ -210,7 +250,8 @@
 
     function renderTimetable() {
       const area = document.getElementById("timetableArea");
-      const trainNos = Object.keys(TRAINS).sort((a,b) => a.localeCompare(b, "ja"));
+      const trainsObj = TRAINS[currentDirection];
+      const trainNos = Object.keys(trainsObj).sort((a,b) => a.localeCompare(b, "ja"));
 
       if (trainNos.length === 0) {
         area.textContent = "列車データがありません。";
@@ -222,7 +263,7 @@
       html += "</tr></thead><tbody>";
 
       trainNos.forEach(no => {
-        const t = TRAINS[no];
+        const t = trainsObj[no];
         html += `<tr><td>${no}</td><td><span class="${typeClass(t.type)}">${t.type || ""}</span></td>`;
         STATIONS.forEach(st => {
           html += `<td>${t.stops[st] || ""}</td>`;
@@ -236,7 +277,7 @@
 
     function renderTrainDetail(trainNo) {
       const box = document.getElementById("trainDetail");
-      const t = TRAINS[trainNo];
+      const t = TRAINS[currentDirection][trainNo];
       if (!t) {
         box.innerHTML = `<span class="muted">列車 ${trainNo} は見つかりませんでした。</span>`;
         return;
@@ -255,9 +296,10 @@
 
     function renderStationDepartures(station) {
       const box = document.getElementById("stationDepartures");
+      const trainsObj = TRAINS[currentDirection];
       const rows = [];
 
-      Object.entries(TRAINS).forEach(([no, t]) => {
+      Object.entries(trainsObj).forEach(([no, t]) => {
         const time = t.stops[station];
         if (time) rows.push({ no, type: t.type, time });
       });
@@ -269,7 +311,7 @@
         return;
       }
 
-      let html = `<div><strong>${station}</strong> 発車時刻</div>`;
+      let html = `<div><strong>${station}</strong> 発車時刻（${currentDirection === "down" ? "下り" : "上り"}）</div>`;
       html += "<table style='margin-top:4px;'><tr><th>時刻</th><th>列車</th><th>種別</th></tr>";
       rows.forEach(r => {
         html += `<tr><td>${r.time}</td><td>${r.no}</td><td>${r.type}</td></tr>`;
@@ -289,6 +331,15 @@
       renderStationDepartures(st);
     });
 
+    document.getElementById("directionSelect").addEventListener("change", (e) => {
+      currentDirection = e.target.value;
+      renderTimetable();
+      // 駅別・列車詳細は一旦リセット
+      document.getElementById("trainDetail").textContent =
+        "列車番号を入力して検索してください。";
+      document.getElementById("stationDepartures").textContent = "";
+    });
+
     const stationSelect = document.getElementById("stationSelect");
     STATIONS.forEach(st => {
       const opt = document.createElement("option");
@@ -301,7 +352,8 @@
       try {
         const res = await fetch(CSV_URL);
         const text = await res.text();
-        TRAINS = parseCsv(text);
+        TRAINS.down = parseCsv(text, "down");
+        TRAINS.up   = parseCsv(text, "up");
         renderTimetable();
       } catch (e) {
         console.error(e);
