@@ -1,129 +1,314 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tetsudo-site</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>京王線・高尾線 時刻表（土休日）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 20px;
+    }
+    h2 {
+      margin: 16px 0 8px;
+      font-size: 16px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .card {
+      background: #020617;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid #1f2937;
+    }
+    label {
+      font-size: 12px;
+      color: #9ca3af;
+      display: block;
+      margin-bottom: 4px;
+    }
+    input, select, button {
+      font-size: 13px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: #22c55e;
+    }
+    button {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      color: #022c22;
+    }
+    button:active {
+      transform: translateY(1px);
+    }
+    .field-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .field {
+      min-width: 140px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      border: 1px solid #1f2937;
+      padding: 4px 6px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    th {
+      background: #020617;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .scroll-x {
+      overflow-x: auto;
+      max-height: 420px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 10px;
+      background: #1d4ed8;
+      color: #e5e7eb;
+    }
+    .type-local { background:#4b5563; }
+    .type-exp { background:#16a34a; }
+    .type-ltd { background:#eab308; color:#111827; }
+    .muted {
+      color: #9ca3af;
+      font-size: 11px;
+    }
+  </style>
 </head>
 <body>
+  <h1>京王線・高尾線 時刻表（土休日）</h1>
+  <div class="muted">Googleシートから自動読み込み / 列車番号検索 / 駅別発車時刻 / 全体時刻表</div>
 
-    <!-- サイトのメインタイトル（青いヘッダーエリアの中に3本線ボタンを配置） -->
-    <header class="site-header">
-        <div class="header-container">
-            <h1>tetsudo-site</h1>
-            <!-- スマホ用：3本線メニューボタン（タイトルの右隣に配置） -->
-            <button class="hamburger" id="hamburger-btn">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
+  <div class="layout">
+    <div class="card">
+      <h2>列車番号で検索</h2>
+      <div class="field-row">
+        <div class="field">
+          <label for="trainNoInput">列車番号</label>
+          <input id="trainNoInput" placeholder="例: 5119">
         </div>
-    </header>
+        <button id="searchTrainBtn">検索</button>
+      </div>
+      <div id="trainDetail" class="muted" style="margin-top:8px;">列車番号を入力して検索してください。</div>
 
-    <!-- タブナビゲーション（メニューバー：個別色分け） -->
-    <div class="tabs" id="menu-tabs">
-        <button class="tab-btn tab-all active" onclick="openTab(event, 'all')">すべて</button>
-        <button class="tab-btn tab-keio" onclick="openTab(event, 'keio')">京王</button>
-        <button class="tab-btn tab-jr" onclick="openTab(event, 'jr')">JR</button>
-        <button class="tab-btn tab-shitetsu" onclick="openTab(event, 'shitetsu')">大手私鉄</button>
-        <button class="tab-btn tab-documents" onclick="openTab(event, 'documents')">資料</button>
-        <button class="tab-btn tab-other" onclick="openTab(event, 'other')">その他</button>
-        <button class="tab-btn tab-settings" onclick="openTab(event, 'settings')">設定</button>
+      <h2 style="margin-top:20px;">駅別発車時刻</h2>
+      <div class="field-row">
+        <div class="field">
+          <label for="stationSelect">駅を選択</label>
+          <select id="stationSelect"></select>
+        </div>
+        <button id="showStationBtn">表示</button>
+      </div>
+      <div id="stationDepartures" style="margin-top:8px;"></div>
     </div>
 
-    <!-- リンク一覧を表示するコンテナ -->
-    <div class="link-container">
-        
-        <!-- すべて -->
-        <div id="all" class="tab-content active">
-            <ul class="link-list"></ul>
-        </div>
-
-        <!-- 京王 -->
-        <div id="keio" class="tab-content">
-            <ul class="link-list"></ul>
-        </div>
-
-        <!-- JR -->
-        <div id="jr" class="tab-content">
-            <ul class="link-list"></ul>
-        </div>
-
-        <!-- 大手私鉄 -->
-        <div id="shitetsu" class="tab-content">
-            <ul class="link-list"></ul>
-        </div>
-
-        <!-- 資料 -->
-        <div id="documents" class="tab-content">
-            <ul class="link-list"></ul>
-        </div>
-
-        <!-- その他 -->
-        <div id="other" class="tab-content">
-            <ul class="link-list"></ul>
-        </div>
-
-        <!-- 設定タブ -->
-        <div id="settings" class="tab-content">
-            <div class="settings-panel">
-                <h3>同期と管理</h3>
-                
-                <div class="settings-section">
-                    <div class="admin-actions-vertical">
-                        <button class="btn btn-load btn-green-cloud">クラウドから読込 (受信)</button>
-                        
-                        <div class="password-box-wrapper" id="password-wrapper">
-                            <input type="password" id="admin-password-input" placeholder="Password">
-                        </div>
-                        
-                        <button class="btn btn-primary btn-blue-lock" id="auth-btn">ロック解除</button>
-                    </div>
-                </div>
-
-                <div class="settings-section" style="border-top: none; padding-top: 0;">
-                    <p id="lock-status" style="text-align: center; margin-bottom: 10px;">ステータス: ロック中（閲覧専用）</p>
-                    <div class="admin-actions-vertical">
-                        <button class="btn btn-primary btn-save" style="background-color: #6c757d;">クラウドに保存 (送信)</button>
-                    </div>
-                </div>
-
-                <!-- URL追加フォーム -->
-                <div class="settings-section" id="add-form-wrapper" style="display: none;">
-                    <h4>URLの追加フォーム</h4>
-                    <div class="form-group">
-                        <label for="form-category">メニューバー選択 (カテゴリ)</label>
-                        <select id="form-category">
-                            <option value="keio">京王</option>
-                            <option value="jr">JR</option>
-                            <option value="shitetsu">大手私鉄</option>
-                            <option value="documents">資料</option>
-                            <option value="other">その他</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="form-title">タイトル</label>
-                        <input type="text" id="form-title" placeholder="例: 京王電鉄 公式サイト">
-                    </div>
-                    <div class="form-group">
-                        <label for="form-url">URL</label>
-                        <input type="text" id="form-url" placeholder="例: https://keio.co.jp">
-                    </div>
-                    <div class="form-group">
-                        <label for="form-detail">詳細（説明文）</label>
-                        <textarea id="form-detail" rows="3" placeholder="サイトの説明やメモを入力してください（省略可）"></textarea>
-                    </div>
-                    <button class="btn btn-primary" id="add-btn" style="width: 100%; margin-top: 10px;">この内容でリストに追加</button>
-                </div>
-            </div>
-        </div>
-
+    <div class="card">
+      <h2>全列車一覧</h2>
+      <div class="scroll-x" id="timetableArea">
+        読み込み中…
+      </div>
     </div>
+  </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
-    <script src="app.js"></script>
+  <script>
+    const CSV_URL =
+      "https://docs.google.com/spreadsheets/d/1EyCyghvrLeOQJcP6LINLvR95v0WOsv29oCXbPe3-L-g/export?format=csv&gid=1457124033";
+
+    const STATIONS = [
+      "新宿","初台","幡ヶ谷","笹塚","代田橋","明大前","下高井戸","桜上水","上北沢","八幡山",
+      "芦花公園","千歳烏山","仙川","つつじヶ丘","柴崎","国領","布田","調布","西調布","飛田給",
+      "武蔵野台","多磨霊園","東府中","府中","分倍河原","中河原","聖蹟桜ヶ丘","百草園","高幡不動",
+      "南平","平山城址公園","長沼","北野","京王八王子",
+      "京王片倉","山田","めじろ台","狭間","高尾","高尾山口"
+    ];
+
+    let TRAINS = {};
+
+    function typeClass(type) {
+      if (!type) return "badge";
+      if (type.includes("各停")) return "badge type-local";
+      if (type.includes("特急")) return "badge type-ltd";
+      if (type.includes("急行") || type.includes("区急") || type.includes("快速")) return "badge type-exp";
+      return "badge";
+    }
+
+    function parseCsv(text) {
+      const rows = text.split(/\r?\n/).map(r => r.split(","));
+      const headerIndex = rows.findIndex(r => r[0] === "線名" && r[1] === "列車番号");
+      if (headerIndex === -1) return {};
+
+      const trainNoRow = rows[headerIndex];
+      const typeRow = rows[headerIndex + 1] || [];
+      const trains = {};
+
+      for (let c = 3; c < trainNoRow.length; c++) {
+        const no = trainNoRow[c].trim();
+        if (!no) continue;
+        trains[no] = {
+          type: (typeRow[c] || "").trim(),
+          stops: {}
+        };
+      }
+
+      for (let r = headerIndex + 1; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row || row.length === 0) continue;
+
+        let station = null;
+        if (STATIONS.includes(row[0])) station = row[0];
+        else if (STATIONS.includes(row[1])) station = row[1];
+        if (!station) continue;
+
+        for (let c = 3; c < row.length; c++) {
+          const no = trainNoRow[c] && trainNoRow[c].trim();
+          if (!no || !trains[no]) continue;
+          const v = (row[c] || "").trim();
+          if (!v) continue;
+          if (v === "ﾚ" || v === "||" || v.includes("以下")) continue;
+          trains[no].stops[station] = v;
+        }
+      }
+
+      return trains;
+    }
+
+    function renderTimetable() {
+      const area = document.getElementById("timetableArea");
+      const trainNos = Object.keys(TRAINS).sort((a,b) => a.localeCompare(b, "ja"));
+
+      if (trainNos.length === 0) {
+        area.textContent = "列車データがありません。";
+        return;
+      }
+
+      let html = "<table><thead><tr><th>列車</th><th>種別</th>";
+      STATIONS.forEach(st => html += `<th>${st}</th>`);
+      html += "</tr></thead><tbody>";
+
+      trainNos.forEach(no => {
+        const t = TRAINS[no];
+        html += `<tr><td>${no}</td><td><span class="${typeClass(t.type)}">${t.type || ""}</span></td>`;
+        STATIONS.forEach(st => {
+          html += `<td>${t.stops[st] || ""}</td>`;
+        });
+        html += "</tr>";
+      });
+
+      html += "</tbody></table>";
+      area.innerHTML = html;
+    }
+
+    function renderTrainDetail(trainNo) {
+      const box = document.getElementById("trainDetail");
+      const t = TRAINS[trainNo];
+      if (!t) {
+        box.innerHTML = `<span class="muted">列車 ${trainNo} は見つかりませんでした。</span>`;
+        return;
+      }
+      let html = `<div><strong>列車番号：</strong>${trainNo}</div>`;
+      html += `<div><strong>種別：</strong>${t.type || ""}</div>`;
+      html += "<table style='margin-top:8px;'><tr><th>駅</th><th>時刻</th></tr>";
+      STATIONS.forEach(st => {
+        if (t.stops[st]) {
+          html += `<tr><td>${st}</td><td>${t.stops[st]}</td></tr>`;
+        }
+      });
+      html += "</table>";
+      box.innerHTML = html;
+    }
+
+    function renderStationDepartures(station) {
+      const box = document.getElementById("stationDepartures");
+      const rows = [];
+
+      Object.entries(TRAINS).forEach(([no, t]) => {
+        const time = t.stops[station];
+        if (time) rows.push({ no, type: t.type, time });
+      });
+
+      rows.sort((a,b) => a.time.localeCompare(b.time));
+
+      if (rows.length === 0) {
+        box.innerHTML = `<span class="muted">${station} 発の列車はありません。</span>`;
+        return;
+      }
+
+      let html = `<div><strong>${station}</strong> 発車時刻</div>`;
+      html += "<table style='margin-top:4px;'><tr><th>時刻</th><th>列車</th><th>種別</th></tr>";
+      rows.forEach(r => {
+        html += `<tr><td>${r.time}</td><td>${r.no}</td><td>${r.type}</td></tr>`;
+      });
+      html += "</table>";
+      box.innerHTML = html;
+    }
+
+    document.getElementById("searchTrainBtn").addEventListener("click", () => {
+      const no = document.getElementById("trainNoInput").value.trim();
+      if (!no) return;
+      renderTrainDetail(no);
+    });
+
+    document.getElementById("showStationBtn").addEventListener("click", () => {
+      const st = document.getElementById("stationSelect").value;
+      renderStationDepartures(st);
+    });
+
+    const stationSelect = document.getElementById("stationSelect");
+    STATIONS.forEach(st => {
+      const opt = document.createElement("option");
+      opt.value = st;
+      opt.textContent = st;
+      stationSelect.appendChild(opt);
+    });
+
+    (async () => {
+      try {
+        const res = await fetch(CSV_URL);
+        const text = await res.text();
+        TRAINS = parseCsv(text);
+        renderTimetable();
+      } catch (e) {
+        console.error(e);
+        document.getElementById("timetableArea").textContent =
+          "Googleシート（CSV）の読み込みに失敗しました。公開設定とURLを確認してください。";
+      }
+    })();
+  </script>
 </body>
 </html>
