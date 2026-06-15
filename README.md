@@ -74,8 +74,25 @@
       min-width: 140px;
     }
     .scroll-x {
-      overflow-y: auto;
+      overflow-x: auto;
       max-height: 80vh;
+    }
+    table {
+      width: max-content;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      border: 1px solid #1f2937;
+      padding: 4px 6px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    th {
+      background: #0b1220;
+      position: sticky;
+      top: 0;
+      z-index: 1;
     }
     .badge {
       display: inline-block;
@@ -96,7 +113,7 @@
 </head>
 <body>
   <h1>京王線・高尾線 時刻表（土休日）</h1>
-  <div class="muted">Googleシートから自動読み込み / 列車番号検索 / 駅別発車時刻 / 全列車一覧（縦）</div>
+  <div class="muted">列車番号検索 / 駅別発車時刻 / 全列車一覧（縦・横） / 下り・上り切替</div>
 
   <div class="layout">
     <div class="card">
@@ -106,6 +123,12 @@
       <select id="directionSelect">
         <option value="down">下り（土休日）</option>
         <option value="up">上り（土休日）</option>
+      </select>
+
+      <label for="viewSelect" style="margin-top:12px;">表示形式</label>
+      <select id="viewSelect">
+        <option value="vertical">縦（1列車ずつ）</option>
+        <option value="horizontal">横（駅 × 列車）</option>
       </select>
 
       <h2>列車番号で検索</h2>
@@ -130,10 +153,8 @@
     </div>
 
     <div class="card">
-      <h2>全列車一覧（縦）</h2>
-      <div class="scroll-x" id="timetableArea">
-        読み込み中…
-      </div>
+      <h2>全列車一覧</h2>
+      <div id="timetableArea" class="scroll-x">読み込み中…</div>
     </div>
   </div>
 
@@ -141,13 +162,15 @@
     const CSV_URL =
       "https://docs.google.com/spreadsheets/d/1EyCyghvrLeOQJcP6LINLvR95v0WOsv29oCXbPe3-L-g/export?format=csv&gid=1457124033";
 
-    const STATIONS = [
+    const STATIONS_DOWN = [
       "新宿","初台","幡ヶ谷","笹塚","代田橋","明大前","下高井戸","桜上水","上北沢","八幡山",
       "芦花公園","千歳烏山","仙川","つつじヶ丘","柴崎","国領","布田","調布","西調布","飛田給",
       "武蔵野台","多磨霊園","東府中","府中","分倍河原","中河原","聖蹟桜ヶ丘","百草園","高幡不動",
       "南平","平山城址公園","長沼","北野","京王八王子",
       "京王片倉","山田","めじろ台","狭間","高尾","高尾山口"
     ];
+
+    const STATIONS_UP = [...STATIONS_DOWN].reverse();
 
     let TRAINS = { down: {}, up: {} };
     let currentDirection = "down";
@@ -189,10 +212,12 @@
         };
       });
 
+      const ST = mode === "down" ? STATIONS_DOWN : STATIONS_UP;
+
       for (let r = headerIndex + 2; r < rows.length; r++) {
         const row = rows[r];
         const station = row[1] && row[1].trim();
-        if (!STATIONS.includes(station)) continue;
+        if (!ST.includes(station)) continue;
 
         trainCols.forEach(t => {
           const raw = row[t.col] ? row[t.col].trim() : "";
@@ -208,6 +233,7 @@
       const area = document.getElementById("timetableArea");
       const trainsObj = TRAINS[currentDirection];
       const trainNos = Object.keys(trainsObj).sort((a,b) => a.localeCompare(b, "ja"));
+      const ST = currentDirection === "down" ? STATIONS_DOWN : STATIONS_UP;
 
       let html = "";
       trainNos.forEach(no => {
@@ -221,7 +247,7 @@
             <table style="width:100%; font-size:12px;">
               <tr><th>駅</th><th>時刻</th></tr>
         `;
-        STATIONS.forEach(st => {
+        ST.forEach(st => {
           if (t.stops[st]) {
             html += `<tr><td>${st}</td><td>${t.stops[st]}</td></tr>`;
           }
@@ -232,19 +258,48 @@
       area.innerHTML = html;
     }
 
+    function renderTimetableHorizontal() {
+      const area = document.getElementById("timetableArea");
+      const trainsObj = TRAINS[currentDirection];
+      const trainNos = Object.keys(trainsObj).sort((a,b) => a.localeCompare(b, "ja"));
+      const ST = currentDirection === "down" ? STATIONS_DOWN : STATIONS_UP;
+
+      let html = "<table><thead><tr><th>駅</th>";
+      trainNos.forEach(no => {
+        html += `<th>${no}<br><span class="${typeClass(trainsObj[no].type)}">${trainsObj[no].type}</span></th>`;
+      });
+      html += "</tr></thead><tbody>";
+
+      ST.forEach(st => {
+        html += `<tr><td>${st}</td>`;
+        trainNos.forEach(no => {
+          html += `<td>${trainsObj[no].stops[st] || ""}</td>`;
+        });
+        html += "</tr>";
+      });
+
+      html += "</tbody></table>";
+      area.innerHTML = html;
+    }
+
     function renderTrainDetail(trainNo) {
       const box = document.getElementById("trainDetail");
       const t = TRAINS[currentDirection][trainNo];
+      const ST = currentDirection === "down" ? STATIONS_DOWN : STATIONS_UP;
+
       if (!t) {
         box.innerHTML = `<span class="muted">列車 ${trainNo} は見つかりませんでした。</span>`;
         return;
       }
+
       let html = `<div><strong>列車番号：</strong>${trainNo}</div>`;
       html += `<div><strong>種別：</strong>${t.type || ""}</div>`;
       html += "<table style='margin-top:8px;'><tr><th>駅</th><th>時刻</th></tr>";
-      STATIONS.forEach(st => {
+
+      ST.forEach(st => {
         if (t.stops[st]) html += `<tr><td>${st}</td><td>${t.stops[st]}</td></tr>`;
       });
+
       html += "</table>";
       box.innerHTML = html;
     }
@@ -283,14 +338,22 @@
 
     document.getElementById("directionSelect").addEventListener("change", (e) => {
       currentDirection = e.target.value;
-      renderTimetableVertical();
+      const mode = document.getElementById("viewSelect").value;
+      if (mode === "horizontal") renderTimetableHorizontal();
+      else renderTimetableVertical();
       document.getElementById("trainDetail").textContent =
         "列車番号を入力して検索してください。";
       document.getElementById("stationDepartures").textContent = "";
     });
 
+    document.getElementById("viewSelect").addEventListener("change", (e) => {
+      const mode = e.target.value;
+      if (mode === "horizontal") renderTimetableHorizontal();
+      else renderTimetableVertical();
+    });
+
     const stationSelect = document.getElementById("stationSelect");
-    STATIONS.forEach(st => {
+    STATIONS_DOWN.forEach(st => {
       const opt = document.createElement("option");
       opt.value = st;
       opt.textContent = st;
