@@ -27,34 +27,6 @@
       border: 1px solid #1f2937;
       max-width: 640px;
     }
-    label {
-      font-size: 12px;
-      color: #9ca3af;
-      display: block;
-      margin-bottom: 4px;
-    }
-    input, button {
-      font-size: 13px;
-      padding: 6px 8px;
-      border-radius: 8px;
-      border: 1px solid #374151;
-      background: #020617;
-      color: #e5e7eb;
-      outline: none;
-    }
-    input:focus {
-      border-color: #22c55e;
-    }
-    button {
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      color: #022c22;
-    }
-    button:active {
-      transform: translateY(1px);
-    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -77,44 +49,29 @@
       color: #9ca3af;
       font-size: 11px;
     }
-    .field-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      margin-bottom: 8px;
-    }
-    .field {
-      min-width: 200px;
-    }
   </style>
 </head>
 <body>
   <h1>京王線 単独列車 時刻表ビューア</h1>
-  <div class="muted">縦1列CSV（駅,時刻）を読み込んで表示します。</div>
+  <div class="muted">Googleスプレッドシート（縦1列CSV）を自動読み込み</div>
 
   <div class="card" style="margin-top:12px;">
-    <h2>CSV 読み込み</h2>
-    <div class="field-row">
-      <div class="field">
-        <label for="csvUrlInput">CSV の URL</label>
-        <input id="csvUrlInput" placeholder="https://.../single_train.csv">
-      </div>
-      <button id="loadBtn">読み込み</button>
-    </div>
-    <div id="status" class="muted">縦1列のCSV（駅,時刻）を指定してください。</div>
-
-    <h2 style="margin-top:16px;">時刻表</h2>
-    <div id="timetableArea" class="muted">まだ読み込まれていません。</div>
+    <h2>時刻表</h2>
+    <div id="status" class="muted">読み込み中…</div>
+    <div id="timetableArea" style="margin-top:8px;"></div>
   </div>
 
   <script>
+    // ★ あなたの新しい縦1列CSVのURL（固定）
+    const CSV_URL =
+      "https://docs.google.com/spreadsheets/d/1EyCyghvrLeOQJcP6LINLvR95v0WOsv29oCXbPe3-L-g/export?format=csv&gid=1879850608";
+
     // 縦1列CSV（駅,時刻）専用パーサー
     function parseSingleTrainCsv(text) {
       const rows = text.split(/\r?\n/).map(r => r.split(","));
       const train = { stops: {} };
 
-      // 1行目がヘッダーっぽかったらスキップ（駅 or 駅名 が含まれる場合）
+      // 1行目がヘッダーならスキップ
       let startIndex = 0;
       if (rows[0] && rows[0][0] && rows[0][0].includes("駅")) {
         startIndex = 1;
@@ -154,21 +111,11 @@
       area.innerHTML = html;
     }
 
-    document.getElementById("loadBtn").addEventListener("click", async () => {
-      const url = document.getElementById("csvUrlInput").value.trim();
+    // ページ読み込み時に自動でCSVを読み込む
+    (async () => {
       const status = document.getElementById("status");
-      const area = document.getElementById("timetableArea");
-
-      if (!url) {
-        status.textContent = "CSV の URL を入力してください。";
-        return;
-      }
-
-      status.textContent = "読み込み中…";
-      area.textContent = "";
-
       try {
-        const res = await fetch(url);
+        const res = await fetch(CSV_URL);
         if (!res.ok) throw new Error("HTTP " + res.status);
         const text = await res.text();
         const train = parseSingleTrainCsv(text);
@@ -176,13 +123,9 @@
         status.textContent = "読み込み完了。";
       } catch (e) {
         console.error(e);
-        status.textContent = "読み込みに失敗しました。URL と公開設定を確認してください。";
-        area.textContent = "";
+        status.textContent = "読み込みに失敗しました。公開設定を確認してください。";
       }
-    });
-
-    // 開発中はここにデフォルトURLを入れておくと楽
-    // document.getElementById("csvUrlInput").value = "https://.../single_train.csv";
+    })();
   </script>
 </body>
 </html>
