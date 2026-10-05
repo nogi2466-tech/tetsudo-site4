@@ -84,7 +84,6 @@ header {
 #nav-material { background:var(--color-material); }
 #nav-data { background:var(--color-data); color:#000; }
 #nav-fav { background:var(--color-fav); }
-#nav-info { background:#0099ff; }
 #nav-settings { background:#444; }
 
 .nav button.active {
@@ -138,43 +137,6 @@ header {
   padding:16px;
   border-radius:12px;
   margin-bottom:16px;
-}
-
-.circle-tabs {
-  display:flex;
-  gap:10px;
-  justify-content:center;
-  flex-wrap:wrap;
-}
-
-.circle-tab {
-  border-radius:999px;
-  padding:8px 18px;
-  border:1px solid #555;
-  background:#222;
-  color:#eee;
-  cursor:pointer;
-  font-size:14px;
-}
-
-.circle-tab.active {
-  background:#0099ff;
-  border-color:#0099ff;
-}
-
-.weather-week {
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  justify-content:center;
-}
-
-.weather-day {
-  background:#222;
-  padding:10px;
-  border-radius:8px;
-  width:130px;
-  text-align:center;
 }
 
 .modal-bg {
@@ -237,7 +199,6 @@ textarea {
   <button id="nav-material" onclick="setCategory('材料')">材料</button>
   <button id="nav-data" onclick="setCategory('資料')">資料</button>
   <button id="nav-fav" onclick="setCategory('よく使う')">よく使う</button>
-  <button id="nav-info" onclick="showSection('info')">情報</button>
   <button id="nav-settings" onclick="showSection('settings')">設定</button>
 </div>
 
@@ -248,26 +209,6 @@ textarea {
          style="width:100%; padding:10px; margin-bottom:12px; border-radius:8px; border:none; font-size:16px;">
 
   <div id="urlList"></div>
-</section>
-
-<section id="section-info" class="section">
-  <div class="card">
-    <h3>天気情報（東京）</h3>
-    <div class="circle-tabs">
-      <button class="circle-tab active" data-tab="now" onclick="switchWeatherTab('now')">現在</button>
-      <button class="circle-tab" data-tab="today" onclick="switchWeatherTab('today')">今日</button>
-      <button class="circle-tab" data-tab="week" onclick="switchWeatherTab('week')">1週間</button>
-    </div>
-
-    <div id="weather-now">読み込み中...</div>
-    <div id="weather-today" style="display:none;">読み込み中...</div>
-    <div id="weather-week" style="display:none;">読み込み中...</div>
-  </div>
-
-  <div class="card">
-    <h3>現在時刻</h3>
-    <div id="datetime">読み込み中...</div>
-  </div>
 </section>
 
 <section id="section-settings" class="section">
@@ -368,10 +309,7 @@ window.showSection = function(name){
   document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
   document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
 
-  if(name==="info"){
-    document.getElementById("section-info").classList.add("active");
-    document.getElementById("nav-info").classList.add("active");
-  }else if(name==="settings"){
+  if(name==="settings"){
     document.getElementById("section-settings").classList.add("active");
     document.getElementById("nav-settings").classList.add("active");
   }else{
@@ -583,93 +521,6 @@ onValue(ref(db,"urlData"), snap=>{
   render();
 });
 
-/* 天気API */
-const weatherApiKey="d47572a1cd7e50746a614ef286b5375c";
-const lat=35.68, lon=139.76;
-
-/* 現在の天気 */
-async function loadCurrentWeather(){
-  const el=document.getElementById("weather-now");
-  try{
-    const r=await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${weatherApiKey}&lang=ja&units=metric`);
-    const d=await r.json();
-    el.innerHTML=`
-      <div style="text-align:center;">
-        <img src="https://openweathermap.org/img/wn/${d.weather[0].icon}@4x.png" width="80">
-        <div>${d.weather[0].description}</div>
-        <div>${d.main.temp}℃</div>
-      </div>`;
-  }catch{ el.textContent="失敗"; }
-}
-
-/* 今日の天気 */
-async function loadTodayWeather(){
-  const el=document.getElementById("weather-today");
-  try{
-    const r=await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${weatherApiKey}&lang=ja&units=metric`);
-    const d=await r.json();
-    const t=d.list[0];
-    el.innerHTML=`
-      <div style="text-align:center;">
-        <img src="https://openweathermap.org/img/wn/${t.weather[0].icon}@4x.png" width="80">
-        <div>${t.weather[0].description}</div>
-        <div>${t.main.temp}℃</div>
-      </div>`;
-  }catch{ el.textContent="失敗"; }
-}
-
-/* 1週間の天気 */
-async function loadWeeklyWeather(){
-  const el=document.getElementById("weather-week");
-  try{
-    const r=await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${weatherApiKey}&lang=ja&units=metric`);
-    const d=await r.json();
-
-    const wrap=document.createElement("div");
-    wrap.className="weather-week";
-
-    for(let i=0;i<7;i++){
-      const day=d.list[i];
-      const dt=new Date(day.dt*1000);
-      const label=`${dt.getMonth()+1}/${dt.getDate()}`;
-
-      const box=document.createElement("div");
-      box.className="weather-day";
-      box.innerHTML=`
-        <div>${label}</div>
-        <img src="https://openweathermap.org/img/wn/${day.weather[0].icon}.png" width="40">
-        <div>${day.weather[0].description}</div>
-        <div>${day.main.temp}℃</div>
-      `;
-      wrap.appendChild(box);
-    }
-
-    el.innerHTML="";
-    el.appendChild(wrap);
-  }catch{ el.textContent="失敗"; }
-}
-
-/* 天気タブ切り替え */
-window.switchWeatherTab = function(tab){
-  document.querySelectorAll(".circle-tab").forEach(b=>{
-    b.classList.toggle("active", b.dataset.tab===tab);
-  });
-
-  document.getElementById("weather-now").style.display = tab==="now"?"block":"none";
-  document.getElementById("weather-today").style.display = tab==="today"?"block":"none";
-  document.getElementById("weather-week").style.display = tab==="week"?"block":"none";
-};
-
-/* 時計 */
-function startClock(){
-  setInterval(()=>{
-    const now=new Date();
-    document.getElementById("datetime").textContent=
-      `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 `
-      +`${now.getHours()}時${String(now.getMinutes()).padStart(2,"0")}分${String(now.getSeconds()).padStart(2,"0")}秒`;
-  },1000);
-}
-
 /* テーマ切り替え */
 window.toggleTheme = function(){
   document.body.classList.toggle("light");
@@ -683,10 +534,6 @@ if(localStorage.getItem("theme")==="light"){
 /* 初期化 */
 signInAnonymously(auth).then(()=>cloudLoad());
 render();
-startClock();
-loadCurrentWeather();
-loadTodayWeather();
-loadWeeklyWeather();
 </script>
 
 </body>
