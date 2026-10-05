@@ -1,241 +1,693 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>京王線 全列車 時刻表ビューア</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 0;
-      padding: 16px;
-      background: #0f172a;
-      color: #e5e7eb;
-    }
-    h1 { margin: 0 0 8px; font-size: 20px; }
-    h2 { margin: 16px 0 8px; font-size: 16px; }
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-      gap: 16px;
-    }
-    @media (max-width: 900px) {
-      .layout { grid-template-columns: 1fr; }
-    }
-    .card {
-      background: #020617;
-      border-radius: 12px;
-      padding: 12px;
-      border: 1px solid #1f2937;
-    }
-    label {
-      font-size: 12px;
-      color: #9ca3af;
-      display: block;
-      margin-bottom: 4px;
-    }
-    input, select, button {
-      font-size: 13px;
-      padding: 6px 8px;
-      border-radius: 8px;
-      border: 1px solid #374151;
-      background: #020617;
-      color: #e5e7eb;
-      outline: none;
-    }
-    button {
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      color: #022c22;
-    }
-    table {
-      border-collapse: collapse;
-      font-size: 12px;
-      width: max-content;
-    }
-    th, td {
-      border: 1px solid #1f2937;
-      padding: 4px 6px;
-      white-space: nowrap;
-      text-align: center;
-    }
-    th {
-      background: #0b1220;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-    .scroll-x { overflow-x: auto; max-height: 80vh; }
-    .muted { color: #9ca3af; font-size: 11px; }
-  </style>
+<meta charset="UTF-8">
+<title>tetsudo-site2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+
+<style>
+:root {
+  --color-keio:#8e44ad;
+  --color-jr:#27ae60;
+  --color-ote:#e74c3c;
+  --color-chika:#2980b9;
+  --color-etc:#7f8c8d;
+  --color-material:#e67e22;
+  --color-data:#f1c40f;
+  --color-fav:#ff8800;
+}
+
+body {
+  margin:0;
+  background:#0f0f0f;
+  color:#eee;
+  font-family:system-ui;
+  overflow-x:hidden;
+}
+
+body.light {
+  background:#f5f5f5;
+  color:#222;
+}
+body.light .card,
+body.light .item,
+body.light .modal {
+  background:#fff;
+  color:#222;
+}
+body.light .nav {
+  background:#e0e0e0;
+}
+body.light .nav button {
+  background:#ccc;
+  color:#222;
+}
+body.light .nav button.active {
+  background:#0099ff;
+  color:#fff;
+}
+
+header {
+  background:#0066cc;
+  padding:14px;
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+  color:#fff;
+}
+
+.nav {
+  display:flex;
+  gap:10px;
+  padding:14px;
+  background:#1a1a1a;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+.nav button {
+  padding:10px 18px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  color:#fff;
+  font-size:15px;
+  flex-shrink:1;
+}
+
+#nav-all { background:#555; }
+#nav-keio { background:var(--color-keio); }
+#nav-jr { background:var(--color-jr); }
+#nav-ote { background:var(--color-ote); }
+#nav-chika { background:var(--color-chika); }
+#nav-etc { background:var(--color-etc); }
+#nav-material { background:var(--color-material); }
+#nav-data { background:var(--color-data); color:#000; }
+#nav-fav { background:var(--color-fav); }
+#nav-info { background:#0099ff; }
+#nav-settings { background:#444; }
+
+.nav button.active {
+  outline:3px solid #fff;
+}
+
+.section { display:none; padding:16px; }
+.section.active { display:block; }
+
+.item {
+  background:#1c1c1c;
+  padding:18px;
+  border-radius:12px;
+  margin-bottom:14px;
+  display:flex;
+  justify-content:space-between;
+  border-left:6px solid #444;
+  width:100%;
+  box-sizing:border-box;
+}
+
+.item-title {
+  font-size:26px;
+  font-weight:bold;
+  text-align:left;
+}
+
+.item-detail {
+  font-size:16px;
+  margin-top:10px;
+  line-height:1.6;
+}
+
+.item-category {
+  font-size:14px;
+  opacity:0.9;
+  margin-top:8px;
+}
+
+.item-buttons {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.primary { background:#0099ff; color:#fff; border:none; padding:8px; border-radius:6px; }
+.gray { background:#444; color:#fff; border:none; padding:8px; border-radius:6px; }
+.danger { background:#c33; color:#fff; border:none; padding:8px; border-radius:6px; }
+
+.card {
+  background:#1c1c1c;
+  padding:16px;
+  border-radius:12px;
+  margin-bottom:16px;
+}
+
+.circle-tabs {
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+.circle-tab {
+  border-radius:999px;
+  padding:8px 18px;
+  border:1px solid #555;
+  background:#222;
+  color:#eee;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.circle-tab.active {
+  background:#0099ff;
+  border-color:#0099ff;
+}
+
+.weather-week {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+}
+
+.weather-day {
+  background:#222;
+  padding:10px;
+  border-radius:8px;
+  width:130px;
+  text-align:center;
+}
+
+.modal-bg {
+  position:fixed;
+  inset:0;
+  background:#000a;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+}
+
+.modal {
+  background:#1c1c1c;
+  padding:20px;
+  border-radius:14px;
+  width:90%;
+  max-width:420px;
+  box-sizing:border-box;
+}
+
+.modal input,
+.modal textarea,
+.modal select {
+  width:calc(100% - 20px);
+  margin-left:10px;
+  margin-right:10px;
+  padding:12px;
+  border-radius:8px;
+  border:none;
+  background:#2a2a2a;
+  color:#fff;
+  font-size:15px;
+  margin-bottom:12px;
+}
+
+textarea {
+  min-height:120px;
+  resize:none;
+}
+
+.modal-buttons {
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+</style>
 </head>
 <body>
-  <h1>京王線 全列車 時刻表ビューア</h1>
-  <div class="muted">Googleシート（駅×列車）を自動読み込み</div>
 
-  <div class="layout">
-    <div class="card">
-      <h2>検索・表示</h2>
+<header>tetsudo-site2</header>
 
-      <label for="viewSelect">表示形式</label>
-      <select id="viewSelect">
-        <option value="horizontal">横（駅 × 列車）</option>
-        <option value="vertical">縦（1列車ずつ）</option>
-      </select>
+<div class="nav">
+  <button id="nav-all" class="active" onclick="setCategory('all')">すべて</button>
+  <button id="nav-keio" onclick="setCategory('京王')">京王</button>
+  <button id="nav-jr" onclick="setCategory('JR')">JR</button>
+  <button id="nav-ote" onclick="setCategory('大手私鉄')">大手私鉄</button>
+  <button id="nav-chika" onclick="setCategory('地下鉄')">地下鉄</button>
+  <button id="nav-etc" onclick="setCategory('その他')">その他</button>
+  <button id="nav-material" onclick="setCategory('材料')">材料</button>
+  <button id="nav-data" onclick="setCategory('資料')">資料</button>
+  <button id="nav-fav" onclick="setCategory('よく使う')">よく使う</button>
+  <button id="nav-info" onclick="showSection('info')">情報</button>
+  <button id="nav-settings" onclick="showSection('settings')">設定</button>
+</div>
 
-      <h2>列車番号検索</h2>
-      <label for="trainNoInput">列車番号</label>
-      <input id="trainNoInput" placeholder="例: 5600">
-      <button id="searchTrainBtn">検索</button>
+<section id="section-urls" class="section active">
 
-      <div id="trainDetail" class="muted" style="margin-top:8px;">
-        列車番号を入力してください。
-      </div>
+  <input id="searchInput" placeholder="タイトル検索"
+         oninput="searchTitle()"
+         style="width:100%; padding:10px; margin-bottom:12px; border-radius:8px; border:none; font-size:16px;">
 
-      <h2>駅別発車時刻</h2>
-      <label for="stationSelect">駅を選択</label>
-      <select id="stationSelect"></select>
-      <button id="showStationBtn">表示</button>
+  <div id="urlList"></div>
+</section>
 
-      <div id="stationDepartures" style="margin-top:8px;"></div>
+<section id="section-info" class="section">
+  <div class="card">
+    <h3>天気情報（東京）</h3>
+    <div class="circle-tabs">
+      <button class="circle-tab active" data-tab="now" onclick="switchWeatherTab('now')">現在</button>
+      <button class="circle-tab" data-tab="today" onclick="switchWeatherTab('today')">今日</button>
+      <button class="circle-tab" data-tab="week" onclick="switchWeatherTab('week')">1週間</button>
     </div>
 
-    <div class="card">
-      <h2>全列車一覧</h2>
-      <div id="timetableArea" class="scroll-x">読み込み中…</div>
-    </div>
+    <div id="weather-now">読み込み中...</div>
+    <div id="weather-today" style="display:none;">読み込み中...</div>
+    <div id="weather-week" style="display:none;">読み込み中...</div>
   </div>
 
-  <script>
-    // ★ あなたの新しい横表CSV（駅×列車）
-   const CSV_URL =
-  "https://docs.google.com/spreadsheets/d/1EyCyghvrLeOQJcP6LINLvR95v0WOsv29oCXbPe3-L-g/export?format=csv&gid=1879850608";
+  <div class="card">
+    <h3>現在時刻</h3>
+    <div id="datetime">読み込み中...</div>
+  </div>
+</section>
 
-    let TRAINS = {};   // 列車番号 → { stops:{} }
-    let STATIONS = []; // 駅一覧
+<section id="section-settings" class="section">
+  <div class="card">
+    <h3>クラウド同期</h3>
+    <button class="primary" onclick="cloudSave()">クラウド保存</button>
+    <button class="gray" onclick="cloudLoad()">クラウド受信</button>
+  </div>
 
-    // 横表CSVパーサー（駅×列車）
-    function parseHorizontalCsv(text) {
-      const rows = text.split(/\r?\n/).map(r => r.split(","));
-      const header = rows[0];
+  <div class="card">
+    <h3>URL追加（パスワード必要）</h3>
+    <input id="passInput" type="password" placeholder="パスワードを入力">
+    <button class="primary" onclick="checkPass()">認証</button>
+    <button id="openAddBtn" class="gray" style="display:none;" onclick="openAddModal()">新規追加画面を開く</button>
+  </div>
 
-      // 列車番号一覧（1列目以外）
-      const trainNos = header.slice(1).map(h => h.trim());
+  <div class="card">
+    <h3>テーマ切り替え</h3>
+    <button class="primary" onclick="toggleTheme()">ライト / ダーク切り替え</button>
+  </div>
+</section>
 
-      // 駅一覧
-      STATIONS = rows.slice(1).map(r => r[0].trim());
+<div id="modalBg" class="modal-bg">
+  <div class="modal">
+    <h3 id="modalTitle">新規追加</h3>
 
-      // 列車データ初期化
-      trainNos.forEach(no => {
-        TRAINS[no] = { stops: {} };
-      });
+    <input id="formTitle" placeholder="タイトル">
+    <input id="formUrl" placeholder="URL">
+    <textarea id="formDetail" placeholder="詳細"></textarea>
 
-      // 時刻を読み込む
-      for (let r = 1; r < rows.length; r++) {
-        const station = rows[r][0].trim();
-        for (let c = 1; c < rows[r].length; c++) {
-          const no = trainNos[c - 1];
-          const time = rows[r][c].trim();
-          if (time && time !== "ﾚ" && time !== "||") {
-            TRAINS[no].stops[station] = time;
-          }
-        }
-      }
-    }
+    <select id="formCategory">
+      <option value="京王">京王</option>
+      <option value="JR">JR</option>
+      <option value="大手私鉄">大手私鉄</option>
+      <option value="地下鉄">地下鉄</option>
+      <option value="その他">その他</option>
+      <option value="材料">材料</option>
+      <option value="資料">資料</option>
+      <option value="よく使う">よく使う</option>
+    </select>
 
-    // 横表表示
-    function renderHorizontal() {
-      const area = document.getElementById("timetableArea");
-      const trainNos = Object.keys(TRAINS);
+    <div class="modal-buttons">
+      <button class="gray" onclick="closeModal()">閉じる</button>
+      <button id="modalSubmitBtn" class="primary" onclick="submitModal()">追加する</button>
+    </div>
+  </div>
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
 
-      let html = "<table><thead><tr><th>駅</th>";
-      trainNos.forEach(no => html += `<th>${no}</th>`);
-      html += "</tr></thead><tbody>";
+/* Firebase設定 */
+const firebaseConfig = {
+  apiKey:"d47572a1cd7e50746a614ef286b5375c",
+  authDomain:"tetsudo-site6.firebaseapp.com",
+  databaseURL:"https://tetsudo-site6-default-rtdb.firebaseio.com",
+  projectId:"tetsudo-site6",
+  storageBucket:"tetsudo-site6.firebasestorage.app",
+  messagingSenderId:"563943849207",
+  appId:"1:563943849207:web:1c813365201cb431d6e7f2"
+};
 
-      STATIONS.forEach(st => {
-        html += `<tr><td>${st}</td>`;
-        trainNos.forEach(no => {
-          html += `<td>${TRAINS[no].stops[st] || ""}</td>`;
-        });
-        html += "</tr>";
-      });
+const app = initializeApp(firebaseConfig);
+const db = getDatabase();
+const auth = getAuth();
 
-      html += "</tbody></table>";
-      area.innerHTML = html;
-    }
+/* ローカルデータ */
+let urls = JSON.parse(localStorage.getItem("urls") || "[]");
+let currentCategory = "all";
+let editIndex = null;
+let isAuthed = false;
+let searchKeyword = "";
 
-    // 縦カード表示
-    function renderVertical() {
-      const area = document.getElementById("timetableArea");
-      const trainNos = Object.keys(TRAINS);
+/* タイトル検索 */
+window.searchTitle = function(){
+  searchKeyword = document.getElementById("searchInput").value.trim();
+  render();
+};
 
-      let html = "";
-      trainNos.forEach(no => {
-        html += `<div style="border:1px solid #1f2937; padding:10px; margin-bottom:10px;">`;
-        html += `<strong>列車 ${no}</strong><br>`;
-        html += "<table><tr><th>駅</th><th>時刻</th></tr>";
-        STATIONS.forEach(st => {
-          if (TRAINS[no].stops[st]) {
-            html += `<tr><td>${st}</td><td>${TRAINS[no].stops[st]}</td></tr>`;
-          }
-        });
-        html += "</table></div>";
-      });
+/* ナビID変換 */
+function navIdForCategory(cat){
+  return {
+    "all":"nav-all",
+    "京王":"nav-keio",
+    "JR":"nav-jr",
+    "大手私鉄":"nav-ote",
+    "地下鉄":"nav-chika",
+    "その他":"nav-etc",
+    "材料":"nav-material",
+    "資料":"nav-data",
+    "よく使う":"nav-fav"
+  }[cat] || "nav-all";
+}
 
-      area.innerHTML = html;
-    }
+/* 画面切り替え */
+window.showSection = function(name){
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
 
-    // 列車番号検索
-    function renderTrainDetail(no) {
-      const box = document.getElementById("trainDetail");
-      const t = TRAINS[no];
+  if(name==="info"){
+    document.getElementById("section-info").classList.add("active");
+    document.getElementById("nav-info").classList.add("active");
+  }else if(name==="settings"){
+    document.getElementById("section-settings").classList.add("active");
+    document.getElementById("nav-settings").classList.add("active");
+  }else{
+    document.getElementById("section-urls").classList.add("active");
+    document.getElementById("nav-all").classList.add("active");
+  }
+};
 
-      if (!t) {
-        box.innerHTML = "見つかりませんでした。";
-        return;
-      }
+/* カテゴリ切り替え */
+window.setCategory = function(cat){
+  currentCategory = cat;
+  showSection("urls");
 
-      let html = `<strong>列車 ${no}</strong>`;
-      html += "<table><tr><th>駅</th><th>時刻</th></tr>";
-      STATIONS.forEach(st => {
-        if (t.stops[st]) html += `<tr><td>${st}</td><td>${t.stops[st]}</td></tr>`;
-      });
-      html += "</table>";
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+  document.getElementById(navIdForCategory(cat)).classList.add("active");
 
-      box.innerHTML = html;
-    }
+  render();
+};
 
-    // 駅別発車時刻
-    function renderStationDepartures(st) {
-      const box = document.getElementById("stationDepartures");
-      const rows = [];
+/* カード色 */
+function categoryBorderColor(cat){
+  return {
+    "京王":"var(--color-keio)",
+    "JR":"var(--color-jr)",
+    "大手私鉄":"var(--color-ote)",
+    "地下鉄":"var(--color-chika)",
+    "その他":"var(--color-etc)",
+    "材料":"var(--color-material)",
+    "資料":"var(--color-data)",
+    "よく使う":"var(--color-fav)"
+  }[cat] || "#444";
+}
 
-      Object.entries(TRAINS).forEach(([no, t]) => {
-        if (t.stops[st]) rows.push({ no, time: t.stops[st] });
-      });
+/* URL描画 */
+function render(){
+  const list = document.getElementById("urlList");
+  list.innerHTML = "";
 
-      rows.sort((a,b) => a.time.localeCompare(b.time));
+  // 元のインデックス（追加順）を保持したオブジェクトを作成
+  let indexed = urls.map((item, index) => ({ item, index }));
 
-      let html = `<strong>${st} 発車時刻</strong>`;
-      html += "<table><tr><th>時刻</th><th>列車</th></tr>";
-      rows.forEach(r => html += `<tr><td>${r.time}</td><td>${r.no}</td></tr>`);
-      html += "</table>";
+  /* カテゴリ絞り込み */
+  if(currentCategory !== "all"){
+    indexed = indexed.filter(obj => obj.item.category === currentCategory);
+  } else {
+    /* すべて → 「資料」「よく使う」「材料」を除外 */
+    const excludedCategories = ["資料", "よく使う", "材料"];
+    indexed = indexed.filter(obj => !excludedCategories.includes(obj.item.category));
+  }
 
-      box.innerHTML = html;
-    }
+  /* タイトル検索 */
+  if(searchKeyword !== ""){
+    indexed = indexed.filter(obj => obj.item.title.includes(searchKeyword));
+  }
 
-    // イベント
-    document.getElementById("viewSelect").addEventListener("change", e => {
-      if (e.target.value === "horizontal") renderHorizontal();
-      else renderVertical();
+  /* ソート：タイトル（数値含む50音順） -> 同じ場合は詳細の順 -> さらに同じ場合は追加順 */
+  indexed.sort((a, b) => {
+    // 1. タイトル順 (数字順も考慮)
+    const titleCmp = a.item.title.localeCompare(b.item.title, "ja", { numeric: true });
+    if (titleCmp !== 0) return titleCmp;
+
+    // 2. タイトルが同じ場合は詳細順
+    const detailA = a.item.detail || "";
+    const detailB = b.item.detail || "";
+    const detailCmp = detailA.localeCompare(detailB, "ja", { numeric: true });
+    if (detailCmp !== 0) return detailCmp;
+
+    // 3. 詳細も同じ場合は追加順 (元のインデックス順)
+    return a.index - b.index;
+  });
+
+  indexed.forEach(({ item, index: realIndex })=>{
+    const div = document.createElement("div");
+    div.className="item";
+    div.style.borderLeftColor = categoryBorderColor(item.category);
+
+    div.addEventListener("click", (e) => {
+      if (e.target.tagName.toLowerCase() === "button") return;
+      window.open(item.url, "_blank");
     });
 
-    document.getElementById("searchTrainBtn").addEventListener("click", () => {
-      const no = document.getElementById("trainNoInput").value.trim();
-      renderTrainDetail(no);
-    });
+    let buttonsHtml = "";
+    if(isAuthed){
+      buttonsHtml = `
+        <button class="gray" onclick="openEditModal(${realIndex})">編集</button>
+        <button class="danger" onclick="removeUrl(${realIndex})">削除</button>
+      `;
+    }
 
-    document.getElementById("showStationBtn").addEventListener("click", () => {
-      const st =
+    div.innerHTML = `
+      <div class="item-inner" style="width:100%;">
+        <div class="item-title">${item.title}</div>
+
+        <div class="item-detail">
+          ${(item.detail || "").replace(/\n/g, "<br>")}
+        </div>
+
+        <div class="item-category">カテゴリ: ${item.category}</div>
+      </div>
+
+      <div class="item-buttons">${buttonsHtml}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+/* パスワード認証 */
+window.checkPass = function(){
+  if(document.getElementById("passInput").value==="0829"){
+    isAuthed = true;
+    document.getElementById("openAddBtn").style.display="inline-block";
+    alert("認証成功");
+    render();
+  }else{
+    alert("違います");
+  }
+};
+
+/* モーダル（追加） */
+window.openAddModal = function(){
+  editIndex=null;
+
+  document.getElementById("modalTitle").textContent="新規追加";
+  document.getElementById("modalSubmitBtn").textContent = "追加する";
+
+  document.getElementById("formTitle").value="";
+  document.getElementById("formUrl").value="";
+  document.getElementById("formDetail").value="";
+  document.getElementById("formCategory").value="京王";
+
+  document.getElementById("modalBg").style.display="flex";
+};
+
+/* モーダル（編集） */
+window.openEditModal = function(i){
+  editIndex=i;
+  const item=urls[i];
+
+  document.getElementById("modalTitle").textContent="編集";
+  document.getElementById("modalSubmitBtn").textContent = "上書き保存";
+
+  document.getElementById("formTitle").value=item.title;
+  document.getElementById("formUrl").value=item.url;
+  document.getElementById("formDetail").value=item.detail;
+  document.getElementById("formCategory").value=item.category;
+
+  document.getElementById("modalBg").style.display="flex";
+};
+
+/* モーダル閉じる */
+window.closeModal = function(){
+  document.getElementById("modalBg").style.display="none";
+};
+
+/* モーダル送信 */
+window.submitModal = function(){
+  const title=document.getElementById("formTitle").value.trim();
+  const url=document.getElementById("formUrl").value.trim();
+  const detail=document.getElementById("formDetail").value.trim();
+  const category=document.getElementById("formCategory").value;
+
+  if(!title || !url){
+    alert("タイトルとURLは必須です");
+    return;
+  }
+
+  const data={title,url,detail,category};
+
+  if(editIndex===null){
+    urls.push(data);
+  }else{
+    urls[editIndex]=data;
+  }
+
+  localStorage.setItem("urls",JSON.stringify(urls));
+  render();
+  closeModal();
+};
+
+/* 削除 */
+window.removeUrl = function(i){
+  if(!confirm("削除しますか？")) return;
+
+  urls.splice(i,1);
+  localStorage.setItem("urls",JSON.stringify(urls));
+  render();
+};
+
+/* クラウド保存（手動のみ） */
+window.cloudSave = function(){
+  set(ref(db,"urlData"), urls).then(()=>{
+    alert("クラウドに保存しました");
+  });
+};
+
+/* クラウド受信（手動） */
+window.cloudLoad = async function(){
+  const snapshot = await get(ref(db,"urlData"));
+  urls = snapshot.val() || [];
+  localStorage.setItem("urls", JSON.stringify(urls));
+  render();
+  alert("クラウドから受信しました");
+};
+
+/* 自動同期 */
+onValue(ref(db,"urlData"), snap=>{
+  urls = snap.val() || [];
+  localStorage.setItem("urls", JSON.stringify(urls));
+  render();
+});
+
+/* 天気API */
+const weatherApiKey="d47572a1cd7e50746a614ef286b5375c";
+const lat=35.68, lon=139.76;
+
+/* 現在の天気 */
+async function loadCurrentWeather(){
+  const el=document.getElementById("weather-now");
+  try{
+    const r=await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${weatherApiKey}&lang=ja&units=metric`);
+    const d=await r.json();
+    el.innerHTML=`
+      <div style="text-align:center;">
+        <img src="https://openweathermap.org/img/wn/${d.weather[0].icon}@4x.png" width="80">
+        <div>${d.weather[0].description}</div>
+        <div>${d.main.temp}℃</div>
+      </div>`;
+  }catch{ el.textContent="失敗"; }
+}
+
+/* 今日の天気 */
+async function loadTodayWeather(){
+  const el=document.getElementById("weather-today");
+  try{
+    const r=await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${weatherApiKey}&lang=ja&units=metric`);
+    const d=await r.json();
+    const t=d.list[0];
+    el.innerHTML=`
+      <div style="text-align:center;">
+        <img src="https://openweathermap.org/img/wn/${t.weather[0].icon}@4x.png" width="80">
+        <div>${t.weather[0].description}</div>
+        <div>${t.main.temp}℃</div>
+      </div>`;
+  }catch{ el.textContent="失敗"; }
+}
+
+/* 1週間の天気 */
+async function loadWeeklyWeather(){
+  const el=document.getElementById("weather-week");
+  try{
+    const r=await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${weatherApiKey}&lang=ja&units=metric`);
+    const d=await r.json();
+
+    const wrap=document.createElement("div");
+    wrap.className="weather-week";
+
+    for(let i=0;i<7;i++){
+      const day=d.list[i];
+      const dt=new Date(day.dt*1000);
+      const label=`${dt.getMonth()+1}/${dt.getDate()}`;
+
+      const box=document.createElement("div");
+      box.className="weather-day";
+      box.innerHTML=`
+        <div>${label}</div>
+        <img src="https://openweathermap.org/img/wn/${day.weather[0].icon}.png" width="40">
+        <div>${day.weather[0].description}</div>
+        <div>${day.main.temp}℃</div>
+      `;
+      wrap.appendChild(box);
+    }
+
+    el.innerHTML="";
+    el.appendChild(wrap);
+  }catch{ el.textContent="失敗"; }
+}
+
+/* 天気タブ切り替え */
+window.switchWeatherTab = function(tab){
+  document.querySelectorAll(".circle-tab").forEach(b=>{
+    b.classList.toggle("active", b.dataset.tab===tab);
+  });
+
+  document.getElementById("weather-now").style.display = tab==="now"?"block":"none";
+  document.getElementById("weather-today").style.display = tab==="today"?"block":"none";
+  document.getElementById("weather-week").style.display = tab==="week"?"block":"none";
+};
+
+/* 時計 */
+function startClock(){
+  setInterval(()=>{
+    const now=new Date();
+    document.getElementById("datetime").textContent=
+      `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 `
+      +`${now.getHours()}時${String(now.getMinutes()).padStart(2,"0")}分${String(now.getSeconds()).padStart(2,"0")}秒`;
+  },1000);
+}
+
+/* テーマ切り替え */
+window.toggleTheme = function(){
+  document.body.classList.toggle("light");
+  localStorage.setItem("theme",document.body.classList.contains("light")?"light":"dark");
+};
+
+if(localStorage.getItem("theme")==="light"){
+  document.body.classList.add("light");
+}
+
+/* 初期化 */
+signInAnonymously(auth).then(()=>cloudLoad());
+render();
+startClock();
+loadCurrentWeather();
+loadTodayWeather();
+loadWeeklyWeather();
+</script>
+
+</body>
+</html>
